@@ -42,26 +42,6 @@
       "name": "Convertir archivo a JSON"
     },
     {
-      "parameters": {
-        "url": "https://raw.githubusercontent.com/mit0110/chatbot_famaf/refs/heads/main/data/faq_dataset_v1.csv?token=GHSAT0AAAAAADMIDRBEXCTI7HEY5Y5NLWLS2JHRAEQ",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        16,
-        16
-      ],
-      "id": "44a83c0d-c2bf-456a-b2fe-a4ea4274d75f",
-      "name": "Obtener archivo con preguntas y respuestas"
-    },
-    {
       "parameters": {},
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -148,6 +128,39 @@
       ],
       "id": "e21323af-43a7-4ec2-8afe-cd520602581e",
       "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "mit0110",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "chatbot_famaf",
+          "mode": "name"
+        },
+        "filePath": "data/faq_dataset_v1.csv",
+        "additionalParameters": {}
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        16
+      ],
+      "id": "bffa6b6c-28ea-482f-90c2-92a4a2948afe",
+      "name": "Get a file",
+      "webhookId": "ff4a8490-9527-45a3-b4ef-35da1629386a",
+      "credentials": {
+        "githubApi": {
+          "id": "HDFQfv8HldLJWNQ9",
+          "name": "FrancoArtico"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -185,22 +198,11 @@
         ]
       ]
     },
-    "Obtener archivo con preguntas y respuestas": {
-      "main": [
-        [
-          {
-            "node": "Convertir archivo a JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ejecución Manual": {
       "main": [
         [
           {
-            "node": "Obtener archivo con preguntas y respuestas",
+            "node": "Get a file",
             "type": "main",
             "index": 0
           }
@@ -228,13 +230,24 @@
           }
         ]
       ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Convertir archivo a JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "47bbc250-5e91-4d85-9ece-81f39a7e406b",
+  "versionId": "1e5cc8fb-3f32-44b0-9dfa-65dc926c3726",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

@@ -1,0 +1,244 @@
+{
+  "name": "rag_ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        816,
+        240
+      ],
+      "id": "6620b819-f74b-4430-8c88-88c50edb7846",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        896,
+        448
+      ],
+      "id": "3bd412ee-a5c7-4334-b17b-aca578f4a07c",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        240,
+        16
+      ],
+      "id": "21403fbf-6dc6-423b-a193-04c8c3e1fca4",
+      "name": "Convertir archivo a JSON"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/mit0110/chatbot_famaf/refs/heads/main/data/faq_dataset_v1.csv?token=GHSAT0AAAAAADMIDRBEXCTI7HEY5Y5NLWLS2JHRAEQ",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        16
+      ],
+      "id": "44a83c0d-c2bf-456a-b2fe-a4ea4274d75f",
+      "name": "Obtener archivo con preguntas y respuestas"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        16
+      ],
+      "id": "ca14c009-b274-4433-a9d8-1ddc57a47331",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  return {\n    json: {\n      content: `Q: ${item.json[\"Preguntas\"]}\\nA: ${item.json[\"Respuesta\"]}`,\n      metadata: {\n        category: item.json[\"Categoría\"]\n      }\n      }\n    }\n  });\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        16
+      ],
+      "id": "4830eaba-1b3e-4c73-b30e-80885b95b2e4",
+      "name": "Aplanar JSON a un solo campo",
+      "notes": "Este paso es necesario para generar el embedding."
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        688,
+        240
+      ],
+      "id": "00a21dfd-aa17-46eb-86f2-55a2ab95ef49",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-chatbot-famaf",
+          "mode": "list",
+          "cachedResultName": "n8n-chatbot-famaf"
+        },
+        "options": {
+          "pineconeNamespace": "Question-Answer"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        720,
+        16
+      ],
+      "id": "a072f0e6-c40d-4e68-879d-d658994777f4",
+      "name": "Convertir a Vectores y Cargarlo en la Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Cargando Datos dentro de la Vector Store",
+        "height": 720,
+        "width": 1776,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -128
+      ],
+      "id": "e21323af-43a7-4ec2-8afe-cd520602581e",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Convertir a Vectores y Cargarlo en la Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir archivo a JSON": {
+      "main": [
+        [
+          {
+            "node": "Aplanar JSON a un solo campo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener archivo con preguntas y respuestas": {
+      "main": [
+        [
+          {
+            "node": "Convertir archivo a JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Obtener archivo con preguntas y respuestas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplanar JSON a un solo campo": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Vectores y Cargarlo en la Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Convertir a Vectores y Cargarlo en la Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "196de2d4-9c35-4572-bcb4-8c1c4fca19df",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "8Q0LXjuvsEJMj68F",
+  "tags": []
+}

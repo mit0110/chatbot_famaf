@@ -1,0 +1,287 @@
+{
+  "name": "rag_query",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "reply_to_message_id": "={{ $('Telegram Trigger').item.json.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "f8a13511-02ff-44ff-ba9d-6f63b9eefab9",
+      "name": "Send a text message",
+      "webhookId": "f4e70a39-f041-4f48-96fe-fb9a4e80106e",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Generar una Respuesta usando la Vector Store generada",
+        "height": 720,
+        "width": 1504,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -304
+      ],
+      "id": "85260b71-d66c-4632-9426-de5610a81bdc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        240
+      ],
+      "id": "4f3c5781-a1a4-4db8-bec9-71a734fac7b0",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -288,
+        -144
+      ],
+      "id": "9b3af7e0-7858-416c-9c0a-86b38d960db3",
+      "name": "Writing message",
+      "webhookId": "60cca227-331d-4b73-a53d-890647c4ce25",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -496,
+        -144
+      ],
+      "id": "06b3c9a9-aeff-46d9-9711-12e550a9fab2",
+      "name": "Telegram Trigger",
+      "webhookId": "56c40c4a-3941-45a5-bff1-88b1c053bd42",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Usa esta herramienta para acceder a la base de datos que contiene la información para responder a cada consulta del usuario.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "n8n-chatbot-famaf",
+          "mode": "list",
+          "cachedResultName": "n8n-chatbot-famaf"
+        },
+        "options": {
+          "pineconeNamespace": "Question-Answer"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        64
+      ],
+      "id": "903fe07e-7688-4f24-bba3-752e287203c8",
+      "name": "Vector Store con Preguntas",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        80
+      ],
+      "id": "d777fce7-64da-4224-9444-9c9c81d279a8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      },
+      "notes": "Eres un asistente muy útil. Usa la herramienta provista para responder a las preguntas solamente en el contexto que te pasé. \n\nSi la respuesta no está, no la inventes, simplemente dí que no sabes,"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        80
+      ],
+      "id": "60cea2fd-e0bc-482e-932f-e292b023ccde",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "Eres un asistente para estudiantes universitarios de la Facultad de Astronomía, Física y Computación de la Universidad Nacional de Córdoba. Tu trabajo es responder preguntas acerca de aulas, materias, Régimen Especial de Cursado, solicitudes de certificación, fechas definitivas para exámenes, calendario académico e ingreso. Toda la información sobre esto puede ser encontrada en la vector store que te suministre, por lo que deberás llamarla cada vez que te hagan una pregunta, para asegurar que la respuesta que des sea acertada.\n\nNo respondas preguntas que no tienen que ver con la Facultad de Astronomía, Física y Computación (FAMAF) o la Universidad Nacional de Córdoba (UNC), en ese casos donde el usuario pregunta por otra cosa cuya información no encuentres en la vector store solo aclara cual es tu objetivo y que por favor ingrese una consulta que tenga que ver con tu objetivo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        16,
+        -144
+      ],
+      "id": "722842d0-f3e3-4f6d-9434-d072b3c567a8",
+      "name": "AI Agent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store con Preguntas",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writing message": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Writing message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store con Preguntas": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f06c81f1-e090-4d7a-83c5-e8121aad5980",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "iMdKU04hORM3aWQD",
+  "tags": [
+    {
+      "updatedAt": "2025-11-27T00:56:21.602Z",
+      "createdAt": "2025-11-27T00:56:21.602Z",
+      "id": "mYRoVhs5Njd6jn03",
+      "name": "FAMAF"
+    }
+  ]
+}

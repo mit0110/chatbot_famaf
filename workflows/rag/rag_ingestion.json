@@ -135,7 +135,7 @@
     },
     {
       "parameters": {
-        "content": "## Cargando Datos dentro de la Vector Store",
+        "content": "## Cargando Datos dentro de la Vector Store\n⚠️ __Al importar se deben configurar las credenciales antes de ejecutar el workflow__",
         "height": 720,
         "width": 1776,
         "color": 7
@@ -234,11 +234,18 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "196de2d4-9c35-4572-bcb4-8c1c4fca19df",
+  "versionId": "47bbc250-5e91-4d85-9ece-81f39a7e406b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },
   "id": "8Q0LXjuvsEJMj68F",
-  "tags": []
+  "tags": [
+    {
+      "name": "FAMAF",
+      "id": "mYRoVhs5Njd6jn03",
+      "updatedAt": "2025-11-27T00:56:21.602Z",
+      "createdAt": "2025-11-27T00:56:21.602Z"
+    }
+  ]
 }

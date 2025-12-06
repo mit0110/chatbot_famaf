@@ -76,7 +76,8 @@
         "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
         "text": "={{ $json.document.metadata.Answer }}",
         "additionalFields": {
-          "appendAttribution": false
+          "appendAttribution": false,
+          "parse_mode": "HTML"
         }
       },
       "type": "n8n-nodes-base.telegram",
@@ -135,11 +136,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d808cf1c-5547-4cda-a0a5-0a4a61772f52",
+  "versionId": "c36debf1-080e-4dd5-89b5-5537ad5837eb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

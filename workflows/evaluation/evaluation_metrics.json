@@ -1,0 +1,406 @@
+{
+  "name": "evaluation_metrics",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://us.cloud.langfuse.com/api/public/scores",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"Accuracy\",\n  \"value\": {{ $('Evaluación de Accuracy').item.json.Categorization }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        800,
+        304
+      ],
+      "id": "1b520391-0227-42a9-a67e-b8fd9e3c7878",
+      "name": "Registrar Métricas en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://us.cloud.langfuse.com/api/public/traces/{{ $json.otel_trace_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        16,
+        208
+      ],
+      "id": "c1e9266b-a060-4491-9d48-f98c553e0b43",
+      "name": "Obtener Trazas a Evaluar",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT \n  input1.id AS traceId,\n  input1.input,\n  input1.output,\n  input2.id AS datasetItemId,\n  input2.expectedOutput\nFROM input1\nINNER JOIN input2 \nON input1.input = input2.input",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        304
+      ],
+      "id": "6aab5bc4-7a1b-42dc-9bf7-6f9082b297e1",
+      "name": "Unión por Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Trazas a Evaluar y Valores Esperados",
+        "height": 432,
+        "width": 624,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        144
+      ],
+      "id": "9307f158-5d03-4b2b-8025-225ae124663c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Evaluación",
+        "height": 208,
+        "width": 198,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        528,
+        256
+      ],
+      "id": "454f7996-7471-454a-b78b-e84c1c54cc5f",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Guardado de Puntuaciones",
+        "height": 448,
+        "width": 752,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        496,
+        144
+      ],
+      "id": "6009ed75-6a55-4e15-97fb-77783fe1ff62",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Descripción\nObtiene las trazas y el conjunto de datos desde la API, para luego comparar el valor esperado con el valor resultante de la traza.",
+        "height": 112,
+        "width": 976,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        608
+      ],
+      "id": "895c6ced-c4c1-4c23-8204-46373b553a05",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetName",
+              "value": "faq_dataset_v1"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -96,
+        400
+      ],
+      "id": "18f57eb4-9369-4ac4-8e40-29c85738fa81",
+      "name": "Obtener Conjunto de Datos",
+      "executeOnce": true,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "={{ $json.expectedOutput }}",
+        "actualAnswer": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        576,
+        304
+      ],
+      "id": "f2e47492-9bc8-4275-9192-e4984e79b97a",
+      "name": "Evaluación de Accuracy"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-run-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetItemId",
+              "value": "={{ $('Unión por Consulta').item.json.datasetItemId }}"
+            },
+            {
+              "name": "runName",
+              "value": "canned-responses"
+            },
+            {
+              "name": "traceId",
+              "value": "={{ $('Unión por Consulta').item.json.traceId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        304
+      ],
+      "id": "a579a7d1-a91f-4fd3-aa2b-92dfb8bd5322",
+      "name": "Enlazar con el Dataset en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        304
+      ],
+      "id": "8f42cf61-1ad6-48c8-9231-f3f5da9774f3",
+      "name": "Al ser Ejecutado por Otro Workflow"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        128,
+        400
+      ],
+      "id": "20b01595-88a8-41f4-911b-d614ea24f9b0",
+      "name": "Agregar Items a un Arreglo"
+    }
+  ],
+  "pinData": {
+    "Al ser Ejecutado por Otro Workflow": [
+      {
+        "json": {
+          "otel_trace_id": "00353bd029f4474182f768b95c6bc436"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "9c18fb2d6cee4c65bbeddd37e7c4d99c"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "0fde0127c9844861b691c37c258bbe51"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "b5e942f07e764730a51ce4f656f14460"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "2b2b85bfd9434f7dbdf4b782d0c12cfb"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "afe804876bc44e65aa3151f1300ff5ca"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "b66d0df90a5948e8ab14e68ca55083fe"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "0af45e717a1e48a882475e210799c623"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "6321a1dcca124fb4a169afa3ec3b6b51"
+        }
+      },
+      {
+        "json": {
+          "otel_trace_id": "05d0b7e4645741b199c502d3aa8785ed"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Obtener Trazas a Evaluar": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Métricas en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Enlazar con el Dataset en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unión por Consulta": {
+      "main": [
+        [
+          {
+            "node": "Evaluación de Accuracy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluación de Accuracy": {
+      "main": [
+        [
+          {
+            "node": "Registrar Métricas en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Al ser Ejecutado por Otro Workflow": {
+      "main": [
+        [
+          {
+            "node": "Obtener Trazas a Evaluar",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a9c95d9c-5cb4-455b-83bc-05c76e4a02d1",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "UREXzbfKRMrKDie4",
+  "tags": []
+}

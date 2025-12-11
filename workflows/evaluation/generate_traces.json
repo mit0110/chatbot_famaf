@@ -73,7 +73,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Función para generar un UUID v4 estándar (RFC 4122)\n// Esto asegura una distribución uniforme y evita colisiones prácticas\nfunction generateUUID() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\n// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs basándonos en UUID v4\nconst uuidTrace = generateUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = generateUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\n// TraceID: 32 chars (quitamos los guiones al UUID completo)\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+        "jsCode": "// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs basándonos en UUID v4\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -253,18 +253,9 @@
     },
     {
       "parameters": {
-        "url": "https://us.cloud.langfuse.com/api/public/dataset-items",
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_dataset_v1",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "datasetName",
-              "value": "faq_dataset_v1"
-            }
-          ]
-        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -492,7 +483,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "9c7a56e8-dc3e-40fe-9aa9-364774a53d5d",
+  "versionId": "649c3142-00df-4557-8883-d72fbbb0b6d1",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },

@@ -131,18 +131,9 @@
     },
     {
       "parameters": {
-        "url": "https://us.cloud.langfuse.com/api/public/dataset-items",
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_dataset_v1",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "datasetName",
-              "value": "faq_dataset_v1"
-            }
-          ]
-        },
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -397,10 +388,17 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "a9c95d9c-5cb4-455b-83bc-05c76e4a02d1",
+  "versionId": "45aec9af-469b-49f4-b522-157256e71ffe",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },
   "id": "UREXzbfKRMrKDie4",
-  "tags": []
+  "tags": [
+    {
+      "updatedAt": "2025-11-27T00:56:21.602Z",
+      "createdAt": "2025-11-27T00:56:21.602Z",
+      "id": "mYRoVhs5Njd6jn03",
+      "name": "FAMAF"
+    }
+  ]
 }

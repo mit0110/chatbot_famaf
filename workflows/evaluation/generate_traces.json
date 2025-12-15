@@ -144,7 +144,7 @@
           "mode": "list",
           "cachedResultName": "faq-embeddings"
         },
-        "prompt": "=Use the text {{ $('Ciclo sobre Todas las Entradas').item.json.input }}, create an embedding, and return the metadata from the entry closest in points",
+        "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
         "topK": 1,
         "options": {
           "pineconeNamespace": "create-question-emmbeding"
@@ -483,7 +483,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "649c3142-00df-4557-8883-d72fbbb0b6d1",
+  "versionId": "326b1d7e-8c71-48ad-a73d-4c22df662ed2",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },

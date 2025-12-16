@@ -12,14 +12,16 @@
 ## 📋 Tabla de Contenidos
 
 1. [Importar y Configurar los Workflows RAG](#-importar-y-configurar-los-workflows-rag)
-    - [Pasos para importar](#pasos-para-importar)
-    - [Configuración de Credenciales](#-configuración-de-credenciales)
+   - [Pasos para importar](#pasos-para-importar)
+   - [Configuración de Credenciales](#-configuración-de-credenciales)
 2. [Configurar un Webhook de Telegram en n8n (Local)](#%EF%B8%8F-configurar-un-webhook-de-telegram-en-n8n-local-para-recibir-mensajes-del-bot)
-    - [Requisitos previos](#1-requisitos-previos)
-    - [Configurar ngrok y .env](#2-configurar-ngrok-y-actualizar-el-archivo-env)
-    - [Ubicar el nodo Trigger](#3-ubicar-y-verificar-el-nodo-trigger-en-rag_query)
-    - [Credenciales de Telegram](#4-configurar-las-credenciales-de-telegram)
-    - [Probar la recepción](#5-probar-la-recepción-de-mensajes)
+   - [Requisitos previos](#1-requisitos-previos)
+   - [Configurar ngrok y .env](#2-configurar-ngrok-y-actualizar-el-archivo-env)
+   - [Ubicar el nodo Trigger](#3-ubicar-y-verificar-el-nodo-trigger-en-rag_query)
+   - [Credenciales de Telegram](#4-configurar-las-credenciales-de-telegram)
+   - [Probar la recepción](#5-probar-la-recepción-de-mensajes)
+3. [Configuración del Entorno](#%EF%B8%8F-configuración-del-entorno)
+   - [Permisos para la librería Crypto](#permisos-para-la-librería-crypto)
 
 ---
 
@@ -126,3 +128,18 @@ Para confirmar que el flujo `rag_query` recibe los mensajes:
 3. Deberías ver que el nodo captura los datos del mensaje (User ID, texto, fecha, etc.) dentro de n8n.
 
 > **Nota importante:** Una vez verificado, no olvides activar el interruptor **"Active"** (arriba a la derecha del canvas) para que el bot responda automáticamente sin que tengas que ejecutarlo manualmente.
+
+## ⚙️ Configuración del Entorno
+### Permisos para la Librería Crypto
+Para el almacenamiento de trazas vía [OTLP](https://opentelemetry.io/docs/specs/otlp/#otlphttp) dentro de LangFuse, realizado en el flujo de trabajo `generate_traces`, es necesario generar UUIDs. Para cumplir con este requisito, se utiliza el método `randomUUID` del módulo nativo `crypto` de Node.js.
+
+Dado que n8n restringe la importación de módulos nativos por seguridad, es necesario levantar esa restricción para este módulo específico, añadiendo la siguiente variable de entorno al servicio de n8n en el archivo `compose.yml:
+
+```yaml
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    environment:
+      # Habilita el uso de la librería nativa 'crypto' en los nodos de código
+      - NODE_FUNCTION_ALLOW_BUILTIN=crypto
+    # ... resto de la configuración
+```

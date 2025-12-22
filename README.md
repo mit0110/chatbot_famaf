@@ -51,6 +51,9 @@ Una vez importados los workflows, notarás que algunos nodos pueden marcar error
     * El nodo de **Embeddings** (para vectorizar las preguntas y documentos).
 * **Pinecone API:** Necesaria para conectar con el nodo *Vector Store*, donde se almacenan y buscan los datos de conocimiento.
 * **GitHub API:** Requerida en el workflow de ingestión (`rag_ingestion.json`) para poder acceder y leer el conjunto de datos directamente desde este repositorio.
+* **OpenAi API**: se utiliza para el workflow (rag_query_ollama_ccad.json), la credencial debe ser configurada como:
+    * base URL : https://chat.ccad.unc.edu.ar/ollama/v1
+    * API Key: acceder a su cuenta de https://chat.ccad.unc.edu.ar/ > Ajustes > Cuenta > Claves API y copiar la clave disponible 
 
 > **Nota importante:** Para comenzar a recibir mensajes de Telegram en la instancia local, seguir los pasos detallados en la sección [Configurar un Webhook de Telegram en n8n (Local) para Recibir Mensajes del Bot](#%EF%B8%8F-configurar-un-webhook-de-telegram-en-n8n-local-para-recibir-mensajes-del-bot)
 

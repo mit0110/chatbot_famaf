@@ -15,34 +15,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        800,
-        304
+        960,
+        368
       ],
       "id": "1b520391-0227-42a9-a67e-b8fd9e3c7878",
       "name": "Registrar Métricas en LangFuse vía API",
-      "credentials": {
-        "httpBasicAuth": {
-          "id": "ZUMKADCxhyCHSnyF",
-          "name": "Credencial OLTP"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "url": "=https://us.cloud.langfuse.com/api/public/traces/{{ $json.otel_trace_id }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpBasicAuth",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        16,
-        208
-      ],
-      "id": "c1e9266b-a060-4491-9d48-f98c553e0b43",
-      "name": "Obtener Trazas a Evaluar",
-      "executeOnce": false,
       "credentials": {
         "httpBasicAuth": {
           "id": "ZUMKADCxhyCHSnyF",
@@ -59,8 +36,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        352,
-        304
+        336,
+        288
       ],
       "id": "6aab5bc4-7a1b-42dc-9bf7-6f9082b297e1",
       "name": "Unión por Consulta"
@@ -69,14 +46,14 @@
       "parameters": {
         "content": "## ⬇️ Obtener Trazas a Evaluar y Valores Esperados",
         "height": 432,
-        "width": 624,
+        "width": 640,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -368,
-        144
+        -384,
+        128
       ],
       "id": "9307f158-5d03-4b2b-8025-225ae124663c",
       "name": "Sticky Note"
@@ -91,8 +68,8 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        528,
-        256
+        512,
+        240
       ],
       "id": "454f7996-7471-454a-b78b-e84c1c54cc5f",
       "name": "Sticky Note1"
@@ -100,22 +77,22 @@
     {
       "parameters": {
         "content": "## 💾 Guardado de Puntuaciones",
-        "height": 448,
-        "width": 752,
+        "height": 432,
+        "width": 1104,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        496,
-        144
+        464,
+        128
       ],
       "id": "6009ed75-6a55-4e15-97fb-77783fe1ff62",
       "name": "Sticky Note2"
     },
     {
       "parameters": {
-        "content": "## Descripción\nObtiene las trazas y el conjunto de datos desde la API, para luego comparar el valor esperado con el valor resultante de la traza.",
+        "content": "## Descripción\nObtiene las trazas con el nombre que se usó para guardarlas y el conjunto de datos desde la API, para luego comparar el valor esperado con el valor resultante de la traza.",
         "height": 112,
         "width": 976,
         "color": 7
@@ -123,15 +100,15 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -368,
-        608
+        -384,
+        576
       ],
       "id": "895c6ced-c4c1-4c23-8204-46373b553a05",
       "name": "Sticky Note3"
     },
     {
       "parameters": {
-        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_dataset_v1",
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "options": {}
@@ -139,12 +116,12 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -96,
-        400
+        -112,
+        384
       ],
       "id": "18f57eb4-9369-4ac4-8e40-29c85738fa81",
       "name": "Obtener Conjunto de Datos",
-      "executeOnce": true,
+      "executeOnce": false,
       "credentials": {
         "httpBasicAuth": {
           "id": "ZUMKADCxhyCHSnyF",
@@ -156,15 +133,15 @@
       "parameters": {
         "operation": "setMetrics",
         "metric": "categorization",
-        "expectedAnswer": "={{ $json.expectedOutput }}",
-        "actualAnswer": "={{ $json.output }}",
+        "expectedAnswer": "=\"{{ $json.expectedOutput }}\"",
+        "actualAnswer": "=\"{{ $json.output }}\"",
         "options": {}
       },
       "type": "n8n-nodes-base.evaluation",
       "typeVersion": 4.8,
       "position": [
-        576,
-        304
+        560,
+        288
       ],
       "id": "f2e47492-9bc8-4275-9192-e4984e79b97a",
       "name": "Evaluación de Accuracy"
@@ -193,7 +170,7 @@
             },
             {
               "name": "runName",
-              "value": "canned-responses"
+              "value": "no-threshold"
             },
             {
               "name": "traceId",
@@ -206,8 +183,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1024,
-        304
+        1200,
+        368
       ],
       "id": "a579a7d1-a91f-4fd3-aa2b-92dfb8bd5322",
       "name": "Enlazar con el Dataset en LangFuse vía API",
@@ -226,7 +203,7 @@
       "typeVersion": 1.1,
       "position": [
         -336,
-        304
+        288
       ],
       "id": "8f42cf61-1ad6-48c8-9231-f3f5da9774f3",
       "name": "Al ser Ejecutado por Otro Workflow"
@@ -239,79 +216,88 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        128,
-        400
+        112,
+        384
       ],
       "id": "20b01595-88a8-41f4-911b-d614ea24f9b0",
       "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "url": "=https://us.cloud.langfuse.com/api/public/traces?name={{ $json.trace_name }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -112,
+        192
+      ],
+      "id": "c1e9266b-a060-4491-9d48-f98c553e0b43",
+      "name": "Obtener Trazas por su Nombre",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        112,
+        192
+      ],
+      "id": "2971db16-35aa-4457-a90e-8729beb8475e",
+      "name": "Agregar Trazas a un Arreglo"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        768,
+        288
+      ],
+      "id": "9d2d72f5-277c-4e5e-9b9f-22fb5208584d",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1408,
+        368
+      ],
+      "id": "5313def4-241c-445b-b4b8-09124e6eecf4",
+      "name": "Esperar 20 Segundos",
+      "webhookId": "85731d99-767b-4d13-b006-521edfc1e759"
     }
   ],
   "pinData": {
     "Al ser Ejecutado por Otro Workflow": [
       {
         "json": {
-          "otel_trace_id": "00353bd029f4474182f768b95c6bc436"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "9c18fb2d6cee4c65bbeddd37e7c4d99c"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "0fde0127c9844861b691c37c258bbe51"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "b5e942f07e764730a51ce4f656f14460"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "2b2b85bfd9434f7dbdf4b782d0c12cfb"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "afe804876bc44e65aa3151f1300ff5ca"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "b66d0df90a5948e8ab14e68ca55083fe"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "0af45e717a1e48a882475e210799c623"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "6321a1dcca124fb4a169afa3ec3b6b51"
-        }
-      },
-      {
-        "json": {
-          "otel_trace_id": "05d0b7e4645741b199c502d3aa8785ed"
+          "trace_name": "no-threshold"
         }
       }
     ]
   },
   "connections": {
-    "Obtener Trazas a Evaluar": {
-      "main": [
-        [
-          {
-            "node": "Unión por Consulta",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Registrar Métricas en LangFuse vía API": {
       "main": [
         [
@@ -349,7 +335,7 @@
       "main": [
         [
           {
-            "node": "Registrar Métricas en LangFuse vía API",
+            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -360,12 +346,12 @@
       "main": [
         [
           {
-            "node": "Obtener Trazas a Evaluar",
+            "node": "Obtener Conjunto de Datos",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Obtener Conjunto de Datos",
+            "node": "Obtener Trazas por su Nombre",
             "type": "main",
             "index": 0
           }
@@ -382,13 +368,69 @@
           }
         ]
       ]
+    },
+    "Obtener Trazas por su Nombre": {
+      "main": [
+        [
+          {
+            "node": "Agregar Trazas a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Trazas a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Registrar Métricas en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enlazar con el Dataset en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Esperar 20 Segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 20 Segundos": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "45aec9af-469b-49f4-b522-157256e71ffe",
+  "versionId": "61602758-53ca-49b1-82d1-3dabc384e45e",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },

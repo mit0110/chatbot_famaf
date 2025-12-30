@@ -1,0 +1,410 @@
+{
+  "name": "rag_query_ollama_ccad-memory-gen-V2",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "24c19ff4-a6b3-4a1e-a4b3-7022925854cc",
+      "name": "Cambiar estado a \"Escribiendo...\"",
+      "webhookId": "5b389253-8ca8-4af3-a8a8-a4f3c1fa40a5",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres un sistema que reformula preguntas de usuarios para optimizar la búsqueda por similitud (similarity search) en un entorno universitario.\nLa universidad se llama FAMAF / FaMAFyC (Facultad de Matemática, Astronomía, Física y Computación) y los usuarios pueden ser estudiantes, docentes o personal.\n\nEntradas\n\nLa pregunta actual del usuario.\n\nHasta 5 preguntas previas del mismo usuario dentro de la conversación (memoria).\n\nTarea\n\nDeterminar si la pregunta actual tiene suficiente contexto para ser utilizada como una consulta clara, explícita e independiente, adecuada para búsqueda basada en embeddings.\n\nComportamiento\n\nSi existe contexto suficiente:\n\nDevolver la pregunta original del usuario sin modificaciones.\n\nPreservar exactamente la intención original.\n\nSi NO existe contexto suficiente:\n\nHacer una única pregunta de seguimiento, mínima y directa, en español, con el único objetivo de obtener la información faltante necesaria para comprender la consulta.\n\nNo intentar reformular la pregunta original.\n\nUso de cross_question\n\nLa cross_question se utiliza exclusivamente para repreguntar al usuario y obtener contexto adicional sobre su consulta inicial.\n\nNo debe usarse para preguntar detalles sobre la respuesta deseada, preferencias personales ni información que no sea necesaria para entender la pregunta original.\n\nReglas\n\nUsar las preguntas previas solo cuando aporten contexto relevante de forma clara.\n\nNo responder la pregunta del usuario.\n\nNo agregar, inferir ni eliminar información.\n\nTener en cuenta los siguientes sinónimos al evaluar el contexto:\n\ntesis, trabajo final → trabajo especial\n\ncursillo, ingreso → curso de nivelación\n\nFormato de salida\n\nLa salida debe ser SIEMPRE un objeto JSON válido con exactamente dos campos:\n\nquestion: un string que contenga la pregunta original o la pregunta aclaratoria (en español).\n\ncross_question: un booleano que sea true si se hizo una pregunta aclaratoria, o false en caso contrario.\n\nNo incluir explicaciones, formato adicional ni campos extra.\nDevolver únicamente el objeto JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        528,
+        0
+      ],
+      "id": "26a8486b-0eb7-472d-9197-ca0410fb1738",
+      "name": "Agente RAG",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        320
+      ],
+      "id": "6cf4321c-ea92-422f-ab35-3b0e6efb8846",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $json.document.metadata.Answer }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "reply_to_message_id": "={{ $('Cuando Reciba un Mensaje').item.json.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        48
+      ],
+      "id": "bf067f1d-febf-42f8-a832-884b95453fd3",
+      "name": "Enviar Mensaje con Respuesta",
+      "webhookId": "0f2b561f-bc63-418c-ae88-42dca295bd80",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        0
+      ],
+      "id": "43b16562-0e93-45f5-b1dc-ab829ed61e8d",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "0cc51d52-8c77-4100-9c2a-ef20370b7390",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=mistral-small3.2:24b",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        176
+      ],
+      "id": "612ebd85-4d0a-412f-bd88-452b74700e1d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $json.output.question }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-extended"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1168,
+        48
+      ],
+      "id": "b602c210-4b6a-496b-b0db-8e8eb1d420b9",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        240
+      ],
+      "id": "b1369884-06a5-41f6-b6a4-4aa894835c6e",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"question\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"cross_question\": {\n\t\t\t\"type\": \"bool\"\n\t\t}\n\t}\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        192
+      ],
+      "id": "9c1721a6-5e74-4529-bd08-642ed59b91a1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "160d8be6-ff2c-4f59-aa88-dee0946963c1",
+              "leftValue": "={{ $json.cross_question }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        0
+      ],
+      "id": "23658ac8-b04a-47d4-b6b3-02f384d14211",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $json.question }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1216,
+        -144
+      ],
+      "id": "d9593ce5-9804-4fa4-8376-4b93a287d16d",
+      "name": "enviar mensaje repregunta",
+      "webhookId": "ab838e24-2fa7-4781-9c71-0eaaf025a0ec",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "mistral:7b",
+          "mode": "list",
+          "cachedResultName": "mistral:7b"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        464
+      ],
+      "id": "07df15a6-a92c-428b-a3a2-ad230cc9987a",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cambiar estado a \"Escribiendo...\"": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje con Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "enviar mensaje repregunta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a3b20e36-ad86-416b-b9ca-c3953d768337",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "EMMB1zcvszirOAYa",
+  "tags": []
+}

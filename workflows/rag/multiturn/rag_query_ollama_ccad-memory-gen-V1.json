@@ -1,0 +1,271 @@
+{
+  "name": "rag_query_ollama_ccad-memory-gen-V1",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "82ec3b95-a0f6-490e-8339-86839853fca2",
+      "name": "Cambiar estado a \"Escribiendo...\"",
+      "webhookId": "2e78f106-0a6b-413b-90d8-89747db422a2",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a system that reformulates user questions to improve similarity search in Pinecone.\n\nInput description:\nYou receive:\nThe current user question and you have access to a 5 memory from previous questions\n\nYour task:\nRewrite the current user question in a clearer, more explicit way.\nUse context inferred from the chat history where relevant.\nDo NOT answer the question.\nDo NOT add new information.\nProduce only one rewritten question.\nYour output MUST be only the reformulated question as a plain text string.\n\nRules:\nImprove clarity and specificity only when safe to do so.\nIf the history contains related questions, incorporate relevant context.\nIf there is no relevant context, simply rewrite for clarity.\nDo not include formatting, explanations, or JSON output."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        528,
+        0
+      ],
+      "id": "dc2ca5be-79cc-4f26-bc33-bf0a3fc51de9",
+      "name": "Agente RAG",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        320
+      ],
+      "id": "fc061764-9b5b-4682-91d2-fa7842ca52b0",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $json.document.metadata.Answer }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML",
+          "reply_to_message_id": "={{ $('Cuando Reciba un Mensaje').item.json.message.message_id }}"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        0
+      ],
+      "id": "dfce4067-2acc-4f0e-aaaa-cd6009885bcb",
+      "name": "Enviar Mensaje con Respuesta",
+      "webhookId": "db7c061c-824d-4333-a565-42c9f17bd287",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        0
+      ],
+      "id": "3e69a107-4f50-4cf0-8048-5f71cf2b6213",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "a0557b3d-3842-4745-b19a-88ff11e606c4",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=mistral-small3.2:24b",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        528,
+        176
+      ],
+      "id": "15768405-8def-494b-b756-10496b79249e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $json.output }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-extended"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        0
+      ],
+      "id": "9e9e090d-681c-47ac-a75b-ff9b82b6a19f",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        880,
+        240
+      ],
+      "id": "e0fdb100-758a-45a9-9f6a-147896305a76",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cambiar estado a \"Escribiendo...\"": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje con Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f450568c-dc0f-42eb-a5e5-d950a4222603",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "sppcjWly9MU6dvQJ",
+  "tags": []
+}

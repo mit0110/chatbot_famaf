@@ -5,7 +5,7 @@ Este directorio contiene la Base de Conocimiento (Knowledge Base) y los Conjunto
 ## Estructura de Directorios
 
 - **`knowledge_base/`**: información cuyos embeddings serán almacenados en la Base de Datos Vectorial.
-  - `faq_kb_vX.csv`: versión actual de la base de conocimiento.
+  - `faq_dataset_vX.csv`: versión actual de la base de conocimiento.
   - `archive/`: bases de conocimientos anteriores.
 - **`evaluation/`**: información utilizada para evaluar el rendimiento del bot.
   - `validation.csv`: usado para ajustar hiperparámetros y ver el rendimiento del modelo.

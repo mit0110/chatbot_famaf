@@ -3,29 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "updates": [
-          "message"
-        ],
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        128,
-        0
-      ],
-      "id": "fdce9ca3-70ce-4c96-be87-7678ccc7ff79",
-      "name": "Telegram Trigger",
-      "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
-      "credentials": {
-        "telegramApi": {
-          "id": "p61m9P3V3Uq6HRZC",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
@@ -36,14 +13,14 @@
         "prompt": "={{ $json.message.text }}",
         "topK": 1,
         "options": {
-          "pineconeNamespace": "create-question-emmbeding"
+          "pineconeNamespace": "create-question-emmbeding-30q"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        416,
-        0
+        352,
+        -32
       ],
       "id": "28cb82e9-4593-48fe-85cc-f9a00567d998",
       "name": "Pinecone Vector Store",
@@ -55,15 +32,38 @@
       }
     },
     {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        128,
+        -32
+      ],
+      "id": "fdce9ca3-70ce-4c96-be87-7678ccc7ff79",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
       "parameters": {},
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        416,
+        432,
         192
       ],
       "id": "d5596b34-b0b2-4266-8930-3bda748ffac8",
-      "name": "Embeddings Google Gemini",
+      "name": "Text-Embedding-004",
       "credentials": {
         "googlePalmApi": {
           "id": "iDKuHCKqSAYAVPK3",
@@ -73,7 +73,40 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "14273fde-1623-42d6-8258-dba357a4f38a",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.73,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        704,
+        -32
+      ],
+      "id": "db374b46-3bd1-4f49-9d1d-56681523eb68",
+      "name": "Si Similitud ≥ Punto de Corte"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
         "text": "={{ $json.document.metadata.Answer }}",
         "additionalFields": {
           "appendAttribution": false,
@@ -83,12 +116,37 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        768,
-        0
+        928,
+        -128
       ],
       "id": "3c923ccf-1169-4391-8418-a372b07ac4d2",
-      "name": "Send a text message",
+      "name": "Responder con la Información Recuperada",
       "webhookId": "5ebe12f0-b3d5-46c0-963a-e24a09fcc843",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "=Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        64
+      ],
+      "id": "b099a571-a2ff-403a-a7b4-c9019007da28",
+      "name": "Responder que no hay Suficiente Información",
+      "webhookId": "bb1bd8cd-5a0e-4b3e-8f45-4dd46b57ffaa",
       "credentials": {
         "telegramApi": {
           "id": "p61m9P3V3Uq6HRZC",
@@ -99,7 +157,18 @@
   ],
   "pinData": {},
   "connections": {
-    "Telegram Trigger": {
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Si Similitud ≥ Punto de Corte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
       "main": [
         [
           {
@@ -110,7 +179,7 @@
         ]
       ]
     },
-    "Embeddings Google Gemini": {
+    "Text-Embedding-004": {
       "ai_embedding": [
         [
           {
@@ -121,11 +190,18 @@
         ]
       ]
     },
-    "Pinecone Vector Store": {
+    "Si Similitud ≥ Punto de Corte": {
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Responder con la Información Recuperada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder que no hay Suficiente Información",
             "type": "main",
             "index": 0
           }
@@ -133,11 +209,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "45da75c1-8635-4981-987d-34f524a242c3",
+  "versionId": "db811d76-0ad5-437f-b4de-9771e685b298",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

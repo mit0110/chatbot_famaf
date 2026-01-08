@@ -1,0 +1,735 @@
+{
+  "name": "generate_traces_ollama_multiturnoV1",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Conjunto de Datos de Prueba\n",
+        "height": 272,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        272
+      ],
+      "id": "d2d82c3b-538c-43d0-be33-c7b996d3807b",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        368
+      ],
+      "id": "6c507888-29d0-46ef-8f6a-2d048b45b0ce",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        368
+      ],
+      "id": "e739b2d0-36cc-465a-8fb8-94b59828a1ab",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Generar Respuestas",
+        "height": 512,
+        "width": 2272,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        272
+      ],
+      "id": "f5985169-274d-47f2-b8e3-ad57c71fdf00",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 👣 Guardar Traza",
+        "height": 464,
+        "width": 864,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        288
+      ],
+      "id": "c33f9eec-e1d6-40d4-83f8-5b3342cab190",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://us.cloud.langfuse.com/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"{{ $('Establecer Nombre de las Trazas').item.json.trace_name }}\",\n              \"kind\": 2,\n              \"startTimeUnixNano\": \"{{ $json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $json.end_time_nano }}\",\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"input.final_question\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Agente RAG').item.json.output) }}\n                  }\n                },\n                {\n                  \"key\": \"context.history\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Redis Save Conversation History').item.json.value) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Pinecone Vector Store').item.json.document.metadata.Answer) }}\n                  }\n                },\n                {\n                  \"key\": \"retrieval.score\",\n                  \"value\": {\n                    \"doubleValue\": {{ $('Pinecone Vector Store').item.json.score }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2800,
+        560
+      ],
+      "id": "890d3189-6541-4d14-bbc9-046be6a13a2f",
+      "name": "Registrar Traza en LangFuse usando OTLP",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "tkug4iCQOY0662qy",
+          "name": "Langfuse credential"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        368
+      ],
+      "id": "8c388c9a-0e74-45d8-af2f-4f4824194b95",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_multiturn_v3&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -592,
+        368
+      ],
+      "id": "3bf97189-2aec-4bda-8bbf-472fbed336bc",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "tkug4iCQOY0662qy",
+          "name": "Langfuse credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        368
+      ],
+      "id": "8c03ddd9-eef2-432b-8885-42aa875ee15b",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        368
+      ],
+      "id": "5ce2122d-a68d-4634-8b86-ad1abc277622",
+      "name": "Generar Datos Necesarios para OTLP"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Llamar a Evaluación\n",
+        "height": 240,
+        "width": 704,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "eea859e0-5bb5-4a7d-ab5a-9c07cc55cebe",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pNGzfIiPNQZdvH4j",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        64
+      ],
+      "id": "8eacfd6c-c22f-4de5-ab3f-fbadefac8486",
+      "name": "Ejecutar sub-workflow 'evaluation_metrics'",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        64
+      ],
+      "id": "5dc801d2-7abd-4dea-870f-31e26879f387",
+      "name": "Esperar 2 Minutos",
+      "webhookId": "a2658dab-f2cb-49d4-9242-d8551af7679c",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "trace_name",
+              "value": "=Test_ollama_Multiturn_Context_Relevance_v2",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2176,
+        368
+      ],
+      "id": "6f73bce6-415d-4c22-8c73-840ba29e979b",
+      "name": "Establecer Nombre de las Trazas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebad5af-b927-4ad2-bef2-8fd8be31ea27",
+              "name": "trace_name",
+              "value": "={{ $('Establecer Nombre de las Trazas').item.json.trace_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        64
+      ],
+      "id": "3693d99b-4461-4e0c-802e-6649b89e5287",
+      "name": "Retornar solo Nombre de Trazas",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres un sistema que reformula preguntas de usuarios para optimizar la búsqueda por similitud (similarity search) en Pinecone.\n\nDescripción de la entrada:\nRecibes:\n- La pregunta actual del usuario.\n- Un historial de hasta 5 mensajes previos (memoria de la conversación).\n\nTu tarea:\n1. Reformular la pregunta actual del usuario de manera más clara y explícita.\n2. Usar el contexto inferido del historial de la conversación solo cuando sea relevante.\n3. NO responder la pregunta.\n4. NO agregar información nueva.\n5. Producir una única pregunta reformulada.\n\nIdioma:\n- La pregunta reformulada debe estar **exclusivamente en español**, independientemente del idioma de la pregunta original o del historial.\n\nFormato de salida:\n- Debes devolver **únicamente** la pregunta reformulada como un string plano.\n- No incluyas JSON, explicaciones, comentarios ni texto adicional.\n- No incluyas formato markdown.\n\nReglas:\n- Mejora claridad y especificidad solo cuando sea seguro hacerlo.\n- Si el historial contiene preguntas relacionadas, incorpora ese contexto.\n- Si no hay contexto relevante, reformula solo para mejorar claridad.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        704,
+        368
+      ],
+      "id": "cb75d27d-99b6-4d7b-bbe9-a1108475e8b8",
+      "name": "Agente RAG",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Agregar Items a un Arreglo').item.json.metadata }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        624
+      ],
+      "id": "8db187da-44b3-4043-9ac0-529c6174df6c",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=gemma3:4b",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        608
+      ],
+      "id": "a4cca12e-0c43-4c84-ada7-f8940725bf3f",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $json.output }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-extended"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        368
+      ],
+      "id": "55c35c00-419e-4edf-8831-18759ed98b50",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1104,
+        592
+      ],
+      "id": "2066f3b6-8528-4578-b8a5-8d6a51f9b1f9",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "=telegram_history:{{ $('Agregar Items a un Arreglo').item.json.metadata }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        304,
+        368
+      ],
+      "id": "8655d2c0-c6a3-46e6-9552-6217e2f23c10",
+      "name": "Redis Get Conversation History",
+      "executeOnce": false,
+      "credentials": {
+        "redis": {
+          "id": "6Y34jq3amyztaE9h",
+          "name": "Redis Cloud - Telegram Bot"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the current \"actual\" question from the Telegram Trigger node\nconst actualQuestion = $('Ciclo sobre Todas las Entradas').first().json.input\nconsole.log(actualQuestion)\n// 2. Get the historical data from the previous Redis Get node\nlet rawHistory = $input.first().json.propertyName;\n\nlet historyArray = [];\n\n// 3. Parse the Redis history string into an array of objects\nif (typeof rawHistory === 'string' && rawHistory !== 'none') {\n  try {\n    const parsed = JSON.parse(rawHistory);\n    // Since history is saved as an object {q1:..., q2:...}, extract the values\n    historyArray = Object.values(parsed);\n  } catch (e) {\n    historyArray = [];\n  }\n}\n\n// 4. Sort history by timestamp (Newest to Oldest) to ensure correct order\n//historyArray.sort((a, b) => new Date(b.timestamp) - new //Date(a.timestamp));\n\nlet result = {};\n\n// 5. ALWAYS set q1 as the actual question from the current Telegram message\nresult['q1'] = {\n  \"question\": actualQuestion,\n  \"timestamp\": new Date().toISOString()\n};\n\n// 6. Fill q2 through q5 with the 4 most recent historical questions (if they exist)\nhistoryArray.slice(0, 4).forEach((item, index) => {\n  result[`q${index + 2}`] = item;\n});\n\nreturn { json: result };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        368
+      ],
+      "id": "5d0f6f65-2a88-4869-99b5-2d7493f67353",
+      "name": "format redis get"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=telegram_history:{{ $('Agregar Items a un Arreglo').item.json.metadata }}",
+        "value": "={{ $json.value }}",
+        "keyType": "string",
+        "expire": true,
+        "ttl": 600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1728,
+        368
+      ],
+      "id": "8ce303e7-fe75-462e-b6d5-e29ba4cb2407",
+      "name": "Redis Save Conversation History",
+      "credentials": {
+        "redis": {
+          "id": "6Y34jq3amyztaE9h",
+          "name": "Redis Cloud - Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtenemos el objeto de historial que ya preparó el nodo 'format redis get'\nconst completeHistory = $('format redis get').first().json;\n\n// 2. Obtenemos el Chat ID del trigger original\nconst chatId = \"123456789\";\n\n// 4. Retornamos todo listo para los siguientes pasos\nreturn {\n  json: {\n    key: chatId,\n    // Convertimos el objeto de historial a texto para que Redis lo guarde correctamente\n    value: JSON.stringify(completeHistory), \n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        368
+      ],
+      "id": "8d79ac06-3493-43fb-85ae-9f7c5f4b1d16",
+      "name": "Prepare History Entry"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1648,
+        592
+      ],
+      "id": "660aa558-b652-46ba-acc6-27abe5227f3c",
+      "name": "Wait",
+      "webhookId": "3d0e214a-5796-43df-8e2d-45c35bf6c983"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [
+          {
+            "node": "Retornar solo Nombre de Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Redis Get Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Traza en LangFuse usando OTLP": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Registrar Traza en LangFuse usando OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar sub-workflow 'evaluation_metrics'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Nombre de las Trazas": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retornar solo Nombre de Trazas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2 Minutos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Prepare History Entry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Get Conversation History": {
+      "main": [
+        [
+          {
+            "node": "format redis get",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format redis get": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare History Entry": {
+      "main": [
+        [
+          {
+            "node": "Redis Save Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Save Conversation History": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "16ef7e0e-76e8-4693-b87a-03dc3fa580f7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "GONKDm3n2BfwGVQE",
+  "tags": [
+    {
+      "updatedAt": "2025-12-02T12:59:17.987Z",
+      "createdAt": "2025-12-02T12:59:17.987Z",
+      "id": "rzxlwRJmYPOYq1s2",
+      "name": "FAMAF"
+    }
+  ]
+}

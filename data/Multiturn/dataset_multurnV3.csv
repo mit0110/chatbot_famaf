@@ -1,0 +1,73 @@
+conversation_id,turn,pregunta
+1,1,"Che, ¿sabés si ya está abierta la inscripción a las materias?"
+1,2,"Ayer entré a Guaraní y no me aparecía nada, ¿es normal?"
+1,3,¿Eso depende del calendario o lo habilitan cuando quieren?
+1,4,¿Dónde veo bien la fecha concreta? Siempre me pierdo.
+1,5,"Si llego tarde, ¿igual puedo anotarme?"
+1,6,¿Y lo de las comisiones también se abre en ese momento?
+1,7,¿Se puede cambiar más adelante?
+1,8,¿Tengo que avisar si la cambio o no hace falta?
+2,1,¿Dónde estaban los horarios de las materias? No los encuentro.
+2,2,"Vi unos en la web pero parecían viejos, ¿hay unos nuevos?"
+2,3,¿El aula 17 la usan este cuatri también?
+2,4,"Si cambian de aula, ¿dónde avisan eso?"
+2,5,¿El calendario académico también trae esas cosas?
+2,6,¿Ahí salen los feriados?
+2,7,¿Y los días de finales también están ahí?
+3,1,¿Cómo se pide lo del régimen especial?
+3,2,¿Eso todavía se hace por formulario?
+3,3,¿Sirve para quienes trabajan?
+3,4,¿Te cambia la cursada si lo pedís?
+3,5,¿Te deja faltar un poco más?
+3,6,¿Hay que renovarlo cada cuatri?
+3,7,¿Tengo que llevar algún papel?
+4,1,¿Para rendir libre hay que anotarse en algún lado?
+4,2,¿Eso se hace en Guaraní o por mail?
+4,3,¿El final libre es el mismo día que el común?
+4,4,¿Te toman todos los temas o es distinto?
+4,5,¿Dónde está el programa del libre?
+4,6,¿Cambia mucho ese programa o es estable?
+4,7,Así sé qué estudiar.
+5,1,¿Dónde se pide el certificado de alumno regular?
+5,2,¿Tengo que estar anotada en una materia para pedirlo?
+5,3,¿Cuánto tarda más o menos?
+5,4,¿El digital sirve igual que el de papel?
+5,5,¿El analítico parcial se pide por el mismo lugar?
+5,6,¿También te lo mandan por mail?
+6,1,¿Cómo reviso si sigo siendo regular?
+6,2,¿Eso se ve dentro de Guaraní?
+6,3,¿La regularidad depende de aprobar cosas?
+6,4,¿Si la pierdo la puedo recuperar?
+6,5,¿Afecta para anotarme a materias?
+6,6,Lo quiero chequear antes de inscribirme.
+7,1,¿Cuándo arrancan las clases del segundo cuatri?
+7,2,¿Está en el calendario eso?
+7,3,Lo vi pero no sé si es la versión actual.
+7,4,¿Avisan si cambia la fecha?
+7,5,¿Las mesas especiales también aparecen ahí?
+7,6,Voy a mirar bien el PDF.
+8,1,¿Se puede cambiar de comisión desde Guaraní?
+8,2,"Me aparece cerrado, ¿será por la fecha?"
+8,3,"Si ya cerró, ¿le escribo al profe?"
+8,4,¿Ellos pueden cambiarte o lo hace bedelía?
+8,5,¿Después queda bien cargado en el sistema?
+9,1,¿Dónde estaban las fechas de los finales?
+9,2,"Creo que había un PDF, ¿puede ser?"
+9,3,¿Las mesas extraordinarias también salen ahí?
+9,4,"Si una materia no figura, ¿no abre mesa?"
+9,5,¿Los profes pueden sumar una mesa especial?
+9,6,¿Eso dónde lo publican?
+9,7,¿Y los horarios de consulta dónde se ven?
+9,8,"El año pasado usaban un Drive, ¿sigue igual?"
+9,9,¿Si cambian el horario lo actualizan ahí?
+9,10,"Para pedir equivalencias, ¿necesito el analítico?"
+9,11,¿Sirve el parcial?
+9,12,¿Ese trámite demora?
+9,13,"Si me la aprueban, ¿me puedo anotar a la correlativa?"
+9,14,¿Guaraní actualiza eso solo?
+9,15,"Si no la aceptan, ¿te dicen por qué?"
+9,16,¿Puedo volver a pedirla?
+9,17,"El certificado de materias aprobadas, ¿es el analítico parcial?"
+9,18,¿Ese viene digital?
+9,19,¿Tarda lo mismo que el de alumno regular?
+9,20,Con eso ya estoy.

@@ -106,7 +106,7 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"response_type\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n\t\t\"response\": {\n\t\t\t\"type\": \"string\"\n        },\n      \"required\" : [ \"response_type\"]\n\t}\n}",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"string\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
         "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
@@ -556,7 +556,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2fe6060c-cda9-491e-b06b-bd289ce0469f",
+  "versionId": "04429921-7d07-4e73-bebd-854f0b665169",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

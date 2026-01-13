@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        128,
+        208,
         0
       ],
-      "id": "fdce9ca3-70ce-4c96-be87-7678ccc7ff79",
+      "id": "ce5b78cd-0eb5-4bbf-89ad-df7b8f104dec",
       "name": "Telegram Trigger",
       "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
       "credentials": {
@@ -42,10 +42,10 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        416,
+        496,
         0
       ],
-      "id": "28cb82e9-4593-48fe-85cc-f9a00567d998",
+      "id": "4f8c98bb-e1a6-4c0a-b63b-790042057850",
       "name": "Pinecone Vector Store",
       "credentials": {
         "pineconeApi": {
@@ -59,10 +59,10 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        416,
+        496,
         192
       ],
-      "id": "d5596b34-b0b2-4266-8930-3bda748ffac8",
+      "id": "dac8e42d-efcc-46c9-b962-78e2d7fd0c2e",
       "name": "Embeddings Google Gemini",
       "credentials": {
         "googlePalmApi": {
@@ -83,10 +83,10 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        768,
+        848,
         0
       ],
-      "id": "3c923ccf-1169-4391-8418-a372b07ac4d2",
+      "id": "b7776d22-57da-42da-9e46-ca89bc524862",
       "name": "Send a text message",
       "webhookId": "5ebe12f0-b3d5-46c0-963a-e24a09fcc843",
       "credentials": {
@@ -137,7 +137,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "45da75c1-8635-4981-987d-34f524a242c3",
+  "versionId": "3dc556b6-1bf9-49b9-93ab-7abcaf1549fc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

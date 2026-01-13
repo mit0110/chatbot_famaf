@@ -1,0 +1,222 @@
+{
+  "name": "telegram-faq-bot-threshold",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $json.message.text }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-30q"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -1008,
+        64
+      ],
+      "id": "a343c946-85e9-4667-8afa-0c250b9311b0",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1232,
+        64
+      ],
+      "id": "25135d8d-d507-4dd7-ac48-1cca3b60574a",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -928,
+        288
+      ],
+      "id": "0ed93885-9852-4084-8ea0-931b64df3526",
+      "name": "Text-Embedding-004",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "14273fde-1623-42d6-8258-dba357a4f38a",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.73,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        64
+      ],
+      "id": "67db52ec-ec07-4b3d-b102-8fc3a700a01d",
+      "name": "Si Similitud ≥ Punto de Corte"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $json.document.metadata.Answer }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        -32
+      ],
+      "id": "b238d3f4-c5d9-4715-b5bb-b84c6a69c4ab",
+      "name": "Responder con la Información Recuperada",
+      "webhookId": "5ebe12f0-b3d5-46c0-963a-e24a09fcc843",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "=Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -432,
+        160
+      ],
+      "id": "7d26e6e4-b2dc-456b-b32a-b6530f799e40",
+      "name": "Responder que no hay Suficiente Información",
+      "webhookId": "bb1bd8cd-5a0e-4b3e-8f45-4dd46b57ffaa",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Si Similitud ≥ Punto de Corte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-Embedding-004": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Si Similitud ≥ Punto de Corte": {
+      "main": [
+        [
+          {
+            "node": "Responder con la Información Recuperada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder que no hay Suficiente Información",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "29c5b2d7-fdaa-49c4-bb37-c55d81b26dfc",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "BFNKXCLBj2x2Cuhj",
+  "tags": []
+}

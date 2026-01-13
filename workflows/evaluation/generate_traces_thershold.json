@@ -1,0 +1,661 @@
+{
+  "name": "generate_traces_thershold",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "14273fde-1623-42d6-8258-dba357a4f38a",
+              "leftValue": "={{ $('Pinecone Vector Store').item.json.score }}",
+              "rightValue": 0.78,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        704
+      ],
+      "id": "0aa7a8a3-5acc-486e-b401-b9392090e1e4",
+      "name": "Si Similitud ≥ Punto de Corte"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "trace_name",
+              "value": "=retrieval-th-0.78",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        736,
+        704
+      ],
+      "id": "3465ec4d-b3ce-4541-a22f-d1e11eae6632",
+      "name": "Establecer Nombre de las Trazas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebad5af-b927-4ad2-bef2-8fd8be31ea27",
+              "name": "trace_name",
+              "value": "={{ $('Establecer Nombre de las Trazas').item.json.trace_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        400
+      ],
+      "id": "663dae08-4ead-4081-b4a8-4f69d3a2f070",
+      "name": "Retornar solo Nombre de Trazas",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Conjunto de Datos de Prueba\n",
+        "height": 272,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        624
+      ],
+      "id": "7dab5923-737b-4fa9-9d6e-ec583cfe848b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Llamar a Evaluación\n",
+        "height": 240,
+        "width": 784,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        336
+      ],
+      "id": "dd8e6956-39d3-486c-b22d-d2fc9facbb0a",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "url": "http://langfuse-web:3000/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -768,
+        720
+      ],
+      "id": "d17c8005-4bba-4026-9d92-507c26e2d4b9",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        720
+      ],
+      "id": "e62337ec-69a9-4a5b-a4fd-f02f98a8d032",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        720
+      ],
+      "id": "f728d9c7-865c-4d87-8ef0-df7b22896470",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        704
+      ],
+      "id": "56e770c2-4c4b-490d-92ff-67c40d07b55c",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-30q"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        704
+      ],
+      "id": "5b743302-924b-4432-909f-de7b376b4a98",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        928
+      ],
+      "id": "e9ead3a1-28e0-4639-8c31-bf5384471964",
+      "name": "Text-Embedding-004",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7555a753-8a1a-4a95-9b05-29dcb09b406b",
+              "name": "document.metadata.Answer",
+              "value": "=Disculpa, por el momento no cuento con información específica sobre esa consulta.\\n\\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\\n\\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\\n\\nEllos van a poder orientarte mejor según tu situación.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1200,
+        896
+      ],
+      "id": "6806c2e3-a037-4973-a8b7-e8ad064a8a67",
+      "name": "No Responder con lo Recuperado"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        704
+      ],
+      "id": "d715da72-db90-40d7-b671-80595a7fd67d",
+      "name": "Generar Datos Necesarios para OTLP"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "UREXzbfKRMrKDie4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/UREXzbfKRMrKDie4",
+          "cachedResultName": "evaluation_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        400
+      ],
+      "id": "fc303db3-9bdf-405a-912a-7cca66dbf052",
+      "name": "Ejecutar sub-workflow 'evaluation_metrics'",
+      "executeOnce": false
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -992,
+        720
+      ],
+      "id": "1c31f505-0cde-4971-8b92-0cc740c396a7",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\", \n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\", \n              \"name\": \"{{ $('Establecer Nombre de las Trazas').item.json.trace_name }}\",\n              \"kind\": 2, \n              \"startTimeUnixNano\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.end_time_nano }}\",\n              \"attributes\": [\n                { \"key\": \"input.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }} } },\n                { \"key\": \"output.value\", \"value\": { \"stringValue\": \"{{ $json.document.metadata.Answer }}\" } },\n                {\n                  \"key\": \"retrieval.score\",\n                  \"value\": {\n                    \"doubleValue\": {{ $('Pinecone Vector Store').item.json.score }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1424,
+        992
+      ],
+      "id": "124e57c7-1708-49b8-9bd8-02fc89d4835c",
+      "name": "Registrar en LangFuse Mensaje de Discuplas",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\", \n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\", \n              \"name\": \"{{ $('Establecer Nombre de las Trazas').item.json.trace_name }}\",\n              \"kind\": 2, \n              \"startTimeUnixNano\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.end_time_nano }}\",\n              \"attributes\": [\n                { \"key\": \"input.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }} } },\n                { \"key\": \"output.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Pinecone Vector Store').item.json.document.metadata.Answer) }}} },\n                {\n                  \"key\": \"retrieval.score\",\n                  \"value\": {\n                    \"doubleValue\": {{ $('Pinecone Vector Store').item.json.score }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1216,
+        448
+      ],
+      "id": "8e7d7928-20d2-43d5-9df1-6bc995e4ee0b",
+      "name": "Registrar en Langfuse Contexto Recuperado",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        400
+      ],
+      "id": "0102ec78-b90a-463c-ba4a-a25a15b573b0",
+      "name": "Esperar 1 Minuto",
+      "webhookId": "e3f6ec27-45d5-4268-a3a6-720744d9a1f2",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Generar Respuesta",
+        "height": 416,
+        "width": 384,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        640
+      ],
+      "id": "c42a79b9-87cd-4d1f-9dc5-68bd16d23c78",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 208,
+        "width": 192,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        912,
+        672
+      ],
+      "id": "9a089654-9078-4c70-b001-61a5ea2053a4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Almacenar Respuesta ",
+        "height": 768,
+        "width": 912,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        704,
+        416
+      ],
+      "id": "44fb4ea0-0dd3-4515-9f6a-eb7a279153df",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Si Similitud ≥ Punto de Corte": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Langfuse Contexto Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Responder con lo Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Nombre de las Trazas": {
+      "main": [
+        [
+          {
+            "node": "Si Similitud ≥ Punto de Corte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retornar solo Nombre de Trazas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1 Minuto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [
+          {
+            "node": "Retornar solo Nombre de Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-Embedding-004": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Responder con lo Recuperado": {
+      "main": [
+        [
+          {
+            "node": "Registrar en LangFuse Mensaje de Discuplas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en LangFuse Mensaje de Discuplas": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en Langfuse Contexto Recuperado": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1 Minuto": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar sub-workflow 'evaluation_metrics'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6425cbd5-4b12-45cc-a5e1-02cac7c81bc9",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "rbkMNW7lIbIxIoj4",
+  "tags": [
+    {
+      "updatedAt": "2025-11-27T00:56:21.602Z",
+      "createdAt": "2025-11-27T00:56:21.602Z",
+      "id": "mYRoVhs5Njd6jn03",
+      "name": "FAMAF"
+    }
+  ]
+}

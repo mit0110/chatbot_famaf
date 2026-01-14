@@ -203,7 +203,7 @@
           "conditions": [
             {
               "id": "160d8be6-ff2c-4f59-aa88-dee0946963c1",
-              "leftValue": "={{ $json.cross_question }}",
+              "leftValue": "={{ $json.output.cross_question }}",
               "rightValue": "",
               "operator": {
                 "type": "boolean",
@@ -228,7 +228,7 @@
     {
       "parameters": {
         "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
-        "text": "={{ $json.question }}",
+        "text": "={{ $json.output.question }}",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -400,7 +400,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "bd0be445-c872-4191-9ca8-6543880fac62",
+  "versionId": "55cfa818-8df7-4c24-a87a-cce0c4c5861c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

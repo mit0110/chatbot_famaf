@@ -1,0 +1,587 @@
+{
+  "name": "embedding_latency",
+  "nodes": [
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $('Convertir a JSON').item.json.Preguntas }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "answer",
+                "value": "={{ $('Convertir a JSON').item.json.Respuesta }}"
+              },
+              {
+                "name": "category",
+                "value": "={{ $('Convertir a JSON').item.json['Categoría'] }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1216,
+        288
+      ],
+      "id": "3fa39f31-cc46-40fc-a15e-f2dfc67ecc3d",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        624,
+        64
+      ],
+      "id": "56bb8dc2-d9b0-4534-a05e-8f523bd2984a",
+      "name": "Convertir a JSON"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "={{ $('Crear índice en Pinecone').first().json.name }}",
+          "mode": "id"
+        },
+        "options": {
+          "clearNamespace": true,
+          "pineconeNamespace": "=faq-dataset-v1"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        64
+      ],
+      "id": "1425f289-c365-4d48-a0ca-eb860576e773",
+      "name": "Almacenar en la Base de Datos Vectorial",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "embedding_start_time",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        848,
+        64
+      ],
+      "id": "eadf7cd5-be4e-42fd-bf49-1c7cc1f806fa",
+      "name": "Establecer Tiempo Inicial del Embedding"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86da5c40-b752-471d-ba23-7c8064b783da",
+              "name": "supplier",
+              "value": "ollama",
+              "type": "string"
+            },
+            {
+              "id": "df2b9f1e-5061-40ca-8846-3f883189a3aa",
+              "name": "model_name",
+              "value": "e5-mistral-7b-instruct-q4",
+              "type": "string"
+            },
+            {
+              "id": "d8fa6845-f0cb-420f-a113-2ad135c1df88",
+              "name": "dimension",
+              "value": 4096,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -272,
+        64
+      ],
+      "id": "bb6e87b7-0a0c-4399-b00d-d44aa3138b57",
+      "name": "Establecer nombre del índice",
+      "notes": "La nomenclatura para los nombres es\n\nproveedor-modelo-dimension"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Recuperar datos (ajusta los nombres de nodos si es necesario)\nconst pineconeName = $('Crear índice en Pinecone').first().json.name;\nconst timeMs = $input.first().json.embedding_time_ms\nconst date = new Date().toISOString();\n\n// 2. Crear la línea de texto (IMPORTANTE: el \\n al final es el salto de línea)\nconst csvLine = `${date},${pineconeName},${timeMs}\\n`;\n\n// 3. Devolverlo como JSON\nreturn {\n  json: {\n    texto_para_csv: csvLine\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        64
+      ],
+      "id": "c1f81bf0-7100-4d6e-8fe4-3ed4306a34fb",
+      "name": "Línea de Texto para el CSV"
+    },
+    {
+      "parameters": {
+        "jsCode": "const startTime = $('Establecer Tiempo Inicial del Embedding').first().json.embedding_start_time\nconst endTime = Date.now();\n\nreturn {\n  json: {\n    // Tiempo en ms\n    embedding_time_ms: endTime - startTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1424,
+        64
+      ],
+      "id": "e8bd6ee6-f6b1-4b3a-b8d7-0e545ea12921",
+      "name": "Calcular Tiempo de Embedding"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/embeddings_time.csv",
+        "options": {
+          "append": true
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        64
+      ],
+      "id": "6d923bd7-0722-4373-81df-94b8d4951941",
+      "name": "Guardar en .csv"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "value": "mit0110",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "chatbot_famaf",
+          "mode": "name"
+        },
+        "filePath": "data/knowledge_base/faq_dataset_v1.csv",
+        "additionalParameters": {
+          "reference": "no-embedding-response"
+        }
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        64
+      ],
+      "id": "b2f2cc87-2d7c-41ca-9fa5-7c6d041b1a10",
+      "name": "Obtener Base de Conocimiento desde GitHub",
+      "webhookId": "ec3aa712-3d79-438f-a723-dce08a6d844b",
+      "credentials": {
+        "githubApi": {
+          "id": "HDFQfv8HldLJWNQ9",
+          "name": "FrancoArtico"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 Obtener Base de Conocimiento",
+        "height": 256,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "ae7dc4dd-b446-4cab-bfb5-2bb6641914f9",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        64
+      ],
+      "id": "c70514af-0dfb-4b49-8ab6-d4e3c282213c",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Generar e Insertar Embeddings",
+        "height": 464,
+        "width": 400,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        976,
+        -32
+      ],
+      "id": "00084463-8501-4c8f-b243-81429d8be015",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Guardar Tiempo de Embedding en un Archivo  Local",
+        "height": 240,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1584,
+        -16
+      ],
+      "id": "045e429b-9993-41f8-8c46-d2412f54cc8b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pinecone.io/indexes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{ $('Establecer nombre del índice').item.json.supplier }}-{{ $('Establecer nombre del índice').item.json.model_name }}-{{ $('Establecer nombre del índice').item.json.dimension }}\",\n  \"dimension\": {{ $('Establecer nombre del índice').item.json.dimension }},\n  \"metric\": \"cosine\",\n  \"spec\": {\n    \"serverless\": {\n      \"cloud\": \"aws\",\n      \"region\": \"us-east-1\"\n    }\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -48,
+        64
+      ],
+      "id": "d4f3a8cc-4c93-4222-a6e3-0e33abbb168f",
+      "name": "Crear índice en Pinecone",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        },
+        "httpHeaderAuth": {
+          "id": "nfpYqLAMxsZx4zPU",
+          "name": "Pinecone-API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        176,
+        64
+      ],
+      "id": "929efa6f-5fb2-43c3-a5cf-2188c13ad6bd",
+      "name": "Esperar 30 Segundos",
+      "webhookId": "ed938a69-fa32-4270-9867-624c0293af4c",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "options": {
+          "headerRow": false
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1872,
+        64
+      ],
+      "id": "5d23c3f1-2ddb-4aa5-b4e2-4c9856d7d120",
+      "name": "Convertir a Binario"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4484d9e2-caf0-41b8-8bec-c73a717f33a8",
+              "name": "pinecone_index_name",
+              "value": "={{ $('Crear índice en Pinecone').first().json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "5d4bf150-3de8-4581-85b2-f9441e1e5693",
+              "name": "trace_name",
+              "value": "=embedding-{{ $('Establecer nombre del índice').first().json.supplier }}-{{ $('Establecer nombre del índice').first().json.model_name }}-v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2304,
+        64
+      ],
+      "id": "eede7de4-4670-422d-8907-b8401e514a85",
+      "name": "Pasar solo Nombre del Índice en Pinecone"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "rbkMNW7lIbIxIoj4",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/rbkMNW7lIbIxIoj4",
+          "cachedResultName": "embedding_generate_traces"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2512,
+        64
+      ],
+      "id": "9974e71f-ddbb-43ec-aeee-23756795c91d",
+      "name": "Llamar 'embedding_generate_traces'"
+    },
+    {
+      "parameters": {
+        "model": "hellord/e5-mistral-7b-instruct:Q4_0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        288
+      ],
+      "id": "31fcd01d-050f-4067-977e-c3a79bf4966b",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "3aiI20ZuEJAR6nx3",
+          "name": "Ollama Local"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Almacenar en la Base de Datos Vectorial",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir a JSON": {
+      "main": [
+        [
+          {
+            "node": "Establecer Tiempo Inicial del Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial del Embedding": {
+      "main": [
+        [
+          {
+            "node": "Almacenar en la Base de Datos Vectorial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Almacenar en la Base de Datos Vectorial": {
+      "main": [
+        [
+          {
+            "node": "Calcular Tiempo de Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer nombre del índice": {
+      "main": [
+        [
+          {
+            "node": "Crear índice en Pinecone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Línea de Texto para el CSV": {
+      "main": [
+        [
+          {
+            "node": "Convertir a Binario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Tiempo de Embedding": {
+      "main": [
+        [
+          {
+            "node": "Línea de Texto para el CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Base de Conocimiento desde GitHub": {
+      "main": [
+        [
+          {
+            "node": "Convertir a JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Establecer nombre del índice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en .csv": {
+      "main": [
+        [
+          {
+            "node": "Pasar solo Nombre del Índice en Pinecone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear índice en Pinecone": {
+      "main": [
+        [
+          {
+            "node": "Esperar 30 Segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 30 Segundos": {
+      "main": [
+        [
+          {
+            "node": "Obtener Base de Conocimiento desde GitHub",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convertir a Binario": {
+      "main": [
+        [
+          {
+            "node": "Guardar en .csv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pasar solo Nombre del Índice en Pinecone": {
+      "main": [
+        [
+          {
+            "node": "Llamar 'embedding_generate_traces'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Almacenar en la Base de Datos Vectorial",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0db542c8-3a41-41e1-9a48-56a1f7e39de3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "c25bgmvPMOU5X192",
+  "tags": []
+}

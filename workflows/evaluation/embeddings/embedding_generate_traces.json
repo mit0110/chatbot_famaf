@@ -1,0 +1,547 @@
+{
+  "name": "embedding_generate_traces",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebad5af-b927-4ad2-bef2-8fd8be31ea27",
+              "name": "trace_name",
+              "value": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        400
+      ],
+      "id": "663dae08-4ead-4081-b4a8-4f69d3a2f070",
+      "name": "Retornar solo Nombre de Trazas",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Conjunto de Datos de Prueba\n",
+        "height": 272,
+        "width": 608,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        640
+      ],
+      "id": "7dab5923-737b-4fa9-9d6e-ec583cfe848b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Llamar a Evaluación\n",
+        "height": 256,
+        "width": 816,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        336
+      ],
+      "id": "dd8e6956-39d3-486c-b22d-d2fc9facbb0a",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "url": "http://langfuse-web:3000/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -768,
+        720
+      ],
+      "id": "d17c8005-4bba-4026-9d92-507c26e2d4b9",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -544,
+        720
+      ],
+      "id": "e62337ec-69a9-4a5b-a4fd-f02f98a8d032",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        720
+      ],
+      "id": "f728d9c7-865c-4d87-8ef0-df7b22896470",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "={{ $('Al ser Ejecutado por Otro Workflow').item.json.pinecone_index_name }}",
+          "mode": "id"
+        },
+        "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+        "topK": 5,
+        "options": {
+          "pineconeNamespace": "faq-dataset-v1"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        128,
+        704
+      ],
+      "id": "5b743302-924b-4432-909f-de7b376b4a98",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Generamos los IDs\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 2. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\n// 3. Serializar el arreglo para OTLP\nconst outputString = JSON.stringify($input.first().json.retrieval_output)\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    otel_output: outputString\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        704
+      ],
+      "id": "d715da72-db90-40d7-b671-80595a7fd67d",
+      "name": "Generar Datos Necesarios para OTLP",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\", \n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\", \n              \"name\": \"{{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}\",\n              \"kind\": 1, \n              \"startTimeUnixNano\": \"{{ $('Formateo para Guardar Traza').item.json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $('Formateo para Guardar Traza').item.json.end_time_nano }}\",\n              \"attributes\": [\n                { \"key\": \"input.value\", \"value\": { \"stringValue\": \"{{ $('Ciclo sobre Todas las Entradas').first().json.input }}\" } },\n                { \"key\": \"output.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Generar Datos Necesarios para OTLP').item.json.otel_output) }}} },\n                {\n                  \"key\": \"top_k\", \"value\": { \"intValue\": 5 }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        976,
+        896
+      ],
+      "id": "8e7d7928-20d2-43d5-9df1-6bc995e4ee0b",
+      "name": "Registrar en Langfuse Contexto Recuperado",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        400
+      ],
+      "id": "0102ec78-b90a-463c-ba4a-a25a15b573b0",
+      "name": "Esperar 1 Minuto",
+      "webhookId": "e3f6ec27-45d5-4268-a3a6-720744d9a1f2",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Búsqueda por Similitud",
+        "height": 400,
+        "width": 352,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        64,
+        656
+      ],
+      "id": "c42a79b9-87cd-4d1f-9dc5-68bd16d23c78",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Almacenar Respuesta ",
+        "height": 480,
+        "width": 496,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        624,
+        608
+      ],
+      "id": "44fb4ea0-0dd3-4515-9f6a-eb7a279153df",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -992,
+        720
+      ],
+      "id": "e4e9fba8-9f30-449d-8f81-8e24c322bbde",
+      "name": "Al ser Ejecutado por Otro Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        704
+      ],
+      "id": "56e770c2-4c4b-490d-92ff-67c40d07b55c",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {
+        "jsCode": "const startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// Obtenemos todos los resultados que devolvió Pinecone\nconst items = $input.all();\n\n// Mapeamos a una estructura limpia para Guardar en Langfuse\nconst retrievalTrace = items.map((item, index) => {\n  const doc = item.json.document;\n\n  return {\n    rank: index + 1,\n    score: item.json.score,\n    answer: doc.metadata.answer\n  };\n});\n\nreturn {\n  json: {\n    retrieval_output: retrievalTrace,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        704
+      ],
+      "id": "fbbac085-0edd-4f41-b8bf-0878ebfb6a58",
+      "name": "Formateo para Guardar Traza"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "97A7FOsgMlh45mLS",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/97A7FOsgMlh45mLS",
+          "cachedResultName": "embedding_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        400
+      ],
+      "id": "fc303db3-9bdf-405a-912a-7cca66dbf052",
+      "name": "Llamar 'embedding_metrics'",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "hellord/e5-mistral-7b-instruct:Q4_0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        224,
+        912
+      ],
+      "id": "ff72d0da-b386-47aa-a845-7338da510602",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "3aiI20ZuEJAR6nx3",
+          "name": "Ollama Local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://api.pinecone.io/indexes/{{ $('Al ser Ejecutado por Otro Workflow').first().json.pinecone_index_name }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        704,
+        400
+      ],
+      "id": "59310c95-e46a-49e8-9a15-9e2c57308348",
+      "name": "Eliminar Índice de Pinecone",
+      "executeOnce": true,
+      "retryOnFail": true,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        },
+        "httpHeaderAuth": {
+          "id": "nfpYqLAMxsZx4zPU",
+          "name": "Pinecone-API"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Al ser Ejecutado por Otro Workflow": [
+      {
+        "json": {
+          "pinecone_index_name": "google-gemini-embedding-exp-03-07-3072",
+          "trace_name": "embedding-google-gemini-embedding-exp-03-07-v1"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Retornar solo Nombre de Trazas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 1 Minuto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [
+          {
+            "node": "Retornar solo Nombre de Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Formateo para Guardar Traza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Langfuse Contexto Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en Langfuse Contexto Recuperado": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 1 Minuto": {
+      "main": [
+        [
+          {
+            "node": "Llamar 'embedding_metrics'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Al ser Ejecutado por Otro Workflow": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formateo para Guardar Traza": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llamar 'embedding_metrics'": {
+      "main": [
+        [
+          {
+            "node": "Eliminar Índice de Pinecone",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7d89b7cb-0f97-44a6-9efe-a8480fea0a63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "rbkMNW7lIbIxIoj4",
+  "tags": [
+    {
+      "updatedAt": "2025-11-27T00:56:21.602Z",
+      "createdAt": "2025-11-27T00:56:21.602Z",
+      "id": "mYRoVhs5Njd6jn03",
+      "name": "FAMAF"
+    }
+  ]
+}

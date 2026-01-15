@@ -1,5 +1,5 @@
 {
-  "name": "score-gated-rag",
+  "name": "score-gated-rag-v2",
   "nodes": [
     {
       "parameters": {
@@ -12,9 +12,9 @@
         -144,
         192
       ],
-      "id": "3bfa0dc5-bfb9-4d50-978a-54372c3a72a9",
+      "id": "300fc3ef-98c7-4dee-b12d-237175c759b7",
       "name": "Cambiar estado a \"Escribiendo...\"",
-      "webhookId": "00cefaf9-eb43-4944-ab5f-3f5b170fa2c1",
+      "webhookId": "b21f2915-10bc-4efc-9f6e-aa30197bf09a",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
@@ -28,7 +28,7 @@
         "text": "={{ JSON.stringify($json.data) }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - \"answer\": texto de la respuesta\n   - \"score\": valor numérico de similitud (entre 0 y 1)\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- violencia de género\n- acoso\n- conflictos interpersonales graves\n- situaciones sociales problemáticas dentro de la facultad\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73:\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve EXACTAMENTE el texto de la respuesta seleccionada.\n  - No modifiques ni una palabra.\n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response\": \"<respuesta exacta devuelta por Pinecone>\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No agregues explicaciones.\n- No incluyas texto fuera del JSON.\n- No reformules ni edites las respuestas.\n- Devuelve siempre un JSON válido.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73.\n"
+          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario:{{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -37,9 +37,9 @@
         496,
         192
       ],
-      "id": "3cc58832-f7ec-4e32-8d59-310bbc1c63df",
+      "id": "5b79b30f-5878-4f32-8148-8f6d0b9c290d",
       "name": "Agente RAG",
-      "retryOnFail": false
+      "retryOnFail": true
     },
     {
       "parameters": {
@@ -52,7 +52,7 @@
         544,
         560
       ],
-      "id": "1f81141f-9831-4315-9bf5-7fd2bb741933",
+      "id": "6569d576-3f40-43c6-863d-34eff55f85bf",
       "name": "Memoria de 5 mensajes volátil"
     },
     {
@@ -68,9 +68,9 @@
         -336,
         192
       ],
-      "id": "772d9db6-d6e9-49b2-b300-5e0c113aeb5d",
+      "id": "44ce95e0-5374-4244-bb32-4e54ae3daf15",
       "name": "Cuando Reciba un Mensaje",
-      "webhookId": "de1aaa33-cdcb-4c7a-bf46-9e316cbe8aef",
+      "webhookId": "04201081-c27c-4a8f-b9ba-6ee92397285e",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
@@ -94,7 +94,7 @@
         400,
         448
       ],
-      "id": "a83a58b6-6c4e-4631-bc58-8d8cbab07e36",
+      "id": "0eb1b2f6-5a04-4ccf-ba82-41d1df649bd6",
       "name": "OpenAI Chat Model",
       "credentials": {
         "openAiApi": {
@@ -106,7 +106,7 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"string\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response_num\": {\n      \"type\": \"int\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
         "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
@@ -115,7 +115,7 @@
         640,
         464
       ],
-      "id": "d9e931b0-592f-4e29-aafe-3d30c8870901",
+      "id": "da8fa116-eadb-4cea-ab01-57fdb928fe22",
       "name": "Structured Output Parser"
     },
     {
@@ -135,7 +135,7 @@
         640,
         656
       ],
-      "id": "21c21dac-eecd-46ea-abc0-27433eadecb6",
+      "id": "e23d911b-cff4-46b1-8532-42a8af86719b",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
@@ -224,7 +224,7 @@
         896,
         176
       ],
-      "id": "2d0def67-8147-48c3-b27b-2f6bc3b680d0",
+      "id": "629b6c55-e9f0-419a-9c62-a82e92fc817e",
       "name": "Switch"
     },
     {
@@ -242,38 +242,15 @@
         1376,
         192
       ],
-      "id": "0d44dc44-cf7a-4b49-b638-c72904a223e4",
+      "id": "cb583e3b-ca70-47d1-951d-8252759f606c",
       "name": "Enviar Mensaje",
-      "webhookId": "d9e2269d-6d14-4ac9-be58-74f9d15988e1",
+      "webhookId": "2c26da98-1ee9-450b-bcfb-f742237aa03b",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
           "name": "Telegram account"
         }
       }
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "cc61d60e-943c-4b6c-9eaa-04d0cfffebe3",
-              "name": "response",
-              "value": "Disculpa, por el momento no cuento con información específica sobre esa consulta.",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1104,
-        16
-      ],
-      "id": "3cbcb1f3-a64c-4ca0-83f3-c96daca42c1e",
-      "name": "Fallback"
     },
     {
       "parameters": {
@@ -295,7 +272,7 @@
         32,
         192
       ],
-      "id": "bc2bceea-70d9-44aa-886d-713110eeb866",
+      "id": "166caea8-1bb9-4eb1-916b-a0422422461d",
       "name": "Pinecone Vector Store",
       "credentials": {
         "pineconeApi": {
@@ -312,7 +289,7 @@
         32,
         400
       ],
-      "id": "090dda79-b185-492a-bb64-72ad60732f77",
+      "id": "9d9b2c74-e755-4635-9691-52b42f340025",
       "name": "Embeddings Google Gemini1",
       "credentials": {
         "googlePalmApi": {
@@ -320,52 +297,6 @@
           "name": "chatbot-famaf (unc)"
         }
       }
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "5281c6b9-2986-49dd-956b-ee92b4e40fb1",
-              "name": "response",
-              "value": "Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación.",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1104,
-        192
-      ],
-      "id": "81243bac-54cb-4bd8-a04e-b65044c99416",
-      "name": "Redireccionar a un humano"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "48400ac0-a270-4f22-abb9-d918c2797190",
-              "name": "response",
-              "value": "={{ $json.output.response }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1104,
-        400
-      ],
-      "id": "5fe046ec-03b4-4f32-a121-b76ccaaf7aee",
-      "name": "Canned-response"
     },
     {
       "parameters": {
@@ -377,8 +308,47 @@
         320,
         192
       ],
-      "id": "de88eefb-b7ec-4f31-aabd-dfe60a4928f8",
+      "id": "3e22aeed-306a-4919-8169-c7625fa8c701",
       "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        16
+      ],
+      "id": "d813d138-40f5-495c-8295-32fe5104abe0",
+      "name": "fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        368
+      ],
+      "id": "7a8605e6-132e-4cdd-85d1-76c6732aa078",
+      "name": "Canned answer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación..`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        192
+      ],
+      "id": "7b9c7d9b-37b8-403e-bbff-3ec457605859",
+      "name": "Redireccionar a un humano"
     }
   ],
   "pinData": {},
@@ -464,7 +434,7 @@
       "main": [
         [
           {
-            "node": "Fallback",
+            "node": "fallback",
             "type": "main",
             "index": 0
           }
@@ -478,18 +448,7 @@
         ],
         [
           {
-            "node": "Canned-response",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fallback": {
-      "main": [
-        [
-          {
-            "node": "Enviar Mensaje",
+            "node": "Canned answer",
             "type": "main",
             "index": 0
           }
@@ -502,28 +461,6 @@
           {
             "node": "Pinecone Vector Store",
             "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Redireccionar a un humano": {
-      "main": [
-        [
-          {
-            "node": "Enviar Mensaje",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Canned-response": {
-      "main": [
-        [
-          {
-            "node": "Enviar Mensaje",
-            "type": "main",
             "index": 0
           }
         ]
@@ -550,17 +487,50 @@
           }
         ]
       ]
+    },
+    "fallback": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned answer": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "04429921-7d07-4e73-bebd-854f0b665169",
+  "versionId": "e1fa3c30-d057-46b9-a84a-e250c4784fe9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
   },
-  "id": "IAHt9HLQcvmJKROV",
+  "id": "NOVSZ75BtaQyMmM3",
   "tags": []
 }

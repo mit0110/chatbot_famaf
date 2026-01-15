@@ -1,0 +1,900 @@
+{
+  "name": "generate_traces_score-gated-rag-v1",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Conjunto de Datos de Prueba\n",
+        "height": 272,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        272
+      ],
+      "id": "255eb939-cd82-4e98-95d7-4b30f0db2510",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        368
+      ],
+      "id": "ffac0b54-2012-421d-9ac7-5c8586333c9a",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        384
+      ],
+      "id": "54721443-f6ae-418c-a406-7feb0f35b4a2",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Generar Respuestas",
+        "height": 784,
+        "width": 1856,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        176
+      ],
+      "id": "c225accd-12c8-416f-b57d-21d9a1c82afc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 👣 Guardar Traza",
+        "height": 464,
+        "width": 864,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        272
+      ],
+      "id": "f3847ddb-e00b-4005-9489-e361f61ac335",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://us.cloud.langfuse.com/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "="
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"{{ $('Establecer Nombre de las Trazas').first().json.trace_name }}\",\n              \"kind\": 2,\n              \"startTimeUnixNano\": \"{{ $json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $json.end_time_nano }}\",\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Establecer Nombre de las Trazas').first().json.response) }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2336,
+        560
+      ],
+      "id": "d7da63ce-d39d-44ff-b84e-4471abdad1ce",
+      "name": "Registrar Traza en LangFuse usando OTLP",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "tkug4iCQOY0662qy",
+          "name": "Langfuse credential"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        368
+      ],
+      "id": "75588951-2419-402a-a3dc-e1f1ba2d8575",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "url": "https://us.cloud.langfuse.com/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -592,
+        368
+      ],
+      "id": "61b118c4-9b92-4f7f-a7d1-1525b548ee67",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "tkug4iCQOY0662qy",
+          "name": "Langfuse credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        368
+      ],
+      "id": "6baf43cb-861d-4704-aec4-a1385be3bb82",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        384
+      ],
+      "id": "59f2469e-5e25-41dc-a852-43bc6afcb782",
+      "name": "Generar Datos Necesarios para OTLP"
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Llamar a Evaluación\n",
+        "height": 240,
+        "width": 704,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "f6c7f50a-5de8-4afb-8daf-1288380dafd4",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pNGzfIiPNQZdvH4j",
+          "mode": "id"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        -64
+      ],
+      "id": "18573a6e-7d5b-463c-8670-3f7eed2f97de",
+      "name": "Ejecutar sub-workflow 'evaluation_metrics'",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "73eb1a0d-99cf-45a6-b40b-eb6b2d812f4e",
+      "name": "Esperar 2 Minutos",
+      "webhookId": "022d0291-20e5-4df8-bccc-8cfb9e355dfa",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "trace_name",
+              "value": "=test-score-gated-rag-v6",
+              "type": "string"
+            },
+            {
+              "id": "b235fe41-104a-4fab-8dac-f68ca9a962d8",
+              "name": "response",
+              "value": "={{ $json.response ? $json.response : 'bad classification response_type: ' + $('Agente RAG').item.json.output.response_type }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1696,
+        384
+      ],
+      "id": "fe122941-d6c3-4e8d-83da-11ccbf315565",
+      "name": "Establecer Nombre de las Trazas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebad5af-b927-4ad2-bef2-8fd8be31ea27",
+              "name": "trace_name",
+              "value": "={{ $('Establecer Nombre de las Trazas').item.json.trace_name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        64,
+        -64
+      ],
+      "id": "ff6497d7-53fe-49ab-ae7c-6fa5bb67ecdd",
+      "name": "Retornar solo Nombre de Trazas",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Ciclo sobre Todas las Entradas').first().json.input }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - \"answer\": texto de la respuesta\n   - \"score\": valor numérico de similitud (entre 0 y 1)\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- violencia de género\n- acoso\n- conflictos interpersonales graves\n- situaciones sociales problemáticas dentro de la facultad\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73:\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve EXACTAMENTE el texto de la respuesta seleccionada.\n  - No modifiques ni una palabra.\n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response\": \"<respuesta exacta devuelta por Pinecone>\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No agregues explicaciones.\n- No incluyas texto fuera del JSON.\n- No reformules ni edites las respuestas.\n- Devuelve siempre un JSON válido.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        752,
+        384
+      ],
+      "id": "4e25a327-409a-4c24-a170-9db573d30da1",
+      "name": "Agente RAG",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=123456789"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        608
+      ],
+      "id": "242a8530-dfa3-48ef-b07b-13745bcb8087",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"string\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        624
+      ],
+      "id": "7192caae-de0f-4642-a354-e101f668c7f9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "mistral-small3.2:24b",
+          "mode": "list",
+          "cachedResultName": "mistral-small3.2:24b"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        896,
+        800
+      ],
+      "id": "02e3e9a6-a15a-47f1-92a0-73254f8cfc4e",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1120,
+        384
+      ],
+      "id": "3284a3f2-ba05-43fb-a0fb-5d7443da5a4d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc61d60e-943c-4b6c-9eaa-04d0cfffebe3",
+              "name": "response",
+              "value": "Disculpa, por el momento no cuento con información específica sobre esa consulta.  Para obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:  - despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones. - usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc. - sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado. - nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.  Ellos van a poder orientarte mejor según tu situación.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        208
+      ],
+      "id": "5d8dc67a-d72a-483c-9e04-e5fc9ff9bcd5",
+      "name": "Fallback"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-extended"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        384
+      ],
+      "id": "23e85943-6854-444c-91af-86dad9e81824",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        592
+      ],
+      "id": "e61edc5f-594f-46f4-b399-311a35b38200",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5281c6b9-2986-49dd-956b-ee92b4e40fb1",
+              "name": "response",
+              "value": "Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        384
+      ],
+      "id": "92d46bfd-54ce-4b1a-ac69-2beea3b45809",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "48400ac0-a270-4f22-abb9-d918c2797190",
+              "name": "response",
+              "value": "={{ $json.output.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        592
+      ],
+      "id": "4637f9df-0264-4f97-946f-3d7979aec0e4",
+      "name": "Canned-response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.Answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        384
+      ],
+      "id": "d6a4213a-f052-4661-99f8-6189d985bd5a",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "mistral-small3.2:24b",
+          "mode": "list",
+          "cachedResultName": "mistral-small3.2:24b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        640,
+        608
+      ],
+      "id": "d8de9e9b-ba76-4c39-b79b-4bf3ff472a83",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [
+          {
+            "node": "Retornar solo Nombre de Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Traza en LangFuse usando OTLP": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Registrar Traza en LangFuse usando OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2 Minutos": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar sub-workflow 'evaluation_metrics'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Nombre de las Trazas": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retornar solo Nombre de Trazas": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2 Minutos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned-response": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5327b91f-8af6-416e-9432-f5c75aec5ae3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "aW2z8pLyJeX6aLzs",
+  "tags": [
+    {
+      "updatedAt": "2025-12-02T12:59:17.987Z",
+      "createdAt": "2025-12-02T12:59:17.987Z",
+      "id": "rzxlwRJmYPOYq1s2",
+      "name": "FAMAF"
+    }
+  ]
+}

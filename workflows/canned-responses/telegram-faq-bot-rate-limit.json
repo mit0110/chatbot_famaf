@@ -1,0 +1,418 @@
+{
+  "name": "telegram-faq-bot-rate-limit",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "topK": 1,
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-30q"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        -192
+      ],
+      "id": "25aff19a-fabe-43cc-b300-c0a12e83d9c5",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1264,
+        -48
+      ],
+      "id": "46a7388f-01de-4cb7-afa0-1bb3b60f418a",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        32
+      ],
+      "id": "b154a306-0041-46c8-832e-2aa8de79d22e",
+      "name": "Text-Embedding-004",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "14273fde-1623-42d6-8258-dba357a4f38a",
+              "leftValue": "={{ $json.score }}",
+              "rightValue": 0.73,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        -96
+      ],
+      "id": "b0102c3d-a79d-49b1-9b1e-f1d3dae8b208",
+      "name": "Si Similitud ≥ Punto de Corte"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $json.document.metadata.Answer }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        -144
+      ],
+      "id": "6ef25ac7-6d08-4b47-bbc7-e4eb3c06dab7",
+      "name": "Responder con la Información Recuperada",
+      "webhookId": "5ebe12f0-b3d5-46c0-963a-e24a09fcc843",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "=Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        208,
+        64
+      ],
+      "id": "fa31d422-0bf9-4a2c-af55-e0f9204db577",
+      "name": "Responder que no hay Suficiente Información",
+      "webhookId": "bb1bd8cd-5a0e-4b3e-8f45-4dd46b57ffaa",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"uid\": \"{{ $json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 3,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1040,
+        -48
+      ],
+      "id": "2c7881bb-e631-405e-988a-c6247826cecd",
+      "name": "Establecer Campos para Rate Limiting"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').item.json.message.chat.id }}",
+        "text": "={{ $('Establecer Campos para Rate Limiting').item.json.error_message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        208
+      ],
+      "id": "d190620d-0c02-452e-8f49-1ddb32954985",
+      "name": "Notificar al Usuario que Alcanzó el Límite",
+      "webhookId": "bb1bd8cd-5a0e-4b3e-8f45-4dd46b57ffaa",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/redis_errors.csv",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        304
+      ],
+      "id": "99442a78-d171-412f-8183-5627c69ac077",
+      "name": "Loggear Error en un archivo .log"
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "={{ $json.uid }}",
+        "expire": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -48
+      ],
+      "id": "9d40e7b5-a93a-46de-8c39-f870550a8235",
+      "name": "Consultar Límite de Usuario",
+      "notesInFlow": false,
+      "credentials": {
+        "redis": {
+          "id": "imdJGkUOtkXqjXkC",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9be3485f-77e7-4385-bf5a-e2cbe9a7321d",
+              "leftValue": "={{ $json['1332740251'] }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting').item.json.message_limit_per_duration }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -592,
+        -96
+      ],
+      "id": "8a753808-c2e2-4fd7-8296-4bf9b6d8e601",
+      "name": "¿Está dentro del Límite de Peticiones?"
+    }
+  ],
+  "pinData": {
+    "Cuando Reciba un Mensaje": [
+      {
+        "json": {
+          "update_id": 357822708,
+          "message": {
+            "message_id": 1151,
+            "from": {
+              "id": 1332740251,
+              "is_bot": false,
+              "first_name": "Fran",
+              "last_name": "Artico",
+              "language_code": "es"
+            },
+            "chat": {
+              "id": 1332740251,
+              "first_name": "Fran",
+              "last_name": "Artico",
+              "type": "private"
+            },
+            "date": 1768669100,
+            "text": "Hola"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Si Similitud ≥ Punto de Corte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Establecer Campos para Rate Limiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text-Embedding-004": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Si Similitud ≥ Punto de Corte": {
+      "main": [
+        [
+          {
+            "node": "Responder con la Información Recuperada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder que no hay Suficiente Información",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Campos para Rate Limiting": {
+      "main": [
+        [
+          {
+            "node": "Consultar Límite de Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loggear Error en un archivo .log": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Límite de Usuario": {
+      "main": [
+        [
+          {
+            "node": "¿Está dentro del Límite de Peticiones?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loggear Error en un archivo .log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Está dentro del Límite de Peticiones?": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notificar al Usuario que Alcanzó el Límite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d1eb25f7-ced3-4de5-83c2-9835108733d4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "iza4SH3nnTgMbAcU",
+  "tags": []
+}

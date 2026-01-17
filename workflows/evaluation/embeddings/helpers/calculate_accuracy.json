@@ -1,0 +1,182 @@
+{
+  "name": "calculate_accuracy",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "={{ $json.expectedAnswer }}",
+        "actualAnswer": "={{ $json.actualAnswer }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1312,
+        576
+      ],
+      "id": "4ada47e4-6738-45f1-be89-6c575332d534",
+      "name": "Evaluación de Accuracy"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "traceId"
+            },
+            {
+              "name": "datasetItemId"
+            },
+            {
+              "name": "trace_name"
+            },
+            {
+              "name": "expectedAnswer"
+            },
+            {
+              "name": "actualAnswer"
+            }
+          ]
+        }
+      },
+      "id": "7fb35412-c4bc-4674-8def-3ff7773eaa4c",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        1088,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uLKx0D4QulKxd65P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
+          "cachedResultName": "save_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "metric_value": 0,
+            "traceId": "={{ $('Start').item.json.traceId }}",
+            "datasetItemId": "={{ $('Start').item.json.datasetItemId }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "traceId",
+              "displayName": "traceId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "datasetItemId",
+              "displayName": "datasetItemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "trace_name",
+              "displayName": "trace_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_value",
+              "displayName": "metric_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1520,
+        576
+      ],
+      "id": "0ae9ab54-357c-4f17-adff-586be0e7d50a",
+      "name": "Call 'save_metrics'"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "traceId": "3e13df8c4f5b42fbb7defa53026f043b",
+          "datasetItemId": "fcf598a8-23f2-4c19-954d-e4f2facc9eff",
+          "expectedAnswer": "El curso de nivelación se dictará entre fines de enero y fines de febrero de 2026 y se ofrece bajo una única modalidad: presencial.",
+          "actualAnswer": "Quienes cursen el Curso de Nivelación podrán optar por: turno mañana, de 9 a 13 horas; o turno tarde, de 14 a 18 horas."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Evaluación de Accuracy": {
+      "main": [
+        [
+          {
+            "node": "Call 'save_metrics'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Evaluación de Accuracy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be2866d1-c7b9-4763-890f-92c09bc90e14",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "hXcZbLx78qLbAyA8",
+  "tags": []
+}

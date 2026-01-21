@@ -107,7 +107,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"{{ $('Establecer Nombre de las Trazas').first().json.trace_name }}\",\n              \"kind\": 2,\n              \"startTimeUnixNano\": \"{{ $json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $json.end_time_nano }}\",\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Establecer Nombre de las Trazas').first().json.response) }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"{{ $('Establecer Nombre de las Trazas').first().json.trace_name }}\",\n              \"kind\": 2,\n              \"startTimeUnixNano\": \"{{ $json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $json.end_time_nano }}\",\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Establecer Nombre de las Trazas').first().json.response) }}\n                  }\n                },\n                {\n                  \"key\": \"retrieval.score\",\n                  \"value\": {\n                    \"doubleValue\": {{ $('Canned answer').item.json.score ? $('Canned answer').item.json.score : 0 }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -277,7 +277,7 @@
         "text": "={{ JSON.stringify($json.data) }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario:{{ $('Ciclo sobre Todas las Entradas').first().json.input }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON."
+          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario:{{ $('Ciclo sobre Todas las Entradas').first().json.input }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.7088 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.7088 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON."
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -376,9 +376,9 @@
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
-          "value": "google-gemini-embedding-001-3072",
+          "value": "ccad-qwen3-embedding-8b-4096",
           "mode": "list",
-          "cachedResultName": "google-gemini-embedding-001-3072"
+          "cachedResultName": "ccad-qwen3-embedding-8b-4096"
         },
         "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
         "options": {
@@ -388,7 +388,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        304,
+        272,
         384
       ],
       "id": "de17b821-190b-4ccc-ab24-2ec413e6d8fd",
@@ -420,7 +420,7 @@
             {
               "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
               "name": "trace_name",
-              "value": "=test-score-gated-rag(v2)-9",
+              "value": "=test-score-gated-rag(v2)-10",
               "type": "string"
             },
             {
@@ -540,7 +540,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    responseNum: responseNum,\n    clearResponseData : clearResponseData,\n    response: answer\n  }\n}];"
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\nconst score = \nclearResponseData[responseNum].score;\n\nreturn [{\n  json: {\n    score : score, \n    response: answer\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -566,20 +566,20 @@
     },
     {
       "parameters": {
-        "modelName": "models/embedding-001"
+        "model": "qwen3-embedding:8b"
       },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
       "typeVersion": 1,
       "position": [
-        320,
-        592
+        272,
+        576
       ],
-      "id": "12ff0e9f-b084-4a7e-8de6-ee4f9ecfddfe",
-      "name": "Embeddings Google Gemini",
+      "id": "7623344b-de4c-4b7d-b660-d426b038ae2c",
+      "name": "Embeddings Ollama",
       "credentials": {
-        "googlePalmApi": {
-          "id": "ImG0DtqmwGrZGAsz",
-          "name": "chatbot-famaf (unc)"
+        "ollamaApi": {
+          "id": "5hfG2JZuvyqD0soc",
+          "name": "Ollama account"
         }
       }
     }
@@ -838,7 +838,7 @@
         ]
       ]
     },
-    "Embeddings Google Gemini": {
+    "Embeddings Ollama": {
       "ai_embedding": [
         [
           {
@@ -854,7 +854,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "ed7538f2-db98-437d-adc3-91ae7b7f272a",
+  "versionId": "e14d0e2e-3199-4e84-815f-fe8e98444421",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

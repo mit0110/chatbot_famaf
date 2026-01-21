@@ -11,7 +11,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -864,
+        -992,
         272
       ],
       "id": "809de91f-0f9a-445f-9b6e-39b2b01297e4",
@@ -65,8 +65,8 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -208,
-        176
+        -240,
+        160
       ],
       "id": "a0f818b9-08f4-44d7-b2fe-b336a8a0c74e",
       "name": "Sticky Note2"
@@ -130,7 +130,7 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -816,
+        -944,
         368
       ],
       "id": "d0ff40ea-24e7-48ff-9513-3f6b0af0831f",
@@ -146,7 +146,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -592,
+        -720,
         368
       ],
       "id": "6e3bfb98-841c-445c-9be9-d60d859bafe5",
@@ -166,7 +166,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -368,
+        -496,
         368
       ],
       "id": "6c6bfb6d-ecd4-442e-abe3-6c8acd2b8aa7",
@@ -179,7 +179,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1920,
+        1968,
         384
       ],
       "id": "1a23e1a2-37d3-43c6-badc-f9177d06c790",
@@ -293,7 +293,8 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=123456789"
+        "sessionKey": "=123456789",
+        "contextWindowLength": "={{ $('Agregar Items a un Arreglo').first().json.metadata }}"
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
@@ -375,19 +376,19 @@
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
-          "value": "faq-embeddings",
+          "value": "google-gemini-embedding-001-3072",
           "mode": "list",
-          "cachedResultName": "faq-embeddings"
+          "cachedResultName": "google-gemini-embedding-001-3072"
         },
         "prompt": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
         "options": {
-          "pineconeNamespace": "create-question-emmbeding-extended"
+          "pineconeNamespace": "faq-dataset-v1"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        320,
+        304,
         384
       ],
       "id": "de17b821-190b-4ccc-ab24-2ec413e6d8fd",
@@ -400,25 +401,8 @@
       }
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        320,
-        592
-      ],
-      "id": "32b92b22-9c0f-4422-8742-67d5318e7733",
-      "name": "Embeddings Google Gemini1",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "ImG0DtqmwGrZGAsz",
-          "name": "chatbot-famaf (unc)"
-        }
-      }
-    },
-    {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nconst results = items.map((item, index) => ({\n  question: item.json.document.pageContent,\n  answer: item.json.document.metadata.Answer,\n  score: item.json.score,\n  number: index \n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+        "jsCode": "const items = $input.all();\n\nconst results = items.map((item, index) => ({\n  question: item.json.document.pageContent,\n  answer: item.json.document.metadata.answer,\n  score: item.json.score,\n  number: index \n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -436,13 +420,13 @@
             {
               "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
               "name": "trace_name",
-              "value": "=test-score-gated-rag(v2)-2",
+              "value": "=test-score-gated-rag(v2)-9",
               "type": "string"
             },
             {
               "id": "b235fe41-104a-4fab-8dac-f68ca9a962d8",
               "name": "response",
-              "value": "={{ $json.response ? $json.response : 'bad classification response_type: ' + $('Agente RAG').item.json.output.response_type }}",
+              "value": "={{ $json.response}}",
               "type": "string"
             }
           ]
@@ -556,7 +540,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    responseNum: responseNum,\n    clearResponseData : clearResponseData,\n    response: answer\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -579,6 +563,25 @@
       ],
       "id": "f450146c-54f2-46e8-85ef-c768fc51a005",
       "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "modelName": "models/embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        320,
+        592
+      ],
+      "id": "12ff0e9f-b084-4a7e-8de6-ee4f9ecfddfe",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -755,17 +758,6 @@
         ]
       ]
     },
-    "Embeddings Google Gemini1": {
-      "ai_embedding": [
-        [
-          {
-            "node": "Pinecone Vector Store",
-            "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Clear response": {
       "main": [
         [
@@ -845,13 +837,24 @@
           }
         ]
       ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6a066385-a78a-4be2-ad5a-15a93bded7dd",
+  "versionId": "ed7538f2-db98-437d-adc3-91ae7b7f272a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

@@ -91,8 +91,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        400,
-        448
+        464,
+        400
       ],
       "id": "0eb1b2f6-5a04-4ccf-ba82-41d1df649bd6",
       "name": "OpenAI Chat Model",
@@ -257,13 +257,13 @@
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
-          "value": "faq-embeddings",
+          "value": "ccad-qwen3-embedding-8b-4096",
           "mode": "list",
-          "cachedResultName": "faq-embeddings"
+          "cachedResultName": "ccad-qwen3-embedding-8b-4096"
         },
         "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
         "options": {
-          "pineconeNamespace": "create-question-emmbeding-extended"
+          "pineconeNamespace": "faq-dataset-v1"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
@@ -282,25 +282,8 @@
       }
     },
     {
-      "parameters": {},
-      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        32,
-        400
-      ],
-      "id": "9d9b2c74-e755-4635-9691-52b42f340025",
-      "name": "Embeddings Google Gemini1",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "ImG0DtqmwGrZGAsz",
-          "name": "chatbot-famaf (unc)"
-        }
-      }
-    },
-    {
       "parameters": {
-        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.Answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -349,6 +332,25 @@
       ],
       "id": "7b9c7d9b-37b8-403e-bbff-3ec457605859",
       "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "model": "=qwen3-embedding:8b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        32,
+        416
+      ],
+      "id": "3fcf3ca8-266b-4334-ba24-606bc9a90986",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "5hfG2JZuvyqD0soc",
+          "name": "Ollama account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -455,17 +457,6 @@
         ]
       ]
     },
-    "Embeddings Google Gemini1": {
-      "ai_embedding": [
-        [
-          {
-            "node": "Pinecone Vector Store",
-            "type": "ai_embedding",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Pinecone Vector Store": {
       "main": [
         [
@@ -520,13 +511,24 @@
           }
         ]
       ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "e1fa3c30-d057-46b9-a84a-e250c4784fe9",
+  "versionId": "44d32a62-d73c-49f0-8125-188793f46de9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

@@ -1,0 +1,718 @@
+{
+  "name": "score-gated-rag-v2-secure",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -144,
+        192
+      ],
+      "id": "fbb68843-900c-4c9e-80f4-82f8498e5e91",
+      "name": "Cambiar estado a \"Escribiendo...\"",
+      "webhookId": "f64f66cf-9917-410d-909a-f5b00cd594f9",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario:{{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        912,
+        208
+      ],
+      "id": "d12e9145-7288-4531-9654-c0d86da3e006",
+      "name": "Agente RAG",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        576
+      ],
+      "id": "c0741a33-4073-4101-a35c-365f32462217",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -624,
+        192
+      ],
+      "id": "bb96523a-293a-42ef-a135-a8761e9f0c34",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "19f7de5c-7447-4fce-ade6-010c340ebe67",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=mistral-small3.2:24b",
+          "mode": "id"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        816
+      ],
+      "id": "844a114a-de9b-4b55-9c16-1993d9fe2345",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response_num\": {\n      \"type\": \"int\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        480
+      ],
+      "id": "725524f3-b81c-491c-846f-aa3368159ea9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=google/gemma-3-12b-it",
+          "mode": "id"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        672
+      ],
+      "id": "506ae9d1-8eca-4d85-ba35-bb6eb62c5174",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1312,
+        192
+      ],
+      "id": "e21eb77a-2703-4a94-b039-957b70d5d5b9",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        208
+      ],
+      "id": "9e6ceba1-5e8e-40b8-acf9-9472a91330f1",
+      "name": "Enviar Mensaje",
+      "webhookId": "c8eb8401-447a-43ac-872e-c232d4435e0d",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "google-gemini-embedding-001-3072",
+          "mode": "list",
+          "cachedResultName": "google-gemini-embedding-001-3072"
+        },
+        "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "options": {
+          "pineconeNamespace": "faq-dataset-v1"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        208
+      ],
+      "id": "f91b27e0-8afb-4a78-a241-d6e8dd45649d",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        208
+      ],
+      "id": "3b4a9ee9-b047-42c4-96e9-a21d227b93e4",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        32
+      ],
+      "id": "0f1a097e-506b-4fee-86f2-62622d3cf57d",
+      "name": "fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        384
+      ],
+      "id": "3d661b06-b17e-4263-b635-0ee3db091dec",
+      "name": "Canned answer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación..`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        208
+      ],
+      "id": "2c3a3ccd-e6a6-4843-9a59-b0807c5d8e85",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "model": "=qwen3-embedding:8b"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        448,
+        432
+      ],
+      "id": "ef958f01-e776-4ae4-8756-095e3d7740cb",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "5hfG2JZuvyqD0soc",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        576
+      ],
+      "id": "0496f20f-0236-4960-a23c-b6a1eb0b2478",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "puEfcBRtAu5GhBpX",
+          "name": "chatbot (personal)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        816,
+        656
+      ],
+      "id": "c60af6b6-0783-426d-a2d3-4f1690cd4745",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let msg_valid_type = false\n\nif ($input.first().json.message.text) {\n  msg_valid_type = true\n}\n\n/**\nlet msg_valid_type = true\n\nif ($input.first().json.message.photo){\n  msg_valid_type= false  \n}\nelse if ($input.first().json.message.voice) {\n  msg_type= false\n}\nelse if($input.first().json.message.video) {\n  msg_valid_type= false\n}\nelse if($input.first().json.message.document){\n  msg_valid_type= false\n} \n **/\n\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        192
+      ],
+      "id": "9890f53e-a1a1-4f8d-89c9-f109d15e0e93",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
+                    "rightValue": "valid",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "48d6d0a2-15f5-43b4-b102-c191722a94bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invalid_type"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2caa24ea-cefe-4608-936d-b46423c1212c",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "valid_type"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        64,
+        192
+      ],
+      "id": "b3b823b0-0b48-4d56-a8e7-1f738b9541a1",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, solo puedo responder mensajes de texto. Por favor, envía tu consulta escribiendo tu pregunta.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -144
+      ],
+      "id": "934a203b-cf12-4223-92d8-62e3f5b14ebe",
+      "name": "Invalid format"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cambiar estado a \"Escribiendo...\"": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fallback": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned answer": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Invalid format",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid format": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "397ceeea-593a-4bae-ae1e-6333db078703",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "ffggNVnZXDgfCOsf",
+  "tags": []
+}

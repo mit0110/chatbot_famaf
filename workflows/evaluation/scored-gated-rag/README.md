@@ -10,7 +10,7 @@ Los siguientes nodos permiten generar las trazas necesarias para evaluar distint
 
 - **`generate_traces_score-gated-rag-v2`**: genera las trazas para la segunda versión de Scored-Gated-RAG.
 
-- **`generate_traces_score-gated-rag-v2-multiturn`**: genera las trazas para la segunda versión de Scored-Gated-RAG con soporte adicional para manejar la memoria dentro de una misma conversación.  
+- **`generate_traces_score-gated-rag-v2-multiturno`**: genera las trazas para la segunda versión de Scored-Gated-RAG con soporte adicional para manejar la memoria dentro de una misma conversación.  
   Para utilizar este generador, el dataset multiturno asociado debe contar con un **ID por conversación**, lo que permite evaluar qué tan relevante fue el contexto previo y medir su correcta utilización.
 
 ## Evaluadores compatibles

@@ -1,0 +1,742 @@
+{
+  "name": "evaluation_metrics+wildbench",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT \n  input1.id AS traceId,\n  input1.input,\n  input1.output,\n  input1.metadata.attributes.context_history AS history,\n  input2.id AS datasetItemId,\n  input2.expectedOutput\nFROM input1\nINNER JOIN input2 \nON input1.input = input2.input",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        704,
+        288
+      ],
+      "id": "e6dc639f-7c94-4452-905a-f14c54985ba5",
+      "name": "Unión por Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Trazas a Evaluar y Valores Esperados",
+        "height": 512,
+        "width": 960,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        112
+      ],
+      "id": "bf54cd34-cf79-4052-94d2-7a003cd5255c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Evaluación",
+        "height": 880,
+        "width": 950,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        864,
+        160
+      ],
+      "id": "b8b5e3a9-7c9b-4410-9fe1-c068d5ffac14",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Guardado de Puntuaciones",
+        "height": 544,
+        "width": 1424,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        96
+      ],
+      "id": "c659d2dc-343a-4260-8f8f-a8a07ff65e56",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Descripción\nObtiene las trazas con el nombre que se usó para guardarlas y el conjunto de datos desde la API, para luego comparar el valor esperado con el valor resultante de la traza.",
+        "height": 112,
+        "width": 976,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        560
+      ],
+      "id": "c2deedff-a287-4aac-aa25-7411c2685b5e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').item.json.langfuse_host_url }}/api/public/dataset-items?datasetName={{ $('Al ser Ejecutado por Otro Workflow').item.json.dataset }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        384
+      ],
+      "id": "260da00f-12df-4a52-aab5-e1580e61a804",
+      "name": "Obtener Conjunto de Datos",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "=\"{{ $json.expectedOutput }}\"",
+        "actualAnswer": "=\"{{ $json.output }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        1312,
+        336
+      ],
+      "id": "85cd2dcb-a53b-44ab-a8e3-4a9c0467d396",
+      "name": "Evaluación de Accuracy"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.langfuse_host_url }}/api/public/dataset-run-items ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetItemId",
+              "value": "={{ $('Unión por Consulta').item.json.datasetItemId }}"
+            },
+            {
+              "name": "runName",
+              "value": "test-mili"
+            },
+            {
+              "name": "traceId",
+              "value": "={{ $('Unión por Consulta').item.json.traceId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2864,
+        384
+      ],
+      "id": "65aec150-5faf-4979-b173-8a50843270cd",
+      "name": "Enlazar con el Dataset en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "2b1d9c22-908d-4cad-8084-5a3e97718547",
+      "name": "Al ser Ejecutado por Otro Workflow"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        384
+      ],
+      "id": "ec08bccc-ead5-41f0-a7b2-6e9eebdce5d4",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.langfuse_host_url }}/api/public/traces?name={{ $json.trace_name }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        192
+      ],
+      "id": "6700d1f1-bccb-4ba7-b7af-0438e2c1fc05",
+      "name": "Obtener Trazas por su Nombre",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        480,
+        192
+      ],
+      "id": "7924b168-d457-4f13-a8d8-c4e23313804f",
+      "name": "Agregar Trazas a un Arreglo"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2000,
+        304
+      ],
+      "id": "2acddde4-807b-46ba-9c23-a5c7f512067e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3088,
+        384
+      ],
+      "id": "03db4666-3bee-4a39-ac8f-a75959e3fa1c",
+      "name": "Esperar 20 Segundos",
+      "webhookId": "c8c7af89-dc14-43f6-8e69-9aa2c2bc1ec2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.langfuse_host_url }}/api/public/scores",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"Accuracy\",\n  \"value\": {{ $('Evaluación de Accuracy').item.json.Categorization }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2208,
+        384
+      ],
+      "id": "0b5d170c-5ba6-47d1-a512-0444a1f476d7",
+      "name": "Registrar accuracy en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\"strengths\": \"analysis for the strengths of the response\",\n\"weaknesses\": \"analysis for the weaknesses of the response\",\n\"score\": \"9\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        752
+      ],
+      "id": "19f76980-29d7-495f-8699-382646b2b942",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gemma3:4b",
+          "mode": "list",
+          "cachedResultName": "gemma3:4b"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        896
+      ],
+      "id": "31113697-bfff-4826-8996-3eeaf63247e1",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        752
+      ],
+      "id": "2edcb0a6-5e6a-4300-96ed-3fbe4c7cdac0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": ".",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Instruction\nYou are an expert evaluator. Your task is to evaluate the quality of the responses, generated by AI models.\nWe will provide you with the user query and an AI-generated responses.\nYou should first read the user query and the conversation history carefully for\nanalyzing the task, and then evaluate the quality of the responses based on\nand rules provided below.\n\n\n# Conversation between User and AI\n## History\n<|begin_of_history|>\n{{ $('Unión por Consulta').item.json.history }}\n<|end_of_history|>\n\n## Current User Query\n<|begin_of_query|>\n{{ $('Unión por Consulta').item.json.input }}\n<|end_of_query|>\n\n## AI Response\n<|begin_of_response|>\n{{ $('Unión por Consulta').item.json.output }}\n<|end_of_response|>\n\n# Evaluation\n## Checklist\n<|begin_of_checklist|>\n{{ $('set checklist for wildbench').first().json.checklist }}\n<|end_of_checklist|>\n\nPlease use this checklist to guide your evaluation, but do not limit your,assessment to the checklist.\n## Rules\nYou should compare the above response based on your analysis of the user queries, and the conversation history.\nYou should first write down your analysis and the checklist that you used for the evaluation, and then provide your assessment according to the checklist.\nThe scores are in the range of 1~10, where 1 means the response is very poor and 10 means the response is perfect.\n\nHere are more detailed criteria for the scores:\n- Score 1~2: The response is very poor and does not make sense at all.\n- Score 3~4: The response is poor and does help user solve the problem in a meaningful way.\n- Score 5~6: The response is fair but has some issues (e.g., factual errors, hallucinations, missing key information).\n- Score 7~8: The response is good enough but could be improved in some ways.\n- Score 9~10: The response is perfect and provides helpful information that can help user solve the problem.\n\n## Output Format\nFirst, please output your analysis for each model response, and then summarize\nyour assessment to three aspects: \"reason A=B\", \"reason A>B\", and \"reason\nB>A\", and finally make your choice for the final assessment.\n\n\nPlease provide your evaluation results in the following json format by filling in the placeholders in []:\n\n```\n{\n\"strengths\": \"[analysis for the strengths of the response]\",\n\"weaknesses\": \"[analysis for the weaknesses of the response]\",\n\"score\": \"[1~10]\"\n}\n```"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1232,
+        544
+      ],
+      "id": "cc2edd6d-e003-492e-ac3c-c3ceb1fffe55",
+      "name": "Evaluation WildBench"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4086602e-accc-45b3-bf0c-98ccdfb21a44",
+              "name": "checklist",
+              "value": "some checklist to set later",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        80,
+        384
+      ],
+      "id": "bc1ac41f-de73-4ab6-9093-f7defe745fb4",
+      "name": "set checklist for wildbench"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1648,
+        352
+      ],
+      "id": "5ca3e9b1-fde4-4f2d-9d89-08b24d943a05",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        944,
+        320
+      ],
+      "id": "31a27c92-85a6-450b-9606-0f6edf849550",
+      "name": "send to evaluation"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const strengthsRaw = $('Merge').item.json.output.strengths\nconst weaknessesRaw = $('Merge').item.json.output.weaknesses\n\nconst clean = (text) =>\n  String(text)\n    .replace(/[\"']/g, \"\")   // elimina \" y '\n    .replace(/\\n/g, \" \")    // elimina saltos de línea\n    .trim()\n\nconst strengths = clean(strengthsRaw)\nconst weaknesses = clean(weaknessesRaw)\n\nreturn {\n  json: {\n    metadata: {\n      strengths,\n      weaknesses\n    }\n  }\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2416,
+        384
+      ],
+      "id": "e23aae38-cb3c-46f9-9f0c-613b1f00e945",
+      "name": "format wildbench comment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.langfuse_host_url }}/api/public/scores ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"WildBench\",\n  \"value\": {{ $('Merge').item.json.output.score }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2640,
+        384
+      ],
+      "id": "96593ea3-d791-4e63-836b-ba45c48fee71",
+      "name": "Registrar wildbench en LangFuse vía API",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Al ser Ejecutado por Otro Workflow": [
+      {
+        "json": {
+          "trace_name": "test-mili",
+          "dataset": "faq_dataset_v1",
+          "langfuse_host_url": "http://langfuse-web:3000"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Unión por Consulta": {
+      "main": [
+        [
+          {
+            "node": "send to evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluación de Accuracy": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Al ser Ejecutado por Otro Workflow": {
+      "main": [
+        [
+          {
+            "node": "Obtener Trazas por su Nombre",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "set checklist for wildbench",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Obtener Trazas por su Nombre": {
+      "main": [
+        [
+          {
+            "node": "Agregar Trazas a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Trazas a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Registrar accuracy en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enlazar con el Dataset en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Esperar 20 Segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 20 Segundos": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar accuracy en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "format wildbench comment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Evaluation WildBench",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Evaluation WildBench",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluation WildBench": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "set checklist for wildbench": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "send to evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "send to evaluation": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Evaluation WildBench",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Evaluación de Accuracy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format wildbench comment": {
+      "main": [
+        [
+          {
+            "node": "Registrar wildbench en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar wildbench en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Enlazar con el Dataset en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "374443a2-5be9-41c5-ab12-fe35a852ac42",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "GTEmdaHlmlmA8Ikw",
+  "tags": [
+    {
+      "updatedAt": "2025-12-02T12:59:17.987Z",
+      "createdAt": "2025-12-02T12:59:17.987Z",
+      "id": "rzxlwRJmYPOYq1s2",
+      "name": "FAMAF"
+    }
+  ]
+}

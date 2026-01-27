@@ -42,15 +42,16 @@
       "typeVersion": 1.2,
       "position": [
         -1264,
-        -48
+        60
       ],
       "id": "46a7388f-01de-4cb7-afa0-1bb3b60f418a",
       "name": "Cuando Reciba un Mensaje",
       "webhookId": "209c7d7d-cb0d-4a59-b969-765486297ee5",
+      "alwaysOutputData": false,
       "credentials": {
         "telegramApi": {
           "id": "p61m9P3V3Uq6HRZC",
-          "name": "Telegram account"
+          "name": "FAMAF Bot"
         }
       }
     },
@@ -59,7 +60,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -304,
+        -296,
         32
       ],
       "id": "b154a306-0041-46c8-832e-2aa8de79d22e",
@@ -99,7 +100,7 @@
       "typeVersion": 2.2,
       "position": [
         -16,
-        -96
+        -88
       ],
       "id": "b0102c3d-a79d-49b1-9b1e-f1d3dae8b208",
       "name": "Si Similitud ≥ Punto de Corte"
@@ -117,7 +118,7 @@
       "typeVersion": 1.2,
       "position": [
         208,
-        -144
+        -184
       ],
       "id": "6ef25ac7-6d08-4b47-bbc7-e4eb3c06dab7",
       "name": "Responder con la Información Recuperada",
@@ -125,7 +126,7 @@
       "credentials": {
         "telegramApi": {
           "id": "p61m9P3V3Uq6HRZC",
-          "name": "Telegram account"
+          "name": "FAMAF Bot"
         }
       }
     },
@@ -142,7 +143,7 @@
       "typeVersion": 1.2,
       "position": [
         208,
-        64
+        8
       ],
       "id": "fa31d422-0bf9-4a2c-af55-e0f9204db577",
       "name": "Responder que no hay Suficiente Información",
@@ -150,21 +151,21 @@
       "credentials": {
         "telegramApi": {
           "id": "p61m9P3V3Uq6HRZC",
-          "name": "Telegram account"
+          "name": "FAMAF Bot"
         }
       }
     },
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"uid\": \"{{ $json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 3,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
+        "jsonOutput": "={\n  \"uid\": \"{{ $json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 1,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -1040,
-        -48
+        60
       ],
       "id": "2c7881bb-e631-405e-988a-c6247826cecd",
       "name": "Establecer Campos para Rate Limiting"
@@ -181,8 +182,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -304,
-        208
+        -256,
+        256
       ],
       "id": "d190620d-0c02-452e-8f49-1ddb32954985",
       "name": "Notificar al Usuario que Alcanzó el Límite",
@@ -190,24 +191,9 @@
       "credentials": {
         "telegramApi": {
           "id": "p61m9P3V3Uq6HRZC",
-          "name": "Telegram account"
+          "name": "FAMAF Bot"
         }
       }
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "/files/redis_errors.csv",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
-      "position": [
-        -592,
-        304
-      ],
-      "id": "99442a78-d171-412f-8183-5627c69ac077",
-      "name": "Loggear Error en un archivo .log"
     },
     {
       "parameters": {
@@ -219,7 +205,7 @@
       "typeVersion": 1,
       "position": [
         -816,
-        -48
+        60
       ],
       "id": "9d40e7b5-a93a-46de-8c39-f870550a8235",
       "name": "Consultar Límite de Usuario",
@@ -244,7 +230,7 @@
           "conditions": [
             {
               "id": "9be3485f-77e7-4385-bf5a-e2cbe9a7321d",
-              "leftValue": "={{ $json['1332740251'] }}",
+              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting').first().json.uid] }}",
               "rightValue": "={{ $('Establecer Campos para Rate Limiting').item.json.message_limit_per_duration }}",
               "operator": {
                 "type": "number",
@@ -259,11 +245,26 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        -592,
-        -96
+        -544,
+        160
       ],
       "id": "8a753808-c2e2-4fd7-8296-4bf9b6d8e601",
       "name": "¿Está dentro del Límite de Peticiones?"
+    },
+    {
+      "parameters": {
+        "content": "Hay que hablar como manejar los errores de Redis.",
+        "height": 96,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        -160
+      ],
+      "id": "6dd860aa-ef2b-4074-96c5-4c24da31f188",
+      "name": "Sticky Note"
     }
   ],
   "pinData": {
@@ -356,17 +357,6 @@
         ]
       ]
     },
-    "Loggear Error en un archivo .log": {
-      "main": [
-        [
-          {
-            "node": "Pinecone Vector Store",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Consultar Límite de Usuario": {
       "main": [
         [
@@ -378,7 +368,7 @@
         ],
         [
           {
-            "node": "Loggear Error en un archivo .log",
+            "node": "Pinecone Vector Store",
             "type": "main",
             "index": 0
           }
@@ -408,7 +398,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d1eb25f7-ced3-4de5-83c2-9835108733d4",
+  "versionId": "fefe7e4e-4892-4c83-a0c0-93ca5a39d676",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

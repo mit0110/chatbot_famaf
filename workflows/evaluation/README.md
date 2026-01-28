@@ -30,3 +30,15 @@ Para realizar experimentos controlados y visualizar correctamente las métricas 
     * Actualiza el parámetro `run_name` en el JSON para diferenciarlo del run base (p. ej. `run-threshold-0.79-v1`).
 
 ---
+
+### Generar Trazas con Tokens Consumidos y Latencia
+*Usa este procedimiento en el flujo de trabajo `generate_traces_v2`.*
+>  ⚠️ **IMPORTANTE:** Antes de ejecutar este flujo, se debe generar un índice en Pinecone con el modelo de embedding a utilizar.
+
+En el flujo `generate_traces_v2`:
+* **Nombre del Modelo de Embedding:** en el nodo **"Establecer Nombre del Modelo de Embedding"** colocar en `embedding_model_name` el nombre del modelo y en `supplier` colocar
+   * `ollama`: si se quiere probar algún modelo self-hosted en ollama o alojado en CCAD.
+   * `google`: si el modelo a probar es de Google (p. ej. `gemini-embedding-001`, `text-embedding-004`).
+* **Índice en Pinecone:** en el nodo **"HTTP Request API de Pinecone (Gemini)"** o **"HTTP Request API de Pinecone (Ollama)"**, según corresponda con el modelo, cambiar la base URL por la del índice ya creado con **el mismo modelo de embedding** en Pinecone.
+   * **En caso de ser necesario** cambiar los valores en el cuerpo de la consulta. 
+

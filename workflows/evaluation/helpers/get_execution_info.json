@@ -1,0 +1,232 @@
+{
+  "name": "get_execution_info",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "execution",
+        "operation": "get",
+        "executionId": "={{ $json.execution_id }}",
+        "options": {
+          "activeWorkflows": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "917b7ea9-a346-4aa1-ba2f-bb27d16f90e3",
+      "name": "Get an execution",
+      "credentials": {
+        "n8nApi": {
+          "id": "e4W8RgzGNJEbqgw6",
+          "name": "n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "28798e8a-4181-4a7d-adcd-6bbd0fc5322d",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        832,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0898b5e8-43ab-4386-85f7-84f663822bec",
+              "leftValue": "={{ $json.workflowData.nodes[5].type }}",
+              "rightValue": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1216,
+        272
+      ],
+      "id": "b8b7d8c7-76b3-4275-acd9-902dd5568bac",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1da704a0-d5a9-4137-b7ad-4ebe1feb6a5f",
+              "name": "completionTokens",
+              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.completionTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "d6f2c158-d650-467c-93d2-b50006e1e96d",
+              "name": "totalTokens",
+              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.totalTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "3eed0370-5ebc-4cff-9a35-e7d48889fac2",
+              "name": "promptToken",
+              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.promptTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "191e2a18-a593-4ff0-858b-9497d2bc6b73",
+              "name": "modelName",
+              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].inputOverride.ai_languageModel[0][0].json.options.model }}",
+              "type": "string"
+            },
+            {
+              "id": "5e9b9f51-f6f7-49c0-a08e-b0d25d79388c",
+              "name": "modelProvider",
+              "value": "google",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        96
+      ],
+      "id": "a0ce20c4-6738-4b60-844f-2a1c1dde8b58",
+      "name": "Return Token Usage for Google Models"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1da704a0-d5a9-4137-b7ad-4ebe1feb6a5f",
+              "name": "completionTokens",
+              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.completionTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "d6f2c158-d650-467c-93d2-b50006e1e96d",
+              "name": "totalTokens",
+              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.totalTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "3eed0370-5ebc-4cff-9a35-e7d48889fac2",
+              "name": "promptToken",
+              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.promptTokens }}",
+              "type": "number"
+            },
+            {
+              "id": "191e2a18-a593-4ff0-858b-9497d2bc6b73",
+              "name": "modelName",
+              "value": "={{ $('Get an execution').item.json.workflowData.nodes[5].parameters.model }}",
+              "type": "string"
+            },
+            {
+              "id": "5e9b9f51-f6f7-49c0-a08e-b0d25d79388c",
+              "name": "modelProvider",
+              "value": "ollama",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        384
+      ],
+      "id": "756344bf-2635-4d72-b19b-89e6cd5f0844",
+      "name": "Return Token Usage for CCAD Models"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "execution_id": 2362
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Get an execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get an execution": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Return Token Usage for Google Models",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Token Usage for CCAD Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c1c84ac0-76b1-4668-939f-72da3f41e419",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "9aQr94qKsMwm6jjQ",
+  "tags": []
+}

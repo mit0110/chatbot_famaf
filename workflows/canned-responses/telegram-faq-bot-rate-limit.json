@@ -42,7 +42,7 @@
       "typeVersion": 1.2,
       "position": [
         -1264,
-        60
+        64
       ],
       "id": "46a7388f-01de-4cb7-afa0-1bb3b60f418a",
       "name": "Cuando Reciba un Mensaje",
@@ -60,7 +60,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -296,
+        -304,
         32
       ],
       "id": "b154a306-0041-46c8-832e-2aa8de79d22e",
@@ -100,7 +100,7 @@
       "typeVersion": 2.2,
       "position": [
         -16,
-        -88
+        -96
       ],
       "id": "b0102c3d-a79d-49b1-9b1e-f1d3dae8b208",
       "name": "Si Similitud ≥ Punto de Corte"
@@ -118,7 +118,7 @@
       "typeVersion": 1.2,
       "position": [
         208,
-        -184
+        -192
       ],
       "id": "6ef25ac7-6d08-4b47-bbc7-e4eb3c06dab7",
       "name": "Responder con la Información Recuperada",
@@ -143,7 +143,7 @@
       "typeVersion": 1.2,
       "position": [
         208,
-        8
+        16
       ],
       "id": "fa31d422-0bf9-4a2c-af55-e0f9204db577",
       "name": "Responder que no hay Suficiente Información",
@@ -158,14 +158,14 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"uid\": \"{{ $json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 1,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
+        "jsonOutput": "={\n  \"uid\": \"{{ $json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 30,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -1040,
-        60
+        64
       ],
       "id": "2c7881bb-e631-405e-988a-c6247826cecd",
       "name": "Establecer Campos para Rate Limiting"
@@ -205,7 +205,7 @@
       "typeVersion": 1,
       "position": [
         -816,
-        60
+        64
       ],
       "id": "9d40e7b5-a93a-46de-8c39-f870550a8235",
       "name": "Consultar Límite de Usuario",
@@ -398,7 +398,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fefe7e4e-4892-4c83-a0c0-93ca5a39d676",
+  "versionId": "2ef901db-54ee-42db-90fc-99d5c3575343",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

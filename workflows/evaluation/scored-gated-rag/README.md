@@ -4,26 +4,34 @@ Se generalizaron las evaluaciones para permitir definir, desde el nodo de config
 
 ## Generadores de trazas
 
-Los siguientes nodos permiten generar las trazas necesarias para evaluar distintas versiones de Scored-Gated-RAG:
+Los siguientes nodos permiten generar las trazas necesarias para evaluar distintas versiones de Scored-Gated-RAG.
+ Cada uno incluye la lógica para llamar, como **subworkflow**, a cualquiera de los evaluadores disponibles, dependiendo de qué métrica se desee medir:
 
-- **`generate_traces_score-gated-rag-v1`**: genera las trazas para la primera versión de Scored-Gated-RAG.
+- **`generate_traces_score-gated-rag-v1`**
+   Genera las trazas para la primera versión de Scored-Gated-RAG.
+- **`generate_traces_score-gated-rag-v2`**
+   Genera las trazas para la segunda versión de Scored-Gated-RAG.
+- **`generate_traces_score-gated-rag-v2-multiturno`**
+   Genera las trazas para la segunda versión de Scored-Gated-RAG con soporte adicional para manejar memoria dentro de una misma conversación.
+   Para utilizar este generador, el dataset multiturno asociado debe contar con un **ID de conversación**, lo que permite evaluar la relevancia y correcta utilización del contexto previo.
 
-- **`generate_traces_score-gated-rag-v2`**: genera las trazas para la segunda versión de Scored-Gated-RAG.
-
-- **`generate_traces_score-gated-rag-v2-multiturno`**: genera las trazas para la segunda versión de Scored-Gated-RAG con soporte adicional para manejar la memoria dentro de una misma conversación.  
-  Para utilizar este generador, el dataset multiturno asociado debe contar con un **ID por conversación**, lo que permite evaluar qué tan relevante fue el contexto previo y medir su correcta utilización.
+> **Nota:**
+>  Dentro de cada *generate traces* se puede seleccionar dinámicamente cuál evaluador ejecutar como subworkflow (`evaluation_metrics_accuracy`, `evaluation_metrics_accuracy+wildbench` o `evaluation_metrics_wildbench`), dependiendo de los objetivos de evaluación.
 
 ## Evaluadores compatibles
 
-Para aprovechar esta generalización de parámetros, es necesario utilizar alguno de los siguientes evaluadores, que soportan estas variables adicionales:
+Los siguientes evaluadores soportan la configuración de parámetros generalizados y pueden ser llamados desde cualquiera de los generadores de trazas:
 
-1. **`evaluation_metrics_v2`**  
+1. **`evaluation_metrics_accuracy`**
+    Calcula únicamente **accuracy**.
 2. **`evaluation_metrics_accuracy+wildbench`**
+    Calcula **accuracy** y también genera un registro del benchmark **WildBench**.
+3. **`evaluation_metrics_wildbench`**
+    Ejecuta exclusivamente la evaluación **WildBench**, sin métricas de accuracy.
 
-El primer evaluador mide únicamente **accuracy**, mientras que el segundo, además de calcular accuracy, genera un registro del benchmark **WildBench**.  
-Más información en el paper oficial:  
-👉 [WildBench: Benchmarking LLMs for Instruction Following](https://allenai.github.io/WildBench/WildBench_paper.pdf)
+Más información sobre WildBench en el paper oficial:
+ 👉 [WildBench: Benchmarking LLMs for Instruction Following](https://allenai.github.io/WildBench/WildBench_paper.pdf)
 
 ## Parámetros configurables
 
-Al utilizar **`evaluation_metrics_accuracy+wildbench`**, es importante configurar correctamente el nodo **`set checklist for wildbench`**, donde se define la *checklist* que será utilizada posteriormente por el modelo seleccionado como **LLM-as-a-Judge** para evaluar las respuestas del chatbot.
+Al utilizar evaluadores que incluyen **WildBench** (2 y 3), es necesario configurar correctamente el nodo **`set checklist for wildbench`**, donde se define la *checklist* utilizada por el modelo seleccionado como **LLM-as-a-Judge** para evaluar las respuestas del chatbot.

@@ -6,7 +6,7 @@
         "workflowInputs": {
           "values": [
             {
-              "name": "anwers",
+              "name": "answers",
               "type": "array"
             },
             {
@@ -99,41 +99,41 @@
     },
     {
       "parameters": {
-        "model": "mistral-small3.2:24b",
+        "modelName": "models/gemini-3-flash-preview",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
         -944,
         576
       ],
-      "id": "afc9a4b6-699a-42f9-8e4f-b5e44246f9af",
-      "name": "Ollama Chat Model",
+      "id": "658a24a7-0ca1-4b30-9727-402fabf1fa29",
+      "name": "Google Gemini Chat Model",
       "credentials": {
-        "ollamaApi": {
-          "id": "rQP61Wk2CEbvWB9b",
-          "name": "Ollama account"
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
         }
       }
     },
     {
       "parameters": {
-        "model": "mistral-small3.2:24b",
+        "modelName": "models/gemini-3-flash-preview",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -608,
-        720
+        -672,
+        800
       ],
-      "id": "41a75e02-99ee-4382-89ec-26e38a5ba0b9",
-      "name": "Ollama Chat Model1",
+      "id": "97e2b796-dc37-4051-b860-836cd5cfad6e",
+      "name": "Google Gemini Chat Model1",
       "credentials": {
-        "ollamaApi": {
-          "id": "rQP61Wk2CEbvWB9b",
-          "name": "Ollama account"
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
         }
       }
     }
@@ -199,7 +199,7 @@
         ]
       ]
     },
-    "Ollama Chat Model": {
+    "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
@@ -210,7 +210,7 @@
         ]
       ]
     },
-    "Ollama Chat Model1": {
+    "Google Gemini Chat Model1": {
       "ai_languageModel": [
         [
           {
@@ -227,7 +227,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "cc5ee852-31fb-4274-9ce1-d7d868d8c97a",
+  "versionId": "c97a06f2-78e8-476e-ad4d-4aa35d46205a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

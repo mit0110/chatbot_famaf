@@ -93,13 +93,13 @@
             {
               "id": "76ea9122-ad9a-4b4f-ba1b-6bfbee82673d",
               "name": "supplier",
-              "value": "google",
+              "value": "ollama",
               "type": "string"
             },
             {
               "id": "085c9e9a-3c58-4a3b-acee-6a81f6752c6a",
               "name": "embedding_model_name",
-              "value": "gemini-embedding-001",
+              "value": "bge-m3:latest",
               "type": "string"
             }
           ]
@@ -437,7 +437,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output_response_num - 1;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output_response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -909,7 +909,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "0cf82fcd-5b31-414a-a4c7-89c600c1de0e",
+  "versionId": "4a69370a-2061-4ebe-ac24-0ca29c1a1a1b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

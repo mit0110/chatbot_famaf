@@ -26,31 +26,6 @@
     },
     {
       "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "=gpt-oss:20b",
-          "mode": "id"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        -512,
-        800
-      ],
-      "id": "2d22d4f4-7e5b-4e4e-947b-490cbdca9269",
-      "name": "OpenAI Chat Model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "OvS5u31oUHyeT4hc",
-          "name": "OLLaMa CCAD"
-        }
-      }
-    },
-    {
-      "parameters": {
         "schemaType": "manual",
         "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response_num\": {\n      \"type\": \"int\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
         "autoFix": true
@@ -106,8 +81,8 @@
             {
               "id": "75cf206a-19c9-4d85-9222-eb857b5459b5",
               "name": "output_response_num",
-              "value": "={{ $if($json.output.response_num, $json.output.response_num, null) }}",
-              "type": "string"
+              "value": "={{ $json.output.response_num }}",
+              "type": "number"
             }
           ]
         },
@@ -124,20 +99,41 @@
     },
     {
       "parameters": {
+        "model": "mistral-small3.2:24b",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
         -944,
         576
       ],
-      "id": "31101179-15e9-4d7a-998f-93b8dd14e35b",
-      "name": "Google Gemini Chat Model",
+      "id": "afc9a4b6-699a-42f9-8e4f-b5e44246f9af",
+      "name": "Ollama Chat Model",
       "credentials": {
-        "googlePalmApi": {
-          "id": "iDKuHCKqSAYAVPK3",
-          "name": "Google Gemini(PaLM) Api account"
+        "ollamaApi": {
+          "id": "rQP61Wk2CEbvWB9b",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "mistral-small3.2:24b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        720
+      ],
+      "id": "41a75e02-99ee-4382-89ec-26e38a5ba0b9",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "rQP61Wk2CEbvWB9b",
+          "name": "Ollama account"
         }
       }
     }
@@ -148,23 +144,23 @@
         "json": {
           "anwers": [
             {
-              "answer": "Para inscribirte a las Becas Nutrirse del comedor universitario, podés seguir el siguiente instructivo de la UNC:\n\nhttps://www.unc.edu.ar/sites/default/files/Tutorial%20Becas%202025.pdf\n\nPara más información sobre la beca podés visitar el siguiente enlace: https://www.unc.edu.ar/vida-estudiantil/becas-nutrirse-2025",
-              "score": 0.662080705
+              "answer": "Al aceptarse la inscripción a cursar de manera paralela la carrera nueva, se transcribe automáticamente la actuación académica en las materias correspondientes del Anexo I de la Resolución RHCD-2024-397-E-UNC-DEC#FAMAF (por mayor información, remitirse a su Artículo 1°).\n\nhttps://www.famaf.unc.edu.ar/documents/5076/RHCD-2024-397-E-UNC-DEC_FAMAF_-_ANEXO_I.pdf\n\nPara solicitar el reconocimiento de materias comunes entre carreras (materias correspondientes al Anexo II y al Anexo III de la Resolución RHCD-2024-397-E-UNC-DEC#FAMAF):\n\nhttps://www.famaf.unc.edu.ar/documents/5077/RHCD-2024-397-E-UNC-DEC_FAMAF_-_ANEXO_II.pdf\nhttps://www.famaf.unc.edu.ar/documents/5078/RHCD-2024-397-E-UNC-DEC_FAMAF_-_ANEXO_III.pdf\n\ny otras equivalencias internas habituales, se debe llenar este formulario:\n\nhttps://forms.gle/bY9kevLfS6by49VA7\n\nLas materias que no se encuentren comprendidas en ese formulario las podrán solicitar completando la siguiente nota:\n\nhttps://docs.google.com/document/d/1klRjzZnZstC-ES7BbqN3FYl0uB1LzheP\n\ny enviándola a nfigueroa@unc.edu.ar\n\nLas solicitudes se recibirán durante todo el año académico, serán resueltas en el término de 15 días hábiles a partir de la presentación y se informará por correo electrónico.",
+              "score": 0.812182784
             },
             {
-              "answer": "La convocatoria para las Becas PIOE 2026 para estudiantes avanzados/as (que hayan cursado de 1° a 5° año en el año 2025) se realiza a través del siguiente formulario:\n\nhttps://docs.google.com/forms/d/e/1FAIpQLSdnzX05Rsew11KATJ2ddsYnB4Sg18ndOgCy6yaKBfuNA6NrbQ/viewform?pli=1\n\nEl cual podés llenar desde el 04/11/2025 al 12/12/2025.",
-              "score": 0.656681061
+              "answer": "Para solicitar cambiar de carrera o cursar en paralelo varias de la oferta de grado de FAMAF, deberás llenar el siguiente formulario:\n\nhttps://docs.google.com/forms/d/e/1FAIpQLSeNA8jXxGARDeebj0TdjXMmmXGNph0gZQPkzfliWZbcbN9KdQ/viewform\n\nLas solicitudes se recibirán hasta la finalización de la primera semana de diciembre y se reabrirán el primer día hábil de febrero; serán resueltas en el término de 15 días hábiles a partir de la presentación y se informará por correo electrónico.\n\nEl trámite debe iniciarse por cada carrera que se desee cursar (por separado).\n\nAl aceptarse la inscripción a cursar de manera paralela la carrera nueva, se transcribe automáticamente la actuación académica en las materias correspondientes del Anexo I de la Resolución RHCD-2024-397-E-UNC-DEC#FAMAF (por mayor información, remitirse a su Artículo 1°).",
+              "score": 0.776838422
             },
             {
-              "answer": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Materias\", luego elegí la materia a la cual quieras inscribirte y hacé clic en \"Inscribirse\".\n\nEl sistema automáticamente intentará inscribirte con la condición de regular/promocional por defecto. Si te muestra algún mensaje de error, es porque no cumplís los requisitos.",
-              "score": 0.615785599
+              "answer": "Para solicitar ingresar a una carrera de FAMAF desde otra facultad (equivalencia externa), deberás enviar un email solicitando los requisitos a despachoestudiantes@famaf.unc.edu.ar.\nEn caso de que el estudiante ya sea alumno de FAMAF, deberá aclararlo específicamente en la nota de solicitud. Si se quiere ingresar a dos o más carreras, se deberá iniciar un trámite por cada carrera a ingresar.",
+              "score": 0.731018
             },
             {
-              "answer": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Exámenes\", elegí la materia a la cual quieras inscribirte para rendir, después seleccioná en el menú desplegable si querés inscribirte al examen como libre o regular, y luego hacé clic en \"Inscribirse\".",
-              "score": 0.593277
+              "answer": "Para asociarte a la Biblioteca debés acercarte de lunes a viernes de 10 a 12 horas presentando DNI y certificado de alumno regular de la FAMAF (este último podés mostrarlo desde el celular).",
+              "score": 0.67427206
             }
           ],
-          "query": "¿Cómo me postulo a la Beca Manuel Belgarno?"
+          "query": "¿Cómo pido que me reconozcan materias entre carreras de FAMAF?"
         }
       }
     ]
@@ -176,17 +172,6 @@
           {
             "node": "Agente RAG",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Structured Output Parser",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -214,11 +199,22 @@
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "Ollama Chat Model": {
       "ai_languageModel": [
         [
           {
             "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -231,7 +227,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "a343d8f3-fb90-40cd-90f5-20997d13b288",
+  "versionId": "cc5ee852-31fb-4274-9ce1-d7d868d8c97a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

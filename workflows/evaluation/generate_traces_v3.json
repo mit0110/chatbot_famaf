@@ -52,7 +52,7 @@
     },
     {
       "parameters": {
-        "url": "http://langfuse-web:3000/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
+        "url": "=http://langfuse-web:3000/api/public/dataset-items?datasetName={{ $json.langfuse_dataset_name }}&limit=100",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpBasicAuth",
         "options": {}
@@ -100,6 +100,12 @@
               "id": "085c9e9a-3c58-4a3b-acee-6a81f6752c6a",
               "name": "embedding_model_name",
               "value": "bge-m3:latest",
+              "type": "string"
+            },
+            {
+              "id": "90b7675a-b5e2-4994-964c-d07c0867fb71",
+              "name": "langfuse_dataset_name",
+              "value": "faq_dataset_golden",
               "type": "string"
             }
           ]
@@ -382,14 +388,14 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "anwers": "={{ $json.data }}",
-            "query": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}"
+            "query": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+            "answers": "={{ $json.data }}"
           },
           "matchingColumns": [],
           "schema": [
             {
-              "id": "anwers",
-              "displayName": "anwers",
+              "id": "answers",
+              "displayName": "answers",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -668,9 +674,32 @@
       ],
       "name": "Call langfuse_save_trace",
       "id": "910164a5-bc3a-46fd-a2e9-53a434038dfb"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3280,
+        624
+      ],
+      "id": "2ab962b5-85c5-48dd-b651-67a57372211d",
+      "name": "Wait",
+      "webhookId": "f7378e81-2ef5-4c87-9ca7-d53c4a5adf9d"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Ejecución Manual": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "connections": {
     "Ciclo sobre Todas las Entradas": {
       "main": [
@@ -896,6 +925,17 @@
       "main": [
         [
           {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
             "node": "Ciclo sobre Todas las Entradas",
             "type": "main",
             "index": 0
@@ -909,7 +949,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "4a69370a-2061-4ebe-ac24-0ca29c1a1a1b",
+  "versionId": "26d68008-04ab-4a87-8b6b-6373552bf018",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

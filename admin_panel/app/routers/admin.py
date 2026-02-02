@@ -5,6 +5,7 @@ from app.database import Question, Answer
 from bson.objectid import ObjectId
 from datetime import datetime
 from typing import Optional
+from pymongo.errors import DuplicateKeyError
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -113,9 +114,38 @@ async def create_question(
         'created_at': datetime.utcnow(),
         'updated_at': datetime.utcnow()
     }
-    Question.insert_one(new_question)
     
-    return RedirectResponse(url="/admin", status_code=303)
+    try:
+        Question.insert_one(new_question)
+        return RedirectResponse(url="/admin", status_code=303)
+    except DuplicateKeyError:
+        # Encontrar la pregunta duplicada
+        existing_question = Question.find_one({'content': content})
+        
+        # Obtener la respuesta asociada
+        pipeline = [
+            {'$match': {'_id': existing_question['_id']}},
+            {'$lookup': {
+                'from': 'answers',
+                'localField': 'answer_id',
+                'foreignField': '_id',
+                'as': 'answer'
+            }},
+            {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}}
+        ]
+        
+        results = list(Question.aggregate(pipeline))
+        question_with_answer = results[0] if results else existing_question
+        
+        return templates.TemplateResponse(
+            "question_duplicate.html",
+            {
+                "request": request,
+                "error": True,
+                "message": "Una pregunta con este contenido ya existe",
+                "question": question_with_answer
+            }
+        )
 
 
 @router.get("/edit/{question_id}", response_class=HTMLResponse)

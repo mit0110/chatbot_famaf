@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Pregunta{% endblock %}
+
+{% block content %}
+<h1>Crear Nueva Pregunta</h1>
+
+<form action="/admin/create" method="post">
+
+    <div class="mb-3">
+        <label for="content" class="form-label">Contenido de la Pregunta</label>
+        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="category" class="form-label">Categoría</label>
+        <input type="text" class="form-control" id="category" name="category" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="answer_content" class="form-label">Respuesta</label>
+        <textarea class="form-control" id="answer_content" name="answer_content" rows="4" required></textarea>
+        <small class="form-text text-muted">Si esta respuesta ya existe, se vinculará automáticamente.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a href="/admin" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

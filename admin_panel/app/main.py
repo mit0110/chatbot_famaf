@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import auth, user, post
+from app.routers import question, answer
 
 app = FastAPI()
 
@@ -19,10 +19,8 @@ app.add_middleware(
 )
 
 
-app.include_router(auth.router, tags=['Auth'], prefix='/api/auth')
-app.include_router(user.router, tags=['Users'], prefix='/api/users')
-app.include_router(post.router, tags=['Posts'], prefix='/api/posts')
-
+app.include_router(question.router, tags=['Questions'], prefix='/api/questions')
+app.include_router(answer.router, tags=['Answers'], prefix='/api/answers')
 
 @app.get("/api/healthchecker")
 def root():

@@ -1,88 +1,74 @@
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel, EmailStr, constr
-from bson.objectid import ObjectId
+from pydantic import BaseModel
 
-
-class UserBaseSchema(BaseModel):
-    name: str
-    email: str
-    photo: str
-    role: str | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-
-    class Config:
-        orm_mode = True
-
-
-class CreateUserSchema(UserBaseSchema):
-    password: constr(min_length=8)
-    passwordConfirm: str
-    verified: bool = False
-
-
-class LoginUserSchema(BaseModel):
-    email: EmailStr
-    password: constr(min_length=8)
-
-
-class UserResponseSchema(UserBaseSchema):
-    id: str
-    pass
-
-
-class UserResponse(BaseModel):
-    status: str
-    user: UserResponseSchema
-
-
-class FilteredUserResponse(UserBaseSchema):
-    id: str
-
-
-class PostBaseSchema(BaseModel):
-    title: str
+# Answer Schemas
+class AnswerBaseSchema(BaseModel):
     content: str
-    category: str
-    image: str
+    category: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
     class Config:
         orm_mode = True
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
 
 
-class CreatePostSchema(PostBaseSchema):
-    user: ObjectId | None = None
+class CreateAnswerSchema(AnswerBaseSchema):
     pass
 
 
-class PostResponse(PostBaseSchema):
+class AnswerResponse(AnswerBaseSchema):
     id: str
-    user: FilteredUserResponse
     created_at: datetime
     updated_at: datetime
 
 
-class UpdatePostSchema(BaseModel):
-    title: str | None = None
+class UpdateAnswerSchema(BaseModel):
     content: str | None = None
     category: str | None = None
-    image: str | None = None
-    user: str | None = None
 
     class Config:
         orm_mode = True
-        allow_population_by_field_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
 
 
-class ListPostResponse(BaseModel):
+# Question Schemas
+class QuestionBaseSchema(BaseModel):
+    content: str
+    category: str | None = None
+    answer_id: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    class Config:
+        orm_mode = True
+
+
+class CreateQuestionSchema(QuestionBaseSchema):
+    pass
+
+class QuestionResponse(QuestionBaseSchema):
+    id: str
+    answer: AnswerResponse | None = None
+    created_at: datetime
+    updated_at: datetime
+
+class UpdateQuestionSchema(BaseModel):
+    content: str | None = None
+    category: str | None = None
+    answer_id: str | None = None
+
+    class Config:
+        orm_mode = True
+
+
+# List Responses
+class ListQuestionResponse(BaseModel):
     status: str
     results: int
-    posts: List[PostResponse]
+    questions: List[QuestionResponse]
+
+
+class ListAnswerResponse(BaseModel):
+    status: str
+    results: int
+    answers: List[AnswerResponse]

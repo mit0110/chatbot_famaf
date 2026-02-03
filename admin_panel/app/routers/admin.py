@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, Form
+from fastapi import APIRouter, Request, Depends, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.database import Question, Answer, Category
+from app.utils_csv import parse_csv_file
 from bson.objectid import ObjectId
 from datetime import datetime
 from typing import Optional
@@ -300,3 +301,113 @@ async def delete_question(question_id: str):
             Answer.delete_one({'_id': answer_id})
     
     return RedirectResponse(url="/admin", status_code=303)
+
+
+@router.get("/upload-csv", response_class=HTMLResponse)
+async def csv_upload_form(request: Request):
+    """Mostrar formulario para subir CSV"""
+    return templates.TemplateResponse(
+        "csv_upload.html",
+        {"request": request}
+    )
+
+
+@router.post("/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+    """Procesar archivo CSV y cargar datos a la base de datos"""
+    
+    # Validar que sea un archivo CSV
+    if not file.filename.endswith('.csv'):
+        return {
+            'status': 'error',
+            'message': 'El archivo debe ser un CSV'
+        }
+    
+    try:
+        # Leer contenido del archivo
+        contents = await file.read()
+        file.file = type('obj', (object,), {
+            'read': lambda: contents,
+            'seek': lambda x: None,
+            'decode': lambda x: contents.decode(x)
+        })()
+        
+        # Convertir a TextIOWrapper para parse_csv_file
+        from io import BytesIO, StringIO
+        text_file = StringIO(contents.decode('utf-8'))
+        
+        # Parsear CSV
+        success, data, message = parse_csv_file(text_file)
+        
+        if not success:
+            return {
+                'status': 'error',
+                'message': message
+            }
+        
+        # Procesar cada fila
+        created_count = 0
+        error_details = []
+        
+        for item in data:
+            try:
+                # Verificar que la categoría existe, si no crearla
+                category_exists = Category.find_one({'name': item['category']})
+                if not category_exists:
+                    Category.insert_one({
+                        'name': item['category'],
+                        'created_at': datetime.utcnow()
+                    })
+                
+                # Buscar si la respuesta ya existe
+                existing_answer = Answer.find_one({
+                    'content': {'$regex': f"^{item['answer']}$", '$options': 'i'}
+                })
+                
+                if existing_answer:
+                    answer_id = existing_answer['_id']
+                else:
+                    # Crear nueva respuesta
+                    new_answer = {
+                        'content': item['answer'],
+                        'category': item['category'],
+                        'created_at': datetime.utcnow(),
+                        'updated_at': datetime.utcnow()
+                    }
+                    result = Answer.insert_one(new_answer)
+                    answer_id = result.inserted_id
+                
+                # Crear pregunta
+                new_question = {
+                    'content': item['question'],
+                    'category': item['category'],
+                    'answer_id': answer_id,
+                    'created_at': datetime.utcnow(),
+                    'updated_at': datetime.utcnow()
+                }
+                
+                try:
+                    Question.insert_one(new_question)
+                    created_count += 1
+                except DuplicateKeyError:
+                    error_details.append(f"Pregunta duplicada: '{item['question']}'")
+            
+            except Exception as e:
+                error_details.append(f"Error procesando pregunta: {str(e)}")
+        
+        message = f"Se importaron {created_count} preguntas exitosamente"
+        if error_details:
+            message += f". Errores: {'; '.join(error_details[:5])}"
+        
+        return {
+            'status': 'success',
+            'message': message,
+            'created': created_count,
+            'errors': error_details
+        }
+    
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f'Error al procesar archivo: {str(e)}'
+        }

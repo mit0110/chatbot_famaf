@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.database import Question, Answer
+from app.database import Question, Answer, Category
 from bson.objectid import ObjectId
 from datetime import datetime
 from typing import Optional
@@ -72,9 +72,11 @@ async def search_questions(request: Request, q: str = ""):
 @router.get("/create", response_class=HTMLResponse)
 async def create_question_form(request: Request):
     """Formulario para crear pregunta"""
+    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
+    category_names = [cat['name'] for cat in categories]
     return templates.TemplateResponse(
         "question_form.html",
-        {"request": request}
+        {"request": request, "categories": category_names}
     )
 
 
@@ -179,12 +181,17 @@ async def edit_question_form(request: Request, question_id: str):
         count = Question.count_documents({'answer_id': answer_id})
         shared_answer = count > 1
     
+    # Obtener categorías
+    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
+    category_names = [cat['name'] for cat in categories]
+    
     return templates.TemplateResponse(
         "question_edit.html",
         {
             "request": request,
             "question": question,
-            "shared_answer": shared_answer
+            "shared_answer": shared_answer,
+            "categories": category_names
         }
     )
 
@@ -221,15 +228,24 @@ async def update_question(
         )
         new_answer_id = current_answer_id
     else:
-        # Crear nueva respuesta
-        new_answer = {
-            'content': answer_content,
-            'category': category,
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        result = Answer.insert_one(new_answer)
-        new_answer_id = result.inserted_id
+        # Buscar si ya existe una respuesta con ese contenido
+        existing_answer = Answer.find_one({
+            'content': {'$regex': f'^{answer_content}$', '$options': 'i'}
+        })
+        
+        if existing_answer:
+            # Usar respuesta existente
+            new_answer_id = existing_answer['_id']
+        else:
+            # Crear nueva respuesta
+            new_answer = {
+                'content': answer_content,
+                'category': category,
+                'created_at': datetime.utcnow(),
+                'updated_at': datetime.utcnow()
+            }
+            result = Answer.insert_one(new_answer)
+            new_answer_id = result.inserted_id
     
     # Actualizar pregunta
     Question.update_one(
@@ -241,6 +257,18 @@ async def update_question(
             'updated_at': datetime.utcnow()
         }}
     )
+    
+    # Si se cambió la respuesta y hay una anterior, verificar si la anterior debe ser eliminada
+    if new_answer_id != current_answer_id and current_answer_id:
+        # Asegurar que current_answer_id es un ObjectId válido
+        if isinstance(current_answer_id, str):
+            current_answer_id = ObjectId(current_answer_id)
+        
+        # Contar cuántas preguntas usan la respuesta anterior
+        count = Question.count_documents({'answer_id': current_answer_id})
+        if count == 0:
+            # Si nadie más usa esa respuesta, eliminarla
+            Answer.delete_one({'_id': current_answer_id})
     
     return RedirectResponse(url="/admin", status_code=303)
 
@@ -263,6 +291,10 @@ async def delete_question(question_id: str):
     
     # Si la respuesta no está asociada a ninguna otra pregunta, eliminarla
     if answer_id:
+        # Asegurar que answer_id es un ObjectId válido
+        if isinstance(answer_id, str):
+            answer_id = ObjectId(answer_id)
+        
         count = Question.count_documents({'answer_id': answer_id})
         if count == 0:
             Answer.delete_one({'_id': answer_id})

@@ -11,14 +11,29 @@
     </div>
 </div>
 
-<!-- Búsqueda -->
-<form action="/admin/search" method="get" class="mb-4">
+<!-- Búsqueda y filtro por categoría -->
+<form id="searchForm" action="/admin/search" method="get" class="mb-4">
     <div class="input-group">
         <input type="text" class="form-control" name="q" placeholder="Buscar preguntas..."
             value="{{ search_query or '' }}">
-        <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+        {% if categories %}
+        <select name="category" id="categorySelect" class="form-select ms-2" style="max-width:220px;">
+            <option value="" {% if not selected_category %}selected{% endif %}>Todas las categorías</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if selected_category==cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <button class="btn btn-outline-secondary d-none" type="submit">Buscar</button>
     </div>
 </form>
+
+<script>
+    // Auto-submit when category selection changes
+    document.getElementById('categorySelect')?.addEventListener('change', function () {
+        document.getElementById('searchForm').submit();
+    });
+</script>
 
 <!-- Lista de preguntas -->
 <div class="row">

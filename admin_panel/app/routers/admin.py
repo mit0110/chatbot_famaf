@@ -7,15 +7,27 @@ from bson.objectid import ObjectId
 from datetime import datetime
 from typing import Optional
 from pymongo.errors import DuplicateKeyError
+from io import StringIO
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_home(request: Request):
-    """Página principal del admin - lista de preguntas"""
-    pipeline = [
+async def admin_home(request: Request, q: str = "", category: str = ""):
+    """Página principal del admin - lista de preguntas con filtros"""
+    match_stage = {}
+    if q:
+        match_stage['content'] = {'$regex': q, '$options': 'i'}
+    if category:
+        match_stage['category'] = category
+
+    pipeline = []
+    if match_stage:
+        pipeline.append({'$match': match_stage})
+
+    pipeline.extend([
         {'$lookup': {
             'from': 'answers',
             'localField': 'answer_id',
@@ -24,49 +36,53 @@ async def admin_home(request: Request):
         }},
         {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
         {'$sort': {'created_at': -1}}
-    ]
+    ])
+
     questions = list(Question.aggregate(pipeline))
-    
+
+    # Obtener lista de categorías para el filtro
+    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
+    category_names = [cat['name'] for cat in categories]
+
     return templates.TemplateResponse(
         "questions_list.html",
-        {"request": request, "questions": questions}
+        {"request": request, "questions": questions, "search_query": q, "categories": category_names, "selected_category": category}
     )
 
 
 @router.get("/search", response_class=HTMLResponse)
-async def search_questions(request: Request, q: str = ""):
-    """Buscar preguntas por contenido"""
+async def search_questions(request: Request, q: str = "", category: str = ""):
+    """Buscar preguntas por contenido y categoría"""
+    match_stage = {}
     if q:
-        pipeline = [
-            {'$match': {
-                'content': {'$regex': q, '$options': 'i'}
-            }},
-            {'$lookup': {
-                'from': 'answers',
-                'localField': 'answer_id',
-                'foreignField': '_id',
-                'as': 'answer'
-            }},
-            {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-            {'$sort': {'created_at': -1}}
-        ]
-    else:
-        pipeline = [
-            {'$lookup': {
-                'from': 'answers',
-                'localField': 'answer_id',
-                'foreignField': '_id',
-                'as': 'answer'
-            }},
-            {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-            {'$sort': {'created_at': -1}}
-        ]
-    
+        match_stage['content'] = {'$regex': q, '$options': 'i'}
+    if category:
+        match_stage['category'] = category
+
+    pipeline = []
+    if match_stage:
+        pipeline.append({'$match': match_stage})
+
+    pipeline.extend([
+        {'$lookup': {
+            'from': 'answers',
+            'localField': 'answer_id',
+            'foreignField': '_id',
+            'as': 'answer'
+        }},
+        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
+        {'$sort': {'created_at': -1}}
+    ])
+
     questions = list(Question.aggregate(pipeline))
-    
+
+    # Obtener categorías para el filtro
+    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
+    category_names = [cat['name'] for cat in categories]
+
     return templates.TemplateResponse(
         "questions_list.html",
-        {"request": request, "questions": questions, "search_query": q}
+        {"request": request, "questions": questions, "search_query": q, "categories": category_names, "selected_category": category}
     )
 
 
@@ -326,14 +342,7 @@ async def upload_csv(file: UploadFile = File(...)):
     try:
         # Leer contenido del archivo
         contents = await file.read()
-        file.file = type('obj', (object,), {
-            'read': lambda: contents,
-            'seek': lambda x: None,
-            'decode': lambda x: contents.decode(x)
-        })()
         
-        # Convertir a TextIOWrapper para parse_csv_file
-        from io import BytesIO, StringIO
         text_file = StringIO(contents.decode('utf-8'))
         
         # Parsear CSV

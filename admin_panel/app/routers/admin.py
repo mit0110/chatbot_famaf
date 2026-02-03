@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 from pymongo.errors import DuplicateKeyError
 from io import StringIO
-
+from app.utils import get_category_names, get_or_create_answer
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -41,56 +41,17 @@ async def admin_home(request: Request, q: str = "", category: str = ""):
     questions = list(Question.aggregate(pipeline))
 
     # Obtener lista de categorías para el filtro
-    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
-    category_names = [cat['name'] for cat in categories]
+    category_names = get_category_names()
 
     return templates.TemplateResponse(
         "questions_list.html",
         {"request": request, "questions": questions, "search_query": q, "categories": category_names, "selected_category": category}
     )
-
-
-@router.get("/search", response_class=HTMLResponse)
-async def search_questions(request: Request, q: str = "", category: str = ""):
-    """Buscar preguntas por contenido y categoría"""
-    match_stage = {}
-    if q:
-        match_stage['content'] = {'$regex': q, '$options': 'i'}
-    if category:
-        match_stage['category'] = category
-
-    pipeline = []
-    if match_stage:
-        pipeline.append({'$match': match_stage})
-
-    pipeline.extend([
-        {'$lookup': {
-            'from': 'answers',
-            'localField': 'answer_id',
-            'foreignField': '_id',
-            'as': 'answer'
-        }},
-        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-        {'$sort': {'created_at': -1}}
-    ])
-
-    questions = list(Question.aggregate(pipeline))
-
-    # Obtener categorías para el filtro
-    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
-    category_names = [cat['name'] for cat in categories]
-
-    return templates.TemplateResponse(
-        "questions_list.html",
-        {"request": request, "questions": questions, "search_query": q, "categories": category_names, "selected_category": category}
-    )
-
 
 @router.get("/create", response_class=HTMLResponse)
 async def create_question_form(request: Request):
     """Formulario para crear pregunta"""
-    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
-    category_names = [cat['name'] for cat in categories]
+    category_names = get_category_names()
     return templates.TemplateResponse(
         "question_form.html",
         {"request": request, "categories": category_names}
@@ -105,26 +66,9 @@ async def create_question(
     answer_content: str = Form(...)
 ):
     """Crear pregunta con respuesta"""
-    
-    # Buscar si ya existe una respuesta con ese contenido
-    existing_answer = Answer.find_one({
-        'content': {'$regex': f'^{answer_content}$', '$options': 'i'}
-    })
-    
-    if existing_answer:
-        # Usar respuesta existente
-        answer_id = existing_answer['_id']
-    else:
-        # Crear nueva respuesta
-        new_answer = {
-            'content': answer_content,
-            'category': category,
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        result = Answer.insert_one(new_answer)
-        answer_id = result.inserted_id
-    
+    # Obtener o crear respuesta
+    answer_id = get_or_create_answer(answer_content, category)
+
     # Crear pregunta
     new_question = {
         'content': content,
@@ -166,7 +110,6 @@ async def create_question(
             }
         )
 
-
 @router.get("/edit/{question_id}", response_class=HTMLResponse)
 async def edit_question_form(request: Request, question_id: str):
     """Formulario para editar pregunta"""
@@ -199,8 +142,7 @@ async def edit_question_form(request: Request, question_id: str):
         shared_answer = count > 1
     
     # Obtener categorías
-    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
-    category_names = [cat['name'] for cat in categories]
+    category_names = get_category_names()
     
     return templates.TemplateResponse(
         "question_edit.html",
@@ -245,24 +187,8 @@ async def update_question(
         )
         new_answer_id = current_answer_id
     else:
-        # Buscar si ya existe una respuesta con ese contenido
-        existing_answer = Answer.find_one({
-            'content': {'$regex': f'^{answer_content}$', '$options': 'i'}
-        })
-        
-        if existing_answer:
-            # Usar respuesta existente
-            new_answer_id = existing_answer['_id']
-        else:
-            # Crear nueva respuesta
-            new_answer = {
-                'content': answer_content,
-                'category': category,
-                'created_at': datetime.utcnow(),
-                'updated_at': datetime.utcnow()
-            }
-            result = Answer.insert_one(new_answer)
-            new_answer_id = result.inserted_id
+        # Obtener o crear respuesta
+        new_answer_id = get_or_create_answer(answer_content, category)
     
     # Actualizar pregunta
     Question.update_one(
@@ -369,22 +295,7 @@ async def upload_csv(file: UploadFile = File(...)):
                     })
                 
                 # Buscar si la respuesta ya existe
-                existing_answer = Answer.find_one({
-                    'content': {'$regex': f"^{item['answer']}$", '$options': 'i'}
-                })
-                
-                if existing_answer:
-                    answer_id = existing_answer['_id']
-                else:
-                    # Crear nueva respuesta
-                    new_answer = {
-                        'content': item['answer'],
-                        'category': item['category'],
-                        'created_at': datetime.utcnow(),
-                        'updated_at': datetime.utcnow()
-                    }
-                    result = Answer.insert_one(new_answer)
-                    answer_id = result.inserted_id
+                answer_id = get_or_create_answer(item['answer'], item['category'])
                 
                 # Crear pregunta
                 new_question = {

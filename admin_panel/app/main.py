@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import settings
-from app.routers import question, answer, admin
+from app.routers import question, answer, admin, category
 
 app = FastAPI()
 
@@ -29,6 +29,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 app.include_router(question.router, tags=['Questions'], prefix='/api/questions')
 app.include_router(answer.router, tags=['Answers'], prefix='/api/answers')
+app.include_router(category.router, tags=['Categories'], prefix='/api/categories')
 app.include_router(admin.router, tags=['Admin Panel'], prefix='/admin')  # Nuevo
 
 @app.get("/api/healthchecker")

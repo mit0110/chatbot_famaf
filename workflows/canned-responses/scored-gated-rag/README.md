@@ -45,8 +45,9 @@
   - Si el input del usuario corresponde a otro tipo de contenido (imagen, video, audio o archivo):
     - No se ejecutan consultas a Pinecone.
     - No se invocan modelos LLM.
-    - Se responde inmediatamente con un mensaje controlado
+    - Se responde inmediatamente con un mensaje controlado.
   - Se conserva el esquema de reconstrucción de respuestas fuera del LLM y la lógica de *score gating* con **umbral configurable**.
-
-  Esta versión está pensada para entornos productivos, donde es importante evitar consumo innecesario de recursos y asegurar un comportamiento predecible ante inputs no soportados.
+  - Incluye un **mensaje de error predeterminado** que se devuelve al usuario cuando el agente falla en generar una respuesta.
+  
+  Esta versión está pensada para entornos productivos, donde es importante evitar consumo innecesario de recursos y asegurar un comportamiento predecible ante inputs no soportados o fallas del agente.
 

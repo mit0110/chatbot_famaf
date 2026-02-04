@@ -396,7 +396,11 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 25,
+    "availableInMCP": false
   },
   "versionId": "2ef901db-54ee-42db-90fc-99d5c3575343",
   "meta": {

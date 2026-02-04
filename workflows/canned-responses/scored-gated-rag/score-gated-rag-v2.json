@@ -28,7 +28,7 @@
         "text": "={{ JSON.stringify($json.data) }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario:{{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON."
+          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - Una pregunta frecuente\n   - Su respuesta correspondiente\n   - Un score de relevancia (0 a 1)\n   - Un numero que identifica el registro\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73 :\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve el numero que identifica la respuesta. \n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No incluyas texto fuera del JSON.\n-SIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73"
         }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
@@ -91,8 +91,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        464,
-        400
+        448,
+        384
       ],
       "id": "0eb1b2f6-5a04-4ccf-ba82-41d1df649bd6",
       "name": "OpenAI Chat Model",
@@ -122,9 +122,8 @@
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "gemma3:4b",
-          "mode": "list",
-          "cachedResultName": "gemma3:4b"
+          "value": "=google/gemma-3-12b-it",
+          "mode": "id"
         },
         "builtInTools": {},
         "options": {}
@@ -257,9 +256,9 @@
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
-          "value": "ccad-qwen3-embedding-8b-4096",
+          "value": "google-gemini-embedding-001-3072",
           "mode": "list",
-          "cachedResultName": "ccad-qwen3-embedding-8b-4096"
+          "cachedResultName": "google-gemini-embedding-001-3072"
         },
         "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
         "options": {
@@ -335,20 +334,20 @@
     },
     {
       "parameters": {
-        "model": "=qwen3-embedding:8b"
+        "modelName": "models/gemini-embedding-001"
       },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        32,
-        416
+        16,
+        384
       ],
-      "id": "3fcf3ca8-266b-4334-ba24-606bc9a90986",
-      "name": "Embeddings Ollama",
+      "id": "aa0abfc6-0159-46c3-9b54-5e3dba78b005",
+      "name": "Embeddings Google Gemini",
       "credentials": {
-        "ollamaApi": {
-          "id": "5hfG2JZuvyqD0soc",
-          "name": "Ollama account"
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
         }
       }
     }
@@ -512,7 +511,7 @@
         ]
       ]
     },
-    "Embeddings Ollama": {
+    "Embeddings Google Gemini": {
       "ai_embedding": [
         [
           {
@@ -528,7 +527,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "44d32a62-d73c-49f0-8125-188793f46de9",
+  "versionId": "292bdf70-8a28-4112-bda8-5eade1944efa",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"

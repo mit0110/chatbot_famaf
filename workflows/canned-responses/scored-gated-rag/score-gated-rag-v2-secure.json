@@ -1,5 +1,5 @@
 {
-  "name": "score-gated-rag-v2-secure",
+  "name": "score-gated-rag-v2-secure v2",
   "nodes": [
     {
       "parameters": {
@@ -9,12 +9,12 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        -144,
+        -16,
         192
       ],
-      "id": "fbb68843-900c-4c9e-80f4-82f8498e5e91",
+      "id": "9b7f3167-13f8-4e7a-9e71-34da5a16199c",
       "name": "Cambiar estado a \"Escribiendo...\"",
-      "webhookId": "f64f66cf-9917-410d-909a-f5b00cd594f9",
+      "webhookId": "e54af1ef-8b49-44da-9f9f-df46d03eb5e7",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
@@ -37,9 +37,11 @@
         912,
         208
       ],
-      "id": "d12e9145-7288-4531-9654-c0d86da3e006",
+      "id": "be3d9641-97d7-416d-8040-6453f133ae5a",
       "name": "Agente RAG",
-      "retryOnFail": true
+      "retryOnFail": true,
+      "maxTries": 3,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -52,7 +54,7 @@
         960,
         576
       ],
-      "id": "c0741a33-4073-4101-a35c-365f32462217",
+      "id": "c08f3bf4-43d0-45e0-bc0a-cfed67814d2b",
       "name": "Memoria de 5 mensajes volátil"
     },
     {
@@ -65,41 +67,16 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -624,
+        -448,
         192
       ],
-      "id": "bb96523a-293a-42ef-a135-a8761e9f0c34",
+      "id": "d9e75cc3-64c1-4cc8-a8a8-c27d63119236",
       "name": "Cuando Reciba un Mensaje",
-      "webhookId": "19f7de5c-7447-4fce-ade6-010c340ebe67",
+      "webhookId": "51941c03-dc08-4069-8c2e-bf3fe5d44426",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
           "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "=mistral-small3.2:24b",
-          "mode": "id"
-        },
-        "responsesApiEnabled": false,
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        848,
-        496
-      ],
-      "id": "844a114a-de9b-4b55-9c16-1993d9fe2345",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "Vbq2iEcYzUNvp4pF",
-          "name": "OpenAi compatible ollama"
         }
       }
     },
@@ -115,14 +92,14 @@
         1056,
         480
       ],
-      "id": "725524f3-b81c-491c-846f-aa3368159ea9",
+      "id": "f8f2b411-1cd9-46f3-b2e7-e5c4565737f1",
       "name": "Structured Output Parser"
     },
     {
       "parameters": {
         "model": {
           "__rl": true,
-          "value": "=mistral-small3.2:24b",
+          "value": "=google/gemma-3-12b-it",
           "mode": "id"
         },
         "builtInTools": {},
@@ -132,9 +109,9 @@
       "typeVersion": 1.3,
       "position": [
         1056,
-        704
+        672
       ],
-      "id": "506ae9d1-8eca-4d85-ba35-bb6eb62c5174",
+      "id": "98786087-a945-4982-b622-ab7803ba801f",
       "name": "OpenAI Chat Model1",
       "credentials": {
         "openAiApi": {
@@ -220,10 +197,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        1312,
-        192
+        1280,
+        176
       ],
-      "id": "e21eb77a-2703-4a94-b039-957b70d5d5b9",
+      "id": "0fa0f3ae-f855-4494-9d01-ae67f0a2a9b7",
       "name": "Switch"
     },
     {
@@ -239,11 +216,11 @@
       "typeVersion": 1.2,
       "position": [
         1792,
-        208
+        192
       ],
-      "id": "9e6ceba1-5e8e-40b8-acf9-9472a91330f1",
+      "id": "d5f73af9-b968-4edf-ba38-d5f7cd4f2147",
       "name": "Enviar Mensaje",
-      "webhookId": "c8eb8401-447a-43ac-872e-c232d4435e0d",
+      "webhookId": "1fe3a211-1c16-4f69-8b60-afc349cc0813",
       "credentials": {
         "telegramApi": {
           "id": "adn3cue2Jg2A3qbb",
@@ -256,9 +233,9 @@
         "mode": "load",
         "pineconeIndex": {
           "__rl": true,
-          "value": "ccad-qwen3-embedding-8b-4096",
+          "value": "ollama-bge-m3-1024",
           "mode": "list",
-          "cachedResultName": "ccad-qwen3-embedding-8b-4096"
+          "cachedResultName": "ollama-bge-m3-1024"
         },
         "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
         "options": {
@@ -271,7 +248,7 @@
         448,
         208
       ],
-      "id": "f91b27e0-8afb-4a78-a241-d6e8dd45649d",
+      "id": "df6f70fc-fa55-48f4-b4cc-febfa789764e",
       "name": "Pinecone Vector Store",
       "credentials": {
         "pineconeApi": {
@@ -290,7 +267,7 @@
         736,
         208
       ],
-      "id": "3b4a9ee9-b047-42c4-96e9-a21d227b93e4",
+      "id": "d48bbed6-efca-4573-8347-f11884d536cd",
       "name": "Clear response"
     },
     {
@@ -301,9 +278,9 @@
       "typeVersion": 2,
       "position": [
         1520,
-        32
+        16
       ],
-      "id": "0f1a097e-506b-4fee-86f2-62622d3cf57d",
+      "id": "b732554d-25e5-4dc7-af8d-996459b3a72b",
       "name": "fallback"
     },
     {
@@ -314,27 +291,27 @@
       "typeVersion": 2,
       "position": [
         1520,
-        384
+        368
       ],
-      "id": "3d661b06-b17e-4263-b635-0ee3db091dec",
+      "id": "a8257fa8-af50-46e4-9cb5-05b8a452f32a",
       "name": "Canned answer"
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación..`\n  }\n}];"
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación.`\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1520,
-        208
+        192
       ],
-      "id": "2c3a3ccd-e6a6-4843-9a59-b0807c5d8e85",
+      "id": "e0ea37ca-2484-43f2-8178-d4f1c7a938fd",
       "name": "Redireccionar a un humano"
     },
     {
       "parameters": {
-        "model": "=qwen3-embedding:8b"
+        "model": "bge-m3:latest"
       },
       "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
       "typeVersion": 1,
@@ -342,7 +319,7 @@
         448,
         432
       ],
-      "id": "ef958f01-e776-4ae4-8756-095e3d7740cb",
+      "id": "c774d740-e5ed-4903-8cef-cb56e9c4f57f",
       "name": "Embeddings Ollama",
       "credentials": {
         "ollamaApi": {
@@ -353,34 +330,15 @@
     },
     {
       "parameters": {
-        "modelName": "models/embedding-001"
-      },
-      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        448,
-        576
-      ],
-      "id": "0496f20f-0236-4960-a23c-b6a1eb0b2478",
-      "name": "Embeddings Google Gemini",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "puEfcBRtAu5GhBpX",
-          "name": "chatbot (personal)"
-        }
-      }
-    },
-    {
-      "parameters": {
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        816,
-        656
+        848,
+        496
       ],
-      "id": "c60af6b6-0783-426d-a2d3-4f1690cd4745",
+      "id": "cc7c27e0-cb70-44c0-aa94-9f366b46a323",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -388,6 +346,19 @@
           "name": "chatbot-famaf (unc)"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "let msg_valid_type = false\n\nif ($input.first().json.message.text) {\n  msg_valid_type = true\n}\n\n/**\nlet msg_valid_type = true\n\nif ($input.first().json.message.photo){\n  msg_valid_type= false  \n}\nelse if ($input.first().json.message.voice) {\n  msg_type= false\n}\nelse if($input.first().json.message.video) {\n  msg_valid_type= false\n}\nelse if($input.first().json.message.document){\n  msg_valid_type= false\n} \n **/\n\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        192
+      ],
+      "id": "66df66c0-2138-4e66-a7b6-dadacc8a9cf3",
+      "name": "Code in JavaScript"
     },
     {
       "parameters": {
@@ -403,7 +374,7 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $('check message type').item.json.msg_type }}",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
                     "rightValue": "valid",
                     "operator": {
                       "type": "boolean",
@@ -429,7 +400,7 @@
                 "conditions": [
                   {
                     "id": "2caa24ea-cefe-4608-936d-b46423c1212c",
-                    "leftValue": "={{ $('check message type').item.json.msg_type }}",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
                     "rightValue": "",
                     "operator": {
                       "type": "boolean",
@@ -450,10 +421,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        64,
+        192,
         192
       ],
-      "id": "b3b823b0-0b48-4d56-a8e7-1f738b9541a1",
+      "id": "014fc937-ca22-48a3-98bc-b4642171e9a1",
       "name": "Switch1"
     },
     {
@@ -464,23 +435,23 @@
       "typeVersion": 2,
       "position": [
         1520,
-        -144
+        -160
       ],
-      "id": "934a203b-cf12-4223-92d8-62e3f5b14ebe",
+      "id": "299e3dbd-abff-4b4d-8b6b-202b4bdc2603",
       "name": "Invalid format"
     },
     {
       "parameters": {
-        "jsCode": "let msg_valid_type = false\n\nif ($input.first().json.message.text) {\n  msg_valid_type = true\n}\n\n/**\nlet msg_valid_type = true\n\nif ($input.first().json.message.photo){\n  msg_valid_type= false  \n}\nelse if ($input.first().json.message.voice) {\n  msg_type= false\n}\nelse if($input.first().json.message.video) {\n  msg_valid_type= false\n}\nelse if($input.first().json.message.document){\n  msg_valid_type= false\n} \n **/\n\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
+        "jsCode": "return [{\n  json: {\n    response: `Ocurrió un error al procesar la consulta.\n  Por favor, intentá nuevamente más tarde.`\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -384,
-        192
+        1520,
+        560
       ],
-      "id": "9890f53e-a1a1-4f8d-89c9-f109d15e0e93",
-      "name": "check message type"
+      "id": "36a59a38-7e42-4774-a431-e82d6694eb87",
+      "name": "Redireccionar a un humano1"
     }
   ],
   "pinData": {},
@@ -504,6 +475,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano1",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -522,19 +500,8 @@
       "main": [
         [
           {
-            "node": "check message type",
+            "node": "Code in JavaScript",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Agente RAG",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -653,14 +620,26 @@
         ]
       ]
     },
-    "Embeddings Google Gemini": {
-      "ai_embedding": [
-        []
-      ]
-    },
     "Google Gemini Chat Model": {
       "ai_languageModel": [
-        []
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Switch1": {
@@ -692,11 +671,11 @@
         ]
       ]
     },
-    "check message type": {
+    "Redireccionar a un humano1": {
       "main": [
         [
           {
-            "node": "Cambiar estado a \"Escribiendo...\"",
+            "node": "Enviar Mensaje",
             "type": "main",
             "index": 0
           }
@@ -708,11 +687,11 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2b42acf0-3ffa-4e37-9bd6-7306b2f6e656",
+  "versionId": "a7de900e-399c-42cf-96fa-3013cb38ce15",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
   },
-  "id": "ffggNVnZXDgfCOsf",
+  "id": "aSvHfTXDOfRvtuD8",
   "tags": []
 }

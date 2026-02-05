@@ -11,19 +11,47 @@ router = APIRouter()
 
 
 @router.get('/')
-def get_questions(limit: int = 10, page: int = 1, search: str = ''):
+def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = ''):
     skip = (page - 1) * limit
+    
+    # Construir filtro de búsqueda
+    match_query = {}
+    if search:
+        match_query['content'] = {'$regex': search, '$options': 'i'}
+    if category:
+        match_query['category'] = category
+    
+    # Pipeline para obtener preguntas
     pipeline = [
-        {'$match': {}},
-        {'$lookup': {'from': 'answers', 'localField': 'answer_id',
-                     'foreignField': '_id', 'as': 'answer'}},
+        {'$match': match_query},
+        {'$lookup': {
+            'from': 'answers', 
+            'localField': 'answer_id',
+            'foreignField': '_id', 
+            'as': 'answer'
+        }},
         {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
         {'$skip': skip},
         {'$limit': limit}
     ]
+    
+    # Contar total de documentos (para paginación)
+    total_count = Question.count_documents(match_query)
+    total_pages = (total_count + limit - 1) // limit  # Redondeo hacia arriba
+    
     questions = questionListEntity(Question.aggregate(pipeline))
-    return {'status': 'success', 'results': len(questions), 'questions': questions}
-
+    
+    return {
+        'status': 'success',
+        'results': len(questions),
+        'questions': questions,
+        'pagination': {
+            'current_page': page,
+            'total_pages': total_pages,
+            'total_items': total_count,
+            'per_page': limit
+        }
+    }
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 def create_question(question: schemas.CreateQuestionSchema):

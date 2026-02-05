@@ -15,37 +15,67 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_home(request: Request, q: str = "", category: str = ""):
-    """Página principal del admin - lista de preguntas con filtros"""
+async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1):
+    """Página principal del admin - lista de preguntas con filtros y paginación"""
+    
+    # Configuración de paginación
+    limit = 10
+    skip = (page - 1) * limit
+    
+    # Construir filtro de búsqueda
     match_stage = {}
     if q:
         match_stage['content'] = {'$regex': q, '$options': 'i'}
     if category:
         match_stage['category'] = category
 
+    # Contar total de documentos para la paginación
+    total_count = Question.count_documents(match_stage if match_stage else {})
+    total_pages = (total_count + limit - 1) // limit  # Redondeo hacia arriba
+    
+    # Pipeline de agregación
     pipeline = []
     if match_stage:
         pipeline.append({'$match': match_stage})
 
     pipeline.extend([
+        {'$sort': {'created_at': -1}},  # Ordenar antes de skip/limit
+        {'$skip': skip},
+        {'$limit': limit},
         {'$lookup': {
             'from': 'answers',
             'localField': 'answer_id',
             'foreignField': '_id',
             'as': 'answer'
         }},
-        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-        {'$sort': {'created_at': -1}}
+        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}}
     ])
 
     questions = list(Question.aggregate(pipeline))
 
     # Obtener lista de categorías para el filtro
     category_names = get_category_names()
+    
+    # Preparar información de paginación
+    pagination = {
+        'current_page': page,
+        'total_pages': total_pages,
+        'total_items': total_count,
+        'per_page': limit,
+        'has_prev': page > 1,
+        'has_next': page < total_pages
+    }
 
     return templates.TemplateResponse(
         "questions_list.html",
-        {"request": request, "questions": questions, "search_query": q, "categories": category_names, "selected_category": category}
+        {
+            "request": request,
+            "questions": questions,
+            "search_query": q,
+            "categories": category_names,
+            "selected_category": category,
+            "pagination": pagination
+        }
     )
 
 @router.get("/create", response_class=HTMLResponse)

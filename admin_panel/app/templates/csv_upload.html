@@ -8,7 +8,9 @@
 <div class="container mt-4">
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Formato del archivo CSV</h5>
+            <h5 class="card-title">Importar Archivo CSV</h5>
+
+            <h6 class="mt-4 mb-3">Formato del archivo CSV</h6>
             <p>El archivo debe contener las siguientes columnas (separadas por comas):</p>
             <table class="table table-sm">
                 <thead>
@@ -38,12 +40,10 @@
             </table>
             <p class="text-muted small">Si una respuesta ya existe en la base de datos, se vinculará automáticamente. Si
                 una categoría no existe, se creará automáticamente.</p>
-        </div>
-    </div>
 
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Selecciona el archivo CSV</h5>
+            <hr>
+
+            <h6 class="mt-4 mb-3">Selecciona el archivo CSV</h6>
             <form id="csvForm" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="csvFile" class="form-label">Archivo CSV</label>

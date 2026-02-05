@@ -28,13 +28,6 @@
     </div>
 </form>
 
-<script>
-    // Auto-submit when category selection changes
-    document.getElementById('categorySelect')?.addEventListener('change', function () {
-        document.getElementById('searchForm').submit();
-    });
-</script>
-
 <!-- Lista de preguntas -->
 <div class="row">
     {% for question in questions %}
@@ -48,7 +41,21 @@
                 <hr>
                 <p><strong>Respuesta:</strong></p>
                 {% if question.answer %}
-                <p class="text-muted">{{ question.answer.content }}</p>
+                <div class="answer-text">
+                    <div class="answer-preview" id="preview{{ loop.index }}">
+                        {{ question.answer.content[:100] }}{% if question.answer.content|length > 100 %}...{% endif %}
+                    </div>
+                    <div class="collapse" id="answerCollapse{{ loop.index }}">
+                        {{ question.answer.content }}
+                    </div>
+                    {% if question.answer.content|length > 100 %}
+                    <a class="text-primary small" style="cursor: pointer; text-decoration: none;"
+                        data-bs-toggle="collapse" data-bs-target="#answerCollapse{{ loop.index }}"
+                        onclick="toggleText(this)">
+                        Ver más
+                    </a>
+                    {% endif %}
+                </div>
                 {% else %}
                 <p class="text-danger">Sin respuesta</p>
                 {% endif %}
@@ -126,24 +133,23 @@
         document.getElementById('searchForm').submit();
     });
 
-    // Toggle Ver más/Ver menos
-    document.querySelectorAll('.toggle-text').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault();
-            const questionId = this.dataset.target;
-            const questionElement = document.getElementById(questionId);
-            const truncated = questionElement.querySelector('.truncated-text');
-            const full = questionElement.querySelector('.full-text');
+    // Toggle "Ver más" / "Ver menos"
+    function toggleText(element) {
+        setTimeout(() => {
+            const isExpanded = element.getAttribute('aria-expanded') === 'true';
+            element.textContent = isExpanded ? 'Ver menos' : 'Ver más';
+        }, 10);
+    }
 
-            if (full.style.display === 'none') {
-                truncated.style.display = 'none';
-                full.style.display = 'inline';
-                this.textContent = 'Ver menos';
-            } else {
-                truncated.style.display = 'inline';
-                full.style.display = 'none';
-                this.textContent = 'Ver más';
-            }
+    // Ensure correct initial state
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.collapse').forEach(collapse => {
+            collapse.addEventListener('show.bs.collapse', function () {
+                this.previousElementSibling.style.display = 'none';
+            });
+            collapse.addEventListener('hide.bs.collapse', function () {
+                this.previousElementSibling.style.display = 'block';
+            });
         });
     });
 </script>

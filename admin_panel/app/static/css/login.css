@@ -1,0 +1,113 @@
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px 10px 0 0;
+    padding: 30px 20px;
+}
+
+.card-header h1 {
+    color: white;
+    text-align: center;
+    margin: 0;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 10px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.forgot-password {
+    text-align: right;
+    margin-bottom: 20px;
+}
+
+.forgot-password a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.3s;
+}
+
+.forgot-password a:hover {
+    color: #764ba2;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.register-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.register-link a:hover {
+    color: #764ba2;
+}
+
+.spinner-border {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 5px;
+}
+
+.input-group .btn-outline-secondary {
+    border: 1px solid #ddd;
+    border-left: none;
+    background-color: transparent;
+    color: #667eea;
+    padding: 8px 12px;
+    transition: color 0.3s;
+}
+
+.input-group .btn-outline-secondary:hover {
+    background-color: transparent;
+    color: #764ba2;
+    border: 1px solid #ddd;
+    border-left: none;
+}

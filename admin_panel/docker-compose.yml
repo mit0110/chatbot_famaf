@@ -26,7 +26,7 @@ services:
     build: .
     container_name: fastapi-admin-panel
     env_file:
-      - ./.env
+      - .env
     environment:
       - MONGODB_URL=${MONGODB_URL}
     ports:

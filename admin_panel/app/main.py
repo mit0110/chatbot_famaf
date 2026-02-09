@@ -1,5 +1,7 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import HTTPException
+from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 
 from fastapi.staticfiles import StaticFiles
@@ -48,6 +50,28 @@ templates = Jinja2Templates(directory="app/templates")
 
 app.include_router(auth.router, tags=['Authentication'], prefix='/auth')
 app.include_router(pages.router, tags=['Pages'])
+
+
+# Manejador de excepciones para redirigir a login si el usuario no está autenticado
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """
+    Manejador personalizado de excepciones HTTP.
+
+    Redirige a la página de login si el usuario intenta acceder a una ruta
+    protegida sin estar autenticado (HTTP 401 - Unauthorized o 403 - Forbidden).
+
+    Args:
+        request (Request): La solicitud HTTP actual.
+        exc (HTTPException): La excepción levantada.
+
+    Returns:
+        RedirectResponse: Redirige a /login si es 401 o 403, sino lanza la excepción.
+    """
+    if exc.status_code in [401, 403]:
+        return RedirectResponse(url="/login", status_code=303)
+    raise exc
+
 
 @app.get("/api/healthchecker")
 def root():

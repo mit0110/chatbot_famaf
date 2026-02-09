@@ -1,51 +1,51 @@
-# FastAPI Users Authentication
+# Autenticación con FastAPI Users
 
-This project now includes user registration and authentication using the FastAPI Users library.
+Este proyecto ahora incluye registro de usuarios y autenticación usando la librería FastAPI Users.
 
-## Installation
+## Instalación
 
-Install the new dependencies:
+Instala las nuevas dependencias:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+## Variables de Entorno
 
-Add the following to your `.env` file if not already present:
+Agrega lo siguiente a tu archivo `.env`:
 
 ```env
-SECRET_KEY=your-secret-key-here-min-32-characters
+SECRET_KEY=tu-clave-secreta-aqui-minimo-32-caracteres
 ```
 
-You can generate a secure secret key with:
+Puedes generar una clave secreta segura con:
 
 ```bash
 openssl rand -hex 32
 ```
 
-## API Endpoints
+## Endpoints de la API
 
-### Authentication Endpoints
+### Endpoints de Autenticación
 
-#### Register a New User
+#### Registrar un Nuevo Usuario
 - **POST** `/auth/register`
 - **Body**:
 ```json
 {
-  "email": "user@example.com",
-  "password": "SecurePassword123!",
-  "full_name": "John Doe"
+  "email": "usuario@ejemplo.com",
+  "password": "ContraseñaSegura123!",
+  "full_name": "Juan Pérez"
 }
 ```
-- **Response**: User object
+- **Respuesta**: Objeto de usuario
 
-#### Login
+#### Iniciar Sesión
 - **POST** `/auth/jwt/login`
-- **Form Data**:
-  - `username`: user@example.com (email)
-  - `password`: SecurePassword123!
-- **Response**:
+- **Datos del Formulario**:
+  - `username`: usuario@ejemplo.com (correo electrónico)
+  - `password`: ContraseñaSegura123!
+- **Respuesta**:
 ```json
 {
   "access_token": "eyJhbGc...",
@@ -53,78 +53,78 @@ openssl rand -hex 32
 }
 ```
 
-#### Logout
+#### Cerrar Sesión
 - **POST** `/auth/jwt/logout`
-- **Headers**: `Authorization: Bearer <token>`
-- **Response**: Success message
+- **Cookies**: Se elimina automáticamente
+- **Respuesta**: Mensaje de éxito
 
-### User Management Endpoints
+### Endpoints de Gestión de Usuarios
 
-#### Get Current User
+#### Obtener Usuario Actual
 - **GET** `/auth/users/me`
-- **Headers**: `Authorization: Bearer <token>`
-- **Response**: Current user object
+- **Cookies**: Cookie de sesión automática
+- **Respuesta**: Objeto del usuario actual
 
-#### Update Current User
+#### Actualizar Usuario Actual
 - **PATCH** `/auth/users/me`
-- **Headers**: `Authorization: Bearer <token>`
+- **Cookies**: Cookie de sesión automática
 - **Body**:
 ```json
 {
-  "email": "newemail@example.com",
-  "full_name": "Updated Name",
-  "password": "NewPassword123!"
+  "email": "nuevocorreo@ejemplo.com",
+  "full_name": "Nombre Actualizado",
+  "password": "NuevaContraseña123!"
 }
 ```
 
-#### Delete Current User
+#### Eliminar Usuario Actual
 - **DELETE** `/auth/users/me`
-- **Headers**: `Authorization: Bearer <token>`
+- **Cookies**: Cookie de sesión automática
 
-### Password Reset Endpoints
+### Endpoints de Recuperación de Contraseña
 
-#### Request Password Reset
+#### Solicitar Recuperación de Contraseña
 - **POST** `/auth/reset-password/forgot-password`
 - **Body**:
 ```json
 {
-  "email": "user@example.com"
+  "email": "usuario@ejemplo.com"
 }
 ```
 
-#### Reset Password
+#### Restablecer Contraseña
 - **POST** `/auth/reset-password/reset-password`
 - **Body**:
 ```json
 {
-  "token": "reset-token-from-email",
-  "password": "NewPassword123!"
+  "token": "token-recuperacion-del-correo",
+  "password": "NuevaContraseña123!"
 }
 ```
 
-### Email Verification Endpoints
+### Endpoints de Verificación de Correo
 
-#### Request Verification
+#### Solicitar Verificación
 - **POST** `/auth/verify/request-verify-token`
 - **Body**:
 ```json
 {
-  "email": "user@example.com"
+  "email": "usuario@ejemplo.com"
 }
 ```
 
-#### Verify Email
+#### Verificar Correo Electrónico
 - **POST** `/auth/verify/verify`
 - **Body**:
 ```json
 {
-  "token": "verification-token"
+  "token": "token-verificacion"
 }
 ```
 
-## Protecting Routes
+## Proteger Rutas
 
-To protect your routes and require authentication, use the dependencies from `app.auth`:
+Para proteger tus rutas y requerir autenticación, usa las dependencias de `app.auth`:
 
 ```python
 from fastapi import APIRouter, Depends
@@ -133,78 +133,66 @@ from app.models.users import User
 
 router = APIRouter()
 
-@router.get("/protected-route")
-async def protected_route(user: User = Depends(current_active_user)):
-    return {"message": f"Hello {user.email}!"}
+@router.get("/ruta-protegida")
+async def ruta_protegida(user: User = Depends(current_active_user)):
+    return {"message": f"¡Hola {user.email}!"}
 ```
 
-For superuser-only routes:
+## Pruebas con cURL
 
-```python
-from app.auth import current_superuser
-
-@router.get("/admin-only")
-async def admin_route(user: User = Depends(current_superuser)):
-    return {"message": "Admin access granted"}
-```
-
-## Testing with cURL
-
-### Register a user:
+### Registrar un usuario:
 ```bash
 curl -X POST "http://localhost:8000/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "test@example.com",
-    "password": "SecurePass123!",
-    "full_name": "Test User"
+    "email": "prueba@ejemplo.com",
+    "password": "ContraseñaSegura123!",
+    "full_name": "Usuario Prueba"
   }'
 ```
 
-### Login:
+### Iniciar sesión:
 ```bash
 curl -X POST "http://localhost:8000/auth/jwt/login" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=test@example.com&password=SecurePass123!"
+  -d "username=prueba@ejemplo.com&password=ContraseñaSegura123!"
 ```
 
-### Access protected route:
+### Acceder a ruta protegida:
 ```bash
 curl -X GET "http://localhost:8000/auth/users/me" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+  -H "Cookie: adminuserauth=TU_TOKEN"
 ```
 
-## User Model
+## Modelo de Usuario
 
-The User model includes:
-- `id`: Unique user identifier (str)
-- `email`: User's email address (unique)
-- `hashed_password`: Securely hashed password
-- `is_active`: Whether the user is active (default: true)
-- `is_superuser`: Whether the user has superuser privileges (default: false)
-- `is_verified`: Whether the user's email is verified (default: false)
-- `full_name`: Optional full name of the user
+El modelo de Usuario incluye:
+- `id`: Identificador único del usuario (str)
+- `email`: Correo electrónico del usuario (único)
+- `hashed_password`: Contraseña hasheada de forma segura
+- `is_active`: Si el usuario está activo (por defecto: verdadero)
+- `is_verified`: Si el correo del usuario está verificado (por defecto: falso)
+- `full_name`: Nombre completo opcional del usuario
 
-## Architecture
+## Arquitectura
 
-- **Models**: `app/models/users.py` - User document model using Beanie
-- **Schemas**: `app/schemas/users.py` - Pydantic schemas for user data validation
-- **Auth**: `app/auth.py` - Authentication configuration and user manager
-- **Router**: `app/routers/auth.py` - Authentication and user management routes
-- **Database**: `app/database.py` - Database initialization including Beanie setup
+- **Models**: `app/models/users.py` - Modelo de documento de usuario usando Beanie
+- **Schemas**: `app/schemas/users.py` - Esquemas Pydantic para validación de datos de usuario
+- **Auth**: `app/auth.py` - Configuración de autenticación y gestor de usuarios
+- **Router**: `app/routers/auth.py` - Rutas de autenticación y gestión de usuarios
+- **Database**: `app/database.py` - Inicialización de la base de datos incluyendo configuración de Beanie
 
-## Security Features
+## Características de Seguridad
 
-- JWT-based authentication
-- Password hashing using bcrypt
-- Email verification support
-- Password reset functionality
-- Secure token generation
-- User session management
+- Autenticación basada en JWT
+- Hashing de contraseñas usando bcrypt
+- Transporte de Tokens usando Cookies
+- Gestión de sesiones de usuario
 
-## Notes
+## Notas
 
-- The JWT tokens expire after `ACCESS_TOKEN_EXPIRES_IN` seconds (configured in settings)
-- Email verification and password reset require email service configuration (currently logs tokens to console)
-- All passwords are hashed using bcrypt before storage
-- The SECRET_KEY should be kept secure and never committed to version control
+- Los tokens JWT expiran después de `ACCESS_TOKEN_EXPIRES_IN` segundos (configurado en settings)
+- Las cookies son HTTP-only (solo para desarrollo) y se gestionan automáticamente
+- Todas las contraseñas se hashean usando bcrypt antes de almacenarse
+- La `SECRET_KEY` debe mantenerse segura y nunca ser comprometida en el control de versiones
+- La autenticación ahora utiliza cookies en lugar de tokens Bearer en los encabezados

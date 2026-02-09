@@ -5,14 +5,7 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-
-@router.get("/register", response_class=HTMLResponse)
-async def register_page(request: Request):
-    """Serve the registration page"""
-    return templates.TemplateResponse("register.html", {"request": request})
-
-
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
-    """Serve the login page"""
-    return templates.TemplateResponse("login.html", {"request": request})
+    """Provee la página de inicio de sesión"""
+    return templates.TemplateResponse(name="login.html", request=request)

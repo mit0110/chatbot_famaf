@@ -1,20 +1,22 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import settings
+from app.models.users import User
 from app.routers import auth, pages
 from app.database import init_db
+from app.auth import current_active_user
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Iniciar la Base de Datos
+    # Iniciar base de datos
     await init_db()
     yield
-    # Al apagar el servidor
+    # Agregar código que desee ejecutarse después de que se finalize el sv
 
 
 app = FastAPI(lifespan=lifespan)

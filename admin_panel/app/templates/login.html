@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión - Admin Chatbot FAMAF</title>
+    <title>Iniciar Sesión - Administración Chatbot FAMAF</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -21,7 +21,7 @@
           <h1>Iniciar Sesión</h1>
         </div>
         <div class="card-body">
-          <!-- Alert Messages -->
+          <!-- Mensajes de Alerta -->
           <div
             id="message"
             class="alert alert-dismissible fade"
@@ -37,12 +37,13 @@
             ></button>
           </div>
 
-          <!-- Login Form -->
+          <!-- Formulario de Inicio de Sesión -->
           <form id="loginForm">
             <div class="mb-3">
               <label for="email" class="form-label">Correo Electrónico</label>
               <input
                 type="email"
+                autocomplete="email"
                 class="form-control"
                 id="email"
                 name="email"
@@ -55,6 +56,7 @@
               <div class="input-group">
                 <input
                   type="password"
+                  autocomplete="current-password"
                   class="form-control"
                   id="password"
                   name="password"
@@ -89,91 +91,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      const form = document.getElementById("loginForm");
-      const messageDiv = document.getElementById("message");
-      const messageText = document.getElementById("messageText");
-      const buttonText = document.getElementById("buttonText");
-      const buttonSpinner = document.getElementById("buttonSpinner");
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-
-        // Show loading state
-        buttonText.style.display = "none";
-        buttonSpinner.style.display = "inline-block";
-        form.querySelector('button[type="submit"]').disabled = true;
-
-        try {
-          // Using FormData for form-encoded request
-          const formData = new FormData();
-          formData.append("username", email);
-          formData.append("password", password);
-
-          const response = await fetch("/auth/jwt/login", {
-            method: "POST",
-            body: formData,
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            // Store the token
-            localStorage.setItem("access_token", data.access_token);
-            localStorage.setItem("token_type", data.token_type);
-
-            showMessage(
-              "¡Sesión iniciada correctamente! Redirigiendo...",
-              "success",
-            );
-            setTimeout(() => {
-              window.location.href = "/"; // Cambiar por admin-panel cuando esté disponible
-            }, 1500);
-          } else {
-            let errorMessage;
-            if (data.detail === "LOGIN_BAD_CREDENTIALS" || data.detail?.includes("Incorrect")) {
-              errorMessage = "Correo o contraseña incorrectos. Por favor, intenta de nuevo.";
-            } else {
-              errorMessage = data.detail || "Error al iniciar sesión. Intenta de nuevo.";
-            }
-            showMessage(errorMessage, "danger");
-          }
-        } catch (error) {
-          showMessage("Error: " + error.message, "danger");
-        } finally {
-          buttonText.style.display = "inline";
-          buttonSpinner.style.display = "none";
-          form.querySelector('button[type="submit"]').disabled = false;
-        }
-      });
-
-      function showMessage(text, type) {
-        messageText.textContent = text;
-        messageDiv.className = `alert alert-${type} alert-dismissible fade show`;
-        messageDiv.style.display = "block";
-      }
-
-      // Toggle password visibility
-      const togglePasswordBtn = document.getElementById("togglePassword");
-      const passwordInput = document.getElementById("password");
-      const toggleIcon = document.getElementById("toggleIcon");
-
-      togglePasswordBtn.addEventListener("click", () => {
-        const type = passwordInput.type === "password" ? "text" : "password";
-        passwordInput.type = type;
-        toggleIcon.className = type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
-      });
-
-      // Check if user is already logged in
-      window.addEventListener("load", () => {
-        const token = localStorage.getItem("access_token");
-        if (token) {
-          window.location.href = "/"; // Cambiar por admin-panel cuando esté disponible
-        }
-      });
-    </script>
+    <script src="/static/js/login.js"></script>
   </body>
 </html>

@@ -6,31 +6,24 @@ from app.schemas.users import UserCreate, UserRead, UserUpdate
 
 router = APIRouter()
 
-# Authentication routes
+# Rutas /login y /logout
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
     prefix="/jwt",
     tags=["auth"],
 )
 
-# Registration route
+# Ruta /register para registrar un usuario
 router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
     tags=["auth"],
 )
 
-# User routes (get, update, delete current user)
+# Rutas de usuario (get, update, delete, current user)
 router.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
-)
-
-# Verification routes
-router.include_router(
-    fastapi_users.get_verify_router(UserRead),
-    prefix="/verify",
-    tags=["auth"],
 )
 
 # Password reset routes

@@ -4,6 +4,7 @@ from app.schemas.question import CreateQuestionSchema, UpdateQuestionSchema
 from app.models.question import Question
 from app.models.answer import Answer
 from beanie import PydanticObjectId
+from app.utils import ensure_category_exists
 
 router = APIRouter()
 
@@ -78,7 +79,7 @@ async def create_question(payload: CreateQuestionSchema):
     
     new_question = Question(
         content=payload.content,
-        category=payload.category,
+        category=await ensure_category_exists(payload.category),
         answer=answer,
     )
     await new_question.insert()
@@ -108,6 +109,11 @@ async def update_question(id: PydanticObjectId, payload: UpdateQuestionSchema):
         )
     
     update_data = payload.model_dump(exclude_none=True)
+
+    if 'category' in update_data:
+        update_data['category'] = await ensure_category_exists(
+            update_data['category']
+        )
     
     # Resolver answer_id a un Link si viene en el payload
     if 'answer_id' in update_data:

@@ -2,6 +2,7 @@ from app.models.category import Category
 from app.models.answer import Answer
 from typing import List
 from datetime import datetime, timezone
+import re
 
 DEFAULT_CATEGORIES = [
     "Información General",
@@ -45,8 +46,23 @@ async def get_or_create_answer(answer_content: str, category: str) -> Answer:
 
 async def ensure_category_exists(category_name: str) -> None:
     if not category_name:
-        return
+        return None
 
-    existing = await Category.find_one(Category.name == category_name)
-    if not existing:
-        await Category(name=category_name).insert()
+    existing = await Category.find_one({
+        "name": {"$regex": f"^{re.escape(category_name)}$", "$options": "i"}
+    })
+    if existing:
+        return existing.name
+
+    await Category(name=category_name).insert()
+    return category_name
+
+
+async def normalize_category_name(category_name: str | None) -> str | None:
+    if not category_name:
+        return None
+
+    existing = await Category.find_one({
+        "name": {"$regex": f"^{re.escape(category_name)}$", "$options": "i"}
+    })
+    return existing.name if existing else category_name

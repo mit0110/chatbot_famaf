@@ -83,7 +83,7 @@ async def create_question(
     category: str = Form(...),
     answer_content: str = Form(...),
 ):
-    await ensure_category_exists(category)
+    category = await ensure_category_exists(category)
     answer = await get_or_create_answer(answer_content, category)
 
     existing = await Question.find_one(Question.content == content)
@@ -147,8 +147,7 @@ async def update_question(
         raise HTTPException(status_code=404, detail="Question not found")
 
     current_answer = question.answer if hasattr(question.answer, "id") else None
-
-    await ensure_category_exists(category)
+    category = await ensure_category_exists(category)
 
     if update_all_answers == "yes" and current_answer:
         # Modificar la respuesta existente — afecta a todas las preguntas que la usan
@@ -247,14 +246,8 @@ async def upload_csv(file: UploadFile = File(...)):
 
         for item in data:
             try:
-                # Asegurar que la categoría existe
-                existing_cat = await Category.find_one(
-                    Category.name == item["category"]
-                )
-                if not existing_cat:
-                    await Category(name=item["category"]).insert()
-
-                answer = await get_or_create_answer(item["answer"], item["category"])
+                category_name = await ensure_category_exists(item["category"])
+                answer = await get_or_create_answer(item["answer"], category_name)
 
                 existing_q = await Question.find_one(
                     Question.content == item["question"]
@@ -265,7 +258,7 @@ async def upload_csv(file: UploadFile = File(...)):
 
                 await Question(
                     content=item["question"],
-                    category=item["category"],
+                    category=category_name,
                     answer=answer,
                 ).insert()
                 created_count += 1

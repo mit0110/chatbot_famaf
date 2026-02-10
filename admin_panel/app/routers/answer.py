@@ -3,6 +3,7 @@ from fastapi import HTTPException, status, APIRouter, Response
 from app.schemas.answer import CreateAnswerSchema, UpdateAnswerSchema
 from app.models.answer import Answer
 from beanie import PydanticObjectId
+from app.utils import ensure_category_exists
 
 router = APIRouter()
 
@@ -41,10 +42,12 @@ async def create_answer(payload: CreateAnswerSchema):
             status_code=status.HTTP_409_CONFLICT,
             detail="Answer already exists"
         )
+
+    category = await ensure_category_exists(payload.category)
     
     new_answer = Answer(
         content=payload.content,
-        category=payload.category,
+        category=category,
     )
     await new_answer.insert()
     
@@ -67,6 +70,10 @@ async def update_answer(id: PydanticObjectId, payload: UpdateAnswerSchema):
         )
     
     update_data = payload.model_dump(exclude_none=True)
+    if 'category' in update_data:
+        update_data['category'] = await ensure_category_exists(
+            update_data['category']
+        )
     update_data['updated_at'] = datetime.now(timezone.utc)
     
     await answer.set(update_data)

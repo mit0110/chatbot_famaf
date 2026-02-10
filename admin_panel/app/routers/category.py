@@ -3,6 +3,7 @@ from fastapi import HTTPException, status, APIRouter
 from pydantic import BaseModel
 from beanie.exceptions import RevisionIdWasChanged
 from app.models.category import Category
+from app.utils import normalize_category_name
 
 router = APIRouter()
 
@@ -26,7 +27,8 @@ async def get_categories():
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
 async def upsert_category(payload: CategorySchema):
-    existing = await Category.find_one(Category.name == payload.name)
+    canonical_name = await normalize_category_name(payload.name)
+    existing = await Category.find_one(Category.name == canonical_name)
     if existing:
         return {
             'status': 'success',
@@ -36,7 +38,7 @@ async def upsert_category(payload: CategorySchema):
         }
     
     try:
-        new_cat = await Category(name=payload.name).insert()
+        new_cat = await Category(name=canonical_name).insert()
         return {
             'status': 'success',
             'message': 'Category created',
@@ -46,5 +48,5 @@ async def upsert_category(payload: CategorySchema):
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Category '{payload.name}' already exists"
+            detail=f"Category '{canonical_name}' already exists"
         )

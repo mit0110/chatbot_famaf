@@ -1,82 +1,109 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, status, APIRouter, Response
-from pymongo.collection import ReturnDocument
-from app import schemas
-from app.database import Answer
-from app.serializers.answerSerializers import answerEntity, answerListEntity
-from bson.objectid import ObjectId
-from pymongo.errors import DuplicateKeyError
+from app.schemas.answer import CreateAnswerSchema, UpdateAnswerSchema
+from app.models.answer import Answer
+from beanie import PydanticObjectId
 
 router = APIRouter()
 
 
 @router.get('/')
-def get_answers(limit: int = 10, page: int = 1, search: str = ''):
+async def get_answers(limit: int = 10, page: int = 1, search: str = ''):
     skip = (page - 1) * limit
-    pipeline = [
-        {'$match': {}},
-        {'$skip': skip},
-        {'$limit': limit}
-    ]
-    answers = answerListEntity(Answer.aggregate(pipeline))
-    return {'status': 'success', 'results': len(answers), 'answers': answers}
+    
+    query = Answer.find_all()
+    if search:
+        query = Answer.find({"content": {"$regex": search, "$options": "i"}})
+    
+    answers = await query.skip(skip).limit(limit).to_list()
+    
+    return {
+        'status': 'success',
+        'results': len(answers),
+        'answers': [
+            {
+                'id': str(a.id),
+                'content': a.content,
+                'category': a.category,
+                'created_at': a.created_at,
+                'updated_at': a.updated_at
+            }
+            for a in answers
+        ]
+    }
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
-def create_answer(answer: schemas.CreateAnswerSchema):
-    answer.created_at = datetime.utcnow()
-    answer.updated_at = answer.created_at
+async def create_answer(payload: CreateAnswerSchema):
+    existing = await Answer.find_one(Answer.content == payload.content)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Answer already exists"
+        )
     
-    try:
-        result = Answer.insert_one(answer.dict())
-        new_answer = answerEntity(Answer.find_one({'_id': result.inserted_id}))
-        return new_answer
-    except DuplicateKeyError:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f"Answer already exists")
+    new_answer = Answer(
+        content=payload.content,
+        category=payload.category,
+    )
+    await new_answer.insert()
+    
+    return {
+        'id': str(new_answer.id),
+        'content': new_answer.content,
+        'category': new_answer.category,
+        'created_at': new_answer.created_at,
+        'updated_at': new_answer.updated_at
+    }
 
 
 @router.put('/{id}')
-def update_answer(id: str, payload: schemas.UpdateAnswerSchema):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
+async def update_answer(id: PydanticObjectId, payload: UpdateAnswerSchema):
+    answer = await Answer.get(id)
+    if not answer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No answer with this id: {id} found'
+        )
     
-    update_data = payload.dict(exclude_none=True)
-    update_data['updated_at'] = datetime.utcnow()
+    update_data = payload.model_dump(exclude_none=True)
+    update_data['updated_at'] = datetime.now(timezone.utc)
     
-    updated_answer = Answer.find_one_and_update(
-        {'_id': ObjectId(id)}, 
-        {'$set': update_data}, 
-        return_document=ReturnDocument.AFTER
-    )
+    await answer.set(update_data)
     
-    if not updated_answer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'No answer with this id: {id} found')
-    return answerEntity(updated_answer)
+    return {
+        'id': str(answer.id),
+        'content': answer.content,
+        'category': answer.category,
+        'created_at': answer.created_at,
+        'updated_at': answer.updated_at
+    }
 
 
 @router.get('/{id}')
-def get_answer(id: str):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
-    answer = answerEntity(Answer.find_one({'_id': ObjectId(id)}))
-
+async def get_answer(id: PydanticObjectId):
+    answer = await Answer.get(id)
     if not answer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"No answer with this id: {id} found")
-    return answer
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No answer with this id: {id} found"
+        )
+    return {
+        'id': str(answer.id),
+        'content': answer.content,
+        'category': answer.category,
+        'created_at': answer.created_at,
+        'updated_at': answer.updated_at
+    }
 
 
 @router.delete('/{id}')
-def delete_answer(id: str):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
-    answer = Answer.find_one_and_delete({'_id': ObjectId(id)})
+async def delete_answer(id: PydanticObjectId):
+    answer = await Answer.get(id)
     if not answer:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'No answer with this id: {id} found')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No answer with this id: {id} found'
+        )
+    await answer.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

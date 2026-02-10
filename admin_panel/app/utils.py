@@ -1,43 +1,52 @@
-from app.database import Category, Answer
-from typing import Optional, List
-from datetime import datetime
-from bson.objectid import ObjectId
+from app.models.category import Category
+from app.models.answer import Answer
+from typing import List
+from datetime import datetime, timezone
 
-def get_category_names() -> List[str]:
+DEFAULT_CATEGORIES = [
+    "Información General",
+    "Cursado",
+    "Exámenes",
+    "Ingreso",
+    "Egreso",
+    "Sin Información",
+]
+
+
+async def get_category_names() -> List[str]:
     """
     Obtener lista de nombres de categorías ordenadas alfabéticamente.
-    
-    Returns:
-        Lista de strings con los nombres de las categorías
     """
-    categories = list(Category.find({}, {'_id': 0, 'name': 1}).sort('name', 1))
-    return [cat['name'] for cat in categories]
+    categories = await Category.find_all().sort("+name").to_list()
+    return [cat.name for cat in categories]
 
-def get_or_create_answer(answer_content: str, category: str) -> ObjectId:
+
+async def get_or_create_answer(answer_content: str, category: str) -> Answer:
     """
-    Buscar una respuesta existente o crear una nueva.
-    
-    Args:
-        answer_content: Contenido de la respuesta
-        category: Categoría de la respuesta
-        
+    Buscar una respuesta existente (case-insensitive) o crear una nueva.
+
     Returns:
-        ObjectId de la respuesta (existente o recién creada)
+        El documento Answer (existente o recién creado)
     """
-    existing_answer = Answer.find_one({
-        'content': {'$regex': f'^{answer_content}$', '$options': 'i'}
+    existing = await Answer.find_one({
+        "content": {"$regex": f"^{answer_content}$", "$options": "i"}
     })
-    
-    if existing_answer:
-        # Usar respuesta existente
-        return existing_answer['_id']
-    else:
-        # Crear nueva respuesta
-        new_answer = {
-            'content': answer_content,
-            'category': category,
-            'created_at': datetime.utcnow(),
-            'updated_at': datetime.utcnow()
-        }
-        result = Answer.insert_one(new_answer)
-        return result.inserted_id
+
+    if existing:
+        return existing
+
+    new_answer = Answer(
+        content=answer_content,
+        category=category,
+    )
+    await new_answer.insert()
+    return new_answer
+
+
+async def ensure_category_exists(category_name: str) -> None:
+    if not category_name:
+        return
+
+    existing = await Category.find_one(Category.name == category_name)
+    if not existing:
+        await Category(name=category_name).insert()

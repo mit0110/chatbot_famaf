@@ -34,7 +34,13 @@
     <div class="col-md-6 mb-3">
         <div class="card">
             <div class="card-header">
-                <span class="badge bg-info">{{ question.category }}</span>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-info">{{ question.category }}</span>
+                    <div class="form-check">
+                        <input class="form-check-input question-select" type="checkbox"
+                            name="question_ids" value="{{ question.id }}">
+                    </div>
+                </div>
             </div>
             <div class="card-body">
                 <p><strong>Pregunta:</strong> {{ question.content }}</p>
@@ -61,13 +67,11 @@
                 {% endif %}
             </div>
             <div class="card-footer d-flex justify-content-between">
-                <a href="/admin/edit/{{ question._id }}" class="btn btn-sm btn-warning">Editar</a>
-                <form action="/admin/delete/{{ question._id }}" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-sm btn-danger"
-                        onclick="return confirm('¿Estás seguro de eliminar esta pregunta?')">
-                        Eliminar
-                    </button>
-                </form>
+                <a href="/admin/edit/{{ question.id }}" class="btn btn-sm btn-warning">Editar</a>
+                <button type="button" class="btn btn-sm btn-danger single-delete-btn"
+                    data-id="{{ question.id }}">
+                    Eliminar
+                </button>
             </div>
         </div>
     </div>
@@ -128,6 +132,72 @@
 
 {% block scripts %}
 <script>
+    const selectAll = document.getElementById('selectAll');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const singleDeleteId = document.getElementById('singleDeleteId');
+
+    function getSelectedIds() {
+        return Array.from(document.querySelectorAll('.question-select:checked'))
+            .map(input => input.value);
+    }
+
+    function updateSelectionState() {
+        const selected = getSelectedIds();
+        selectedCount.textContent = `${selected.length} seleccionadas`;
+        bulkDeleteBtn.disabled = selected.length === 0;
+
+        const allCheckboxes = document.querySelectorAll('.question-select');
+        const allChecked = selected.length > 0 && selected.length === allCheckboxes.length;
+        selectAll.checked = allChecked;
+        selectAll.indeterminate = selected.length > 0 && !allChecked;
+    }
+
+    selectAll?.addEventListener('change', function () {
+        document.querySelectorAll('.question-select').forEach(input => {
+            input.checked = selectAll.checked;
+        });
+        updateSelectionState();
+    });
+
+    document.querySelectorAll('.question-select').forEach(input => {
+        input.addEventListener('change', updateSelectionState);
+    });
+
+    document.getElementById('bulkDeleteForm')?.addEventListener('submit', function (event) {
+        const selected = getSelectedIds();
+        if (singleDeleteId.value) {
+            return;
+        }
+
+        if (selected.length === 0) {
+            event.preventDefault();
+            return;
+        }
+
+        const confirmed = confirm(`¿Eliminar ${selected.length} preguntas seleccionadas?`);
+        if (!confirmed) {
+            event.preventDefault();
+        }
+    });
+
+    document.querySelectorAll('.single-delete-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const questionId = this.getAttribute('data-id');
+            if (!questionId) {
+                return;
+            }
+            const confirmed = confirm('¿Estás seguro de eliminar esta pregunta?');
+            if (!confirmed) {
+                return;
+            }
+            singleDeleteId.value = questionId;
+            document.getElementById('bulkDeleteForm').submit();
+        });
+    });
+
+    updateSelectionState();
+
     // Auto-submit when category selection changes
     document.getElementById('categorySelect')?.addEventListener('change', function () {
         document.getElementById('searchForm').submit();

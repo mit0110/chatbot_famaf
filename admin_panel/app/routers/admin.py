@@ -182,6 +182,25 @@ async def delete_question(question_id: PydanticObjectId):
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
 
+    await _delete_question_and_cleanup(question)
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@router.post("/delete-multiple")
+async def delete_multiple_questions(
+    question_ids: List[PydanticObjectId] = Form(...),
+):
+    for question_id in question_ids:
+        question = await Question.get(question_id, fetch_links=True)
+        if not question:
+            continue
+        await _delete_question_and_cleanup(question)
+
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+async def _delete_question_and_cleanup(question: Question) -> None:
     current_answer = question.answer if hasattr(question.answer, "id") else None
     question_category = question.category
 
@@ -203,8 +222,6 @@ async def delete_question(question_id: PydanticObjectId):
             )
             if existing_category:
                 await existing_category.delete()
-
-    return RedirectResponse(url="/admin", status_code=303)
 
 
 @router.get("/upload-csv", response_class=HTMLResponse)

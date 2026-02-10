@@ -28,55 +28,64 @@
     </div>
 </form>
 
-<!-- Lista de preguntas -->
-<div class="row">
-    {% for question in questions %}
-    <div class="col-md-6 mb-3">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
+<form id="bulkDeleteForm" action="/admin/delete-multiple" method="post">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="selectAllQuestions">
+            <label class="form-check-label" for="selectAllQuestions">Seleccionar todo</label>
+        </div>
+        <button id="bulkDeleteButton" type="submit" class="btn btn-sm btn-danger" disabled
+            onclick="return confirm('¿Estás seguro de eliminar las preguntas seleccionadas?')">
+            Eliminar seleccionadas
+        </button>
+    </div>
+
+    <!-- Lista de preguntas -->
+    <div class="row">
+        {% for question in questions %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <input class="form-check-input question-checkbox" type="checkbox" name="question_ids"
+                        value="{{ question.id }}">
                     <span class="badge bg-info">{{ question.category }}</span>
-                    <div class="form-check">
-                        <input class="form-check-input question-select" type="checkbox"
-                            name="question_ids" value="{{ question.id }}">
-                    </div>
                 </div>
-            </div>
-            <div class="card-body">
-                <p><strong>Pregunta:</strong> {{ question.content }}</p>
-                <hr>
-                <p><strong>Respuesta:</strong></p>
-                {% if question.answer %}
-                <div class="answer-text">
-                    <div class="answer-preview" id="preview{{ loop.index }}">
-                        {{ question.answer.content[:100] }}{% if question.answer.content|length > 100 %}...{% endif %}
+                <div class="card-body">
+                    <p><strong>Pregunta:</strong> {{ question.content }}</p>
+                    <hr>
+                    <p><strong>Respuesta:</strong></p>
+                    {% if question.answer %}
+                    <div class="answer-text">
+                        <div class="answer-preview" id="preview{{ loop.index }}">
+                            {{ question.answer.content[:100] }}{% if question.answer.content|length > 100 %}...{% endif %}
+                        </div>
+                        <div class="collapse" id="answerCollapse{{ loop.index }}">
+                            {{ question.answer.content }}
+                        </div>
+                        {% if question.answer.content|length > 100 %}
+                        <a class="text-primary small" style="cursor: pointer; text-decoration: none;"
+                            data-bs-toggle="collapse" data-bs-target="#answerCollapse{{ loop.index }}"
+                            onclick="toggleText(this)">
+                            Ver más
+                        </a>
+                        {% endif %}
                     </div>
-                    <div class="collapse" id="answerCollapse{{ loop.index }}">
-                        {{ question.answer.content }}
-                    </div>
-                    {% if question.answer.content|length > 100 %}
-                    <a class="text-primary small" style="cursor: pointer; text-decoration: none;"
-                        data-bs-toggle="collapse" data-bs-target="#answerCollapse{{ loop.index }}"
-                        onclick="toggleText(this)">
-                        Ver más
-                    </a>
+                    {% else %}
+                    <p class="text-danger">Sin respuesta</p>
                     {% endif %}
                 </div>
-                {% else %}
-                <p class="text-danger">Sin respuesta</p>
-                {% endif %}
-            </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a href="/admin/edit/{{ question.id }}" class="btn btn-sm btn-warning">Editar</a>
-                <button type="button" class="btn btn-sm btn-danger single-delete-btn"
-                    data-id="{{ question.id }}">
-                    Eliminar
-                </button>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="/admin/edit/{{ question.id }}" class="btn btn-sm btn-warning">Editar</a>
+                    <button type="submit" class="btn btn-sm btn-danger" formaction="/admin/delete/{{ question.id }}"
+                        formmethod="post" onclick="return confirm('¿Estás seguro de eliminar esta pregunta?')">
+                        Eliminar
+                    </button>
+                </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
+</form>
 
 {% if not questions %}
 <div class="alert alert-info">No hay preguntas disponibles.</div>
@@ -132,72 +141,6 @@
 
 {% block scripts %}
 <script>
-    const selectAll = document.getElementById('selectAll');
-    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    const selectedCount = document.getElementById('selectedCount');
-    const singleDeleteId = document.getElementById('singleDeleteId');
-
-    function getSelectedIds() {
-        return Array.from(document.querySelectorAll('.question-select:checked'))
-            .map(input => input.value);
-    }
-
-    function updateSelectionState() {
-        const selected = getSelectedIds();
-        selectedCount.textContent = `${selected.length} seleccionadas`;
-        bulkDeleteBtn.disabled = selected.length === 0;
-
-        const allCheckboxes = document.querySelectorAll('.question-select');
-        const allChecked = selected.length > 0 && selected.length === allCheckboxes.length;
-        selectAll.checked = allChecked;
-        selectAll.indeterminate = selected.length > 0 && !allChecked;
-    }
-
-    selectAll?.addEventListener('change', function () {
-        document.querySelectorAll('.question-select').forEach(input => {
-            input.checked = selectAll.checked;
-        });
-        updateSelectionState();
-    });
-
-    document.querySelectorAll('.question-select').forEach(input => {
-        input.addEventListener('change', updateSelectionState);
-    });
-
-    document.getElementById('bulkDeleteForm')?.addEventListener('submit', function (event) {
-        const selected = getSelectedIds();
-        if (singleDeleteId.value) {
-            return;
-        }
-
-        if (selected.length === 0) {
-            event.preventDefault();
-            return;
-        }
-
-        const confirmed = confirm(`¿Eliminar ${selected.length} preguntas seleccionadas?`);
-        if (!confirmed) {
-            event.preventDefault();
-        }
-    });
-
-    document.querySelectorAll('.single-delete-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const questionId = this.getAttribute('data-id');
-            if (!questionId) {
-                return;
-            }
-            const confirmed = confirm('¿Estás seguro de eliminar esta pregunta?');
-            if (!confirmed) {
-                return;
-            }
-            singleDeleteId.value = questionId;
-            document.getElementById('bulkDeleteForm').submit();
-        });
-    });
-
-    updateSelectionState();
-
     // Auto-submit when category selection changes
     document.getElementById('categorySelect')?.addEventListener('change', function () {
         document.getElementById('searchForm').submit();
@@ -211,6 +154,22 @@
         }, 10);
     }
 
+    function updateBulkDeleteState() {
+        const checkboxes = document.querySelectorAll('.question-checkbox');
+        const checked = document.querySelectorAll('.question-checkbox:checked');
+        const selectAll = document.getElementById('selectAllQuestions');
+        const bulkButton = document.getElementById('bulkDeleteButton');
+
+        if (selectAll) {
+            selectAll.checked = checkboxes.length > 0 && checked.length === checkboxes.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
+        }
+
+        if (bulkButton) {
+            bulkButton.disabled = checked.length === 0;
+        }
+    }
+
     // Ensure correct initial state
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.collapse').forEach(collapse => {
@@ -221,6 +180,22 @@
                 this.previousElementSibling.style.display = 'block';
             });
         });
+
+        const selectAll = document.getElementById('selectAllQuestions');
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.question-checkbox').forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+                updateBulkDeleteState();
+            });
+        }
+
+        document.querySelectorAll('.question-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkDeleteState);
+        });
+
+        updateBulkDeleteState();
     });
 </script>
 {% endblock %}

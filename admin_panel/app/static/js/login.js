@@ -38,7 +38,7 @@ form.addEventListener("submit", async (e) => {
         "success",
       );
       setTimeout(() => {
-        window.location.href = "/"; // TODO: cambiar a '/admin-panel' cuando esté disponible
+        window.location.href = "/admin/";
       }, 1500);
     } else {
       let errorMessage;

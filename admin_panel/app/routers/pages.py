@@ -17,25 +17,10 @@ async def login_page(request: Request, user: Optional[User] = Depends(current_us
     """
     Provee la página de inicio de sesión.
 
-    Si el usuario ya está autenticado, lo redirige a la página principal.
+    Si el usuario ya está autenticado, lo redirige al panel de administración.
     """
     # Si ya está autenticado, redirigir a la página principal
     if user:
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url="/admin/", status_code=303)
 
     return templates.TemplateResponse(name="login.html", request=request)
-
-
-@router.get("/", response_class=HTMLResponse)
-async def home_page(request: Request, user: User = Depends(current_active_user)):
-    """
-    Página de inicio protegida.
-
-    Solo se puede acceder si el usuario está autenticado y activo.
-    Si no está autenticado, redirige al login automáticamente.
-    Muestra información del usuario actual.
-    """
-    return templates.TemplateResponse(
-        name="home.html",
-        context={"request": request, "user": user}
-    )

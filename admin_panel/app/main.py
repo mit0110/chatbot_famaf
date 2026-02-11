@@ -1,7 +1,7 @@
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from contextlib import asynccontextmanager
 
 from fastapi.staticfiles import StaticFiles
@@ -53,16 +53,32 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     Redirige a la página de login si el usuario intenta acceder a una ruta
     protegida sin estar autenticado (HTTP 401 - Unauthorized o 403 - Forbidden).
 
+    Para errores de autenticación (400 con LOGIN_BAD_CREDENTIALS), devuelve
+    un mensaje amigable.
+
     Args:
         request (Request): La solicitud HTTP actual.
         exc (HTTPException): La excepción levantada.
 
     Returns:
-        RedirectResponse: Redirige a /login si es 401 o 403, sino lanza la excepción.
+        RedirectResponse: Redirige a /login si es 401 o 403.
+        JSONResponse: Devuelve un mensaje de error apropiado para otros casos.
     """
     if exc.status_code in [401, 403]:
         return RedirectResponse(url="/login", status_code=303)
-    raise exc
+
+    # Manejar errores de credenciales incorrectas
+    if exc.status_code == 400 and exc.detail == "LOGIN_BAD_CREDENTIALS":
+        return JSONResponse(
+            status_code=400,
+            content={"detail": "Email o contraseña incorrectos."}
+        )
+
+    # Para otros errores HTTP, devolver la respuesta estándar
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
 
 
 @app.get("/api/healthchecker")

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
+from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from app.auth import current_active_user
 from app.models.question import Question
 from app.models.answer import Answer
 from app.models.category import Category
+from app.models.users import User
 from app.utils import (
     DEFAULT_CATEGORIES,
     ensure_category_exists,
@@ -21,7 +23,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1):
+async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1, user: User = Depends(current_active_user)):
     limit = 10
     skip = (page - 1) * limit
 

@@ -65,16 +65,17 @@ async def admin_home(request: Request, q: str = "", category: str = "", page: in
             "categories": category_names,
             "selected_category": category,
             "pagination": pagination,
+            "user": user,  # Agregar usuario al contexto
         },
     )
 
 
 @router.get("/create", response_class=HTMLResponse)
-async def create_question_form(request: Request):
+async def create_question_form(request: Request, user: User = Depends(current_active_user)):
     category_names = await get_category_names()
     return templates.TemplateResponse(
         "question_form.html",
-        {"request": request, "categories": category_names}
+        {"request": request, "categories": category_names, "user": user}
     )
 
 
@@ -92,6 +93,7 @@ async def create_question(
     if existing:
         # Fetchear el answer para mostrarlo en el template
         await existing.fetch_link(Question.answer)
+        user = await current_active_user(request)
         return templates.TemplateResponse(
             "question_duplicate.html",
             {
@@ -99,6 +101,7 @@ async def create_question(
                 "error": True,
                 "message": "Una pregunta con este contenido ya existe",
                 "question": existing,
+                "user": user,
             },
         )
 
@@ -109,7 +112,7 @@ async def create_question(
 
 
 @router.get("/edit/{question_id}", response_class=HTMLResponse)
-async def edit_question_form(request: Request, question_id: PydanticObjectId):
+async def edit_question_form(request: Request, question_id: PydanticObjectId, user: User = Depends(current_active_user)):
     question = await Question.get(question_id, fetch_links=True)
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -131,6 +134,7 @@ async def edit_question_form(request: Request, question_id: PydanticObjectId):
             "question": question,
             "shared_answer": shared_answer,
             "categories": category_names,
+            "user": user,
         },
     )
 
@@ -226,8 +230,8 @@ async def _delete_question_and_cleanup(question: Question) -> None:
 
 
 @router.get("/upload-csv", response_class=HTMLResponse)
-async def csv_upload_form(request: Request):
-    return templates.TemplateResponse("csv_upload.html", {"request": request})
+async def csv_upload_form(request: Request, user: User = Depends(current_active_user)):
+    return templates.TemplateResponse("csv_upload.html", {"request": request, "user": user})
 
 
 @router.post("/upload-csv")

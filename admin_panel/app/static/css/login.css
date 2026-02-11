@@ -24,7 +24,6 @@ body {
 }
 
 .card-header {
-    background: var(--unc-color); /*color extraido desde manual de identidad*/
     border: none;
     border-radius: 10px 10px 0 0;
     padding: 30px 20px;

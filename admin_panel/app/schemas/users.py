@@ -80,7 +80,7 @@ class UserCreate(schemas.BaseUserCreate):
         Raises:
             ValueError: Si la contraseña tiene menos de 8 caracteres.
         """
-        if len(v) <= 8:
+        if len(v) < 8:
             raise ValueError('La contraseña debe tener al menos 8 caracteres')
         return v
 

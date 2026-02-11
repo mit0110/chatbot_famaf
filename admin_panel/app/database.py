@@ -2,57 +2,34 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 from app.config import settings
 
-# Asynchronous MongoDB client for Beanie (FastAPI Users)
-motor_client = AsyncIOMotorClient(settings.DATABASE_URL)
-motor_db = motor_client[settings.MONGO_INITDB_DATABASE]
-
+from app.utils import DEFAULT_CATEGORIES
 
 async def init_db():
-    """Inicializar Beanie con el modelo User"""
+    # Motor es el driver async de MongoDB, Beanie lo usa internamente
+    client = AsyncIOMotorClient(settings.DATABASE_URL)
+    db = client[settings.MONGO_INITDB_DATABASE]
+
+    # Importamos los modelos acá para evitar imports circulares
+    from app.models.question import Question
+    from app.models.answer import Answer
+    from app.models.category import Category
     from app.models.users import User
 
+    # Beanie registra los modelos y crea los índices automáticamente
     await init_beanie(
-        database=motor_db,
-        document_models=[User],
+        database=db,
+        document_models=[Question, Answer, Category, User]
     )
     print('Beanie initialized for User authentication...')
 
+    # Seed de categorías por defecto
+    await seed_default_categories()
 
-# ============ DEPRECATED - Using Beanie for all databases ============
-# from pymongo import mongo_client
-# import pymongo
-# from datetime import datetime
-#
-# # Synchronous MongoDB client (for backward compatibility)
-# client = mongo_client.MongoClient(settings.DATABASE_URL)
-# print('Connected to MongoDB...')
-#
-# db = client[settings.MONGO_INITDB_DATABASE]
-# Question = db.questions
-# Answer = db.answers
-# Category = db.categories
-#
-# # Índices únicos
-# Question.create_index([("content", pymongo.ASCENDING)], unique=True)
-# Answer.create_index([("content", pymongo.ASCENDING)], unique=True)
-# Category.create_index([("name", pymongo.ASCENDING)], unique=True)
-#
-# # Índices para mejorar performance en Answer
-# Answer.create_index([("created_at", pymongo.DESCENDING)])  # Ordenar por fecha
-#
-# # Initialize default categories if collection is empty
-# DEFAULT_CATEGORIES = [
-#     "Información General",
-#     "Cursado",
-#     "Exámenes",
-#     "Ingreso",
-#     "Egreso",
-#     "Sin Información"
-# ]
-#
-# if Category.count_documents({}) == 0:
-#     for cat_name in DEFAULT_CATEGORIES:
-#         Category.insert_one({
-#             "name": cat_name,
-#             "created_at": datetime.utcnow()
-#         })
+async def seed_default_categories():
+    from app.models.category import Category
+    from datetime import datetime
+
+    count = await Category.count()
+    if count == 0:
+        for cat_name in DEFAULT_CATEGORIES:
+            await Category(name=cat_name).insert()

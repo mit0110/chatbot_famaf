@@ -1,11 +1,14 @@
+from typing import Optional
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from contextlib import asynccontextmanager
-
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
 from app.config import settings
 from app.models.users import User
 from app.routers import auth, pages, question, answer, admin, category
@@ -21,7 +24,7 @@ async def lifespan(app: FastAPI):
     # Agregar código que desee ejecutarse después de que se finalize el sv
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, openapi_url=None, docs_url=None, redoc_url=None)
 
 origins = [settings.CLIENT_ORIGIN]
 
@@ -84,3 +87,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.get("/api/healthchecker")
 def root():
     return {"message": "Welcome to FastAPI with MongoDB"}
+
+
+@app.get("/docs", include_in_schema=False)
+async def get_documentation(user: Optional[User] = Depends(current_active_user)):
+    return get_swagger_ui_html(openapi_url="/openapi.json", title="Admin Panel - Chatbot FAMAF")
+
+@app.get("/openapi.json", include_in_schema=False)
+async def openapi(user: Optional[User] = Depends(current_active_user)):
+    return get_openapi(title=app.title, version=app.version, routes=app.routes)

@@ -24,3 +24,10 @@ async def login_page(request: Request, user: Optional[User] = Depends(current_us
         return RedirectResponse(url="/admin/", status_code=303)
 
     return templates.TemplateResponse(name="login.html", request=request)
+
+@router.get("/", response_class=HTMLResponse)
+async def root(_: Request, user: Optional[User] = Depends(current_user_optional)):
+    if user:
+        return RedirectResponse(url="/admin/", status_code=303)
+
+    return RedirectResponse(url="/login", status_code=303)

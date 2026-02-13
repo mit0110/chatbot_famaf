@@ -88,13 +88,10 @@ Solo será necesario volver a usar `--build` si:
 Una vez levantado el servicio:
 
 -   App:\
-    http://localhost:8000
+    http://localhost:8000/admin
 
--   Documentación Swagger:\
+-   Documentación Endpoints:\
     http://localhost:8000/docs
-
--   Documentación ReDoc:\
-    http://localhost:8000/redoc
 
 ------------------------------------------------------------------------
 

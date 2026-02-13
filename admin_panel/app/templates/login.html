@@ -71,7 +71,7 @@
                 </button>
               </div>
               <div class="forgot-password">
-                <a href="/reset-password">¿Olvidaste tu contraseña?</a>
+                <a href="#" id="forgotPasswordLink">¿Olvidaste tu contraseña?</a>
               </div>
             </div>
 
@@ -86,6 +86,39 @@
               ></span>
             </button>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="modal fade"
+      id="forgotPasswordModal"
+      tabindex="-1"
+      aria-labelledby="forgotPasswordModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="forgotPasswordModalLabel">
+              Recuperar contrasena
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Comunicate con <span id="supportEmailText">admin1@famaf.unc.edu.ar</span>
+            para gestionar el cambio de contrasena.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-primary" id="copyEmailButton">
+              Copiar email
+            </button>
+          </div>
         </div>
       </div>
     </div>

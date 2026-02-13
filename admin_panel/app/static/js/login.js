@@ -74,3 +74,48 @@ togglePasswordBtn.addEventListener("click", () => {
   passwordInput.type = type;
   toggleIcon.className = type === "password" ? "fas fa-eye" : "fas fa-eye-slash";
 });
+
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+if (forgotPasswordLink) {
+  const forgotPasswordModalEl = document.getElementById("forgotPasswordModal");
+  const forgotPasswordModal = forgotPasswordModalEl
+    ? new bootstrap.Modal(forgotPasswordModalEl)
+    : null;
+  const copyEmailButton = document.getElementById("copyEmailButton");
+  const supportEmailText = document.getElementById("supportEmailText");
+  const supportEmail = supportEmailText?.textContent?.trim() || "";
+
+  if (copyEmailButton) {
+    const originalCopyText = copyEmailButton.textContent;
+    copyEmailButton.addEventListener("click", async () => {
+      let copied = false;
+      if (navigator.clipboard?.writeText && supportEmail) {
+        try {
+          await navigator.clipboard.writeText(supportEmail);
+          copied = true;
+        } catch (error) {
+          copied = false;
+        }
+      }
+
+      if (copied) {
+        copyEmailButton.textContent = "Copiado";
+        setTimeout(() => {
+          copyEmailButton.textContent = originalCopyText;
+        }, 2000);
+      } else {
+        showMessage(
+          "No se pudo copiar el email. Copialo manualmente.",
+          "warning",
+        );
+      }
+    });
+  }
+
+  forgotPasswordLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (forgotPasswordModal) {
+      forgotPasswordModal.show();
+    }
+  });
+}

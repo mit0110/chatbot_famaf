@@ -1,4 +1,4 @@
-# Panel Admin (FastAPI + MongoDB)
+# Admin Panel (FastAPI + MongoDB)
 
 Este servicio levanta una app web (FastAPI) y una base de datos (MongoDB) con Docker.
 

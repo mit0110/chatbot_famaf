@@ -3,6 +3,7 @@ from app.models.answer import Answer
 from typing import List
 from datetime import datetime, timezone
 import re
+from pymongo.errors import DuplicateKeyError
 
 DEFAULT_CATEGORIES = [
     "Información General",
@@ -29,8 +30,9 @@ async def get_or_create_answer(answer_content: str, category: str) -> Answer:
     Returns:
         El documento Answer (existente o recién creado)
     """
+    escaped_content = re.escape(answer_content)
     existing = await Answer.find_one({
-        "content": {"$regex": f"^{answer_content}$", "$options": "i"}
+        "content": {"$regex": f"^{escaped_content}$", "$options": "i"}
     })
 
     if existing:
@@ -40,8 +42,17 @@ async def get_or_create_answer(answer_content: str, category: str) -> Answer:
         content=answer_content,
         category=category,
     )
-    await new_answer.insert()
-    return new_answer
+    try:
+        await new_answer.insert()
+        return new_answer
+    except DuplicateKeyError:
+        # Handle race condition or regex mismatch against unique index.
+        existing = await Answer.find_one({
+            "content": {"$regex": f"^{escaped_content}$", "$options": "i"}
+        })
+        if existing:
+            return existing
+        raise
 
 
 async def ensure_category_exists(category_name: str) -> None:

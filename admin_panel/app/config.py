@@ -1,14 +1,15 @@
-from pydantic import BaseSettings, EmailStr
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     DATABASE_URL: str
     MONGO_INITDB_DATABASE: str
-
     CLIENT_ORIGIN: str
 
-    class Config:
-        env_file = './.env'
+    model_config = {
+        "env_file": "./.env",
+        "extra": "ignore"  # ignora variables del .env que no están declaradas
+    }
 
 
 settings = Settings()

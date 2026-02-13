@@ -1,50 +1,55 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException, status, APIRouter, Response
-from pymongo.collection import ReturnDocument
-from app import schemas
-from app.database import Question, Answer
-from app.serializers.questionSerializers import questionEntity, questionListEntity
-from bson.objectid import ObjectId
-from pymongo.errors import DuplicateKeyError
+from app.schemas.question import CreateQuestionSchema, UpdateQuestionSchema
+from app.models.question import Question
+from app.models.answer import Answer
+from beanie import PydanticObjectId
+from app.utils import ensure_category_exists
 
 router = APIRouter()
 
 
+def _serialize_question(q: Question) -> dict:
+    """Helper para serializar una pregunta con su answer resuelto."""
+    answer_data = None
+    if q.answer and hasattr(q.answer, 'content'):  # el link fue fetcheado
+        answer_data = {
+            'id': str(q.answer.id),
+            'content': q.answer.content,
+            'category': q.answer.category,
+            'created_at': q.answer.created_at,
+            'updated_at': q.answer.updated_at
+        }
+    return {
+        'id': str(q.id),
+        'content': q.content,
+        'category': q.category,
+        'answer': answer_data,
+        'created_at': q.created_at,
+        'updated_at': q.updated_at
+    }
+
+
 @router.get('/')
-def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = ''):
+async def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = ''):
     skip = (page - 1) * limit
     
-    # Construir filtro de búsqueda
-    match_query = {}
+    filters = []
     if search:
-        match_query['content'] = {'$regex': search, '$options': 'i'}
+        filters.append({"content": {"$regex": search, "$options": "i"}})
     if category:
-        match_query['category'] = category
+        filters.append(Question.category == category)
     
-    # Pipeline para obtener preguntas
-    pipeline = [
-        {'$match': match_query},
-        {'$lookup': {
-            'from': 'answers', 
-            'localField': 'answer_id',
-            'foreignField': '_id', 
-            'as': 'answer'
-        }},
-        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-        {'$skip': skip},
-        {'$limit': limit}
-    ]
+    query = Question.find(*filters, fetch_links=True)
+    total_count = await Question.find(*filters).count()
     
-    # Contar total de documentos (para paginación)
-    total_count = Question.count_documents(match_query)
-    total_pages = (total_count + limit - 1) // limit  # Redondeo hacia arriba
-    
-    questions = questionListEntity(Question.aggregate(pipeline))
+    questions = await query.skip(skip).limit(limit).sort("-created_at").to_list()
+    total_pages = (total_count + limit - 1) // limit
     
     return {
         'status': 'success',
         'results': len(questions),
-        'questions': questions,
+        'questions': [_serialize_question(q) for q in questions],
         'pagination': {
             'current_page': page,
             'total_pages': total_pages,
@@ -53,84 +58,90 @@ def get_questions(limit: int = 10, page: int = 1, search: str = '', category: st
         }
     }
 
+
 @router.post('/', status_code=status.HTTP_201_CREATED)
-def create_question(question: schemas.CreateQuestionSchema):
-    question.created_at = datetime.utcnow()
-    question.updated_at = question.created_at
+async def create_question(payload: CreateQuestionSchema):
+    existing = await Question.find_one(Question.content == payload.content)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Question with content: '{payload.content}' already exists"
+        )
     
-    # Convertir answer_id a ObjectId si existe
-    if question.answer_id:
-        question.answer_id = ObjectId(question.answer_id)
+    answer = None
+    if payload.answer_id:
+        answer = await Answer.get(PydanticObjectId(payload.answer_id))
+        if not answer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No answer with id: '{payload.answer_id}' found"
+            )
     
-    try:
-        result = Question.insert_one(question.dict())
-        pipeline = [
-            {'$match': {'_id': result.inserted_id}},
-            {'$lookup': {'from': 'answers', 'localField': 'answer_id',
-                         'foreignField': '_id', 'as': 'answer'}},
-            {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-        ]
-        new_question = questionListEntity(Question.aggregate(pipeline))[0]
-        return new_question
-    except DuplicateKeyError:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f"Question with content: '{question.content}' already exists")
-
-
-@router.put('/{id}')
-def update_question(id: str, payload: schemas.UpdateQuestionSchema):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
-    
-    # Convertir answer_id a ObjectId si existe en el payload
-    update_data = payload.dict(exclude_none=True)
-    if 'answer_id' in update_data and update_data['answer_id']:
-        update_data['answer_id'] = ObjectId(update_data['answer_id'])
-    
-    update_data['updated_at'] = datetime.utcnow()
-    
-    updated_question = Question.find_one_and_update(
-        {'_id': ObjectId(id)}, 
-        {'$set': update_data}, 
-        return_document=ReturnDocument.AFTER
+    new_question = Question(
+        content=payload.content,
+        category=await ensure_category_exists(payload.category),
+        answer=answer,
     )
+    await new_question.insert()
+    await new_question.fetch_link(Question.answer)
     
-    if not updated_question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'No question with this id: {id} found')
-    return questionEntity(updated_question)
+    return _serialize_question(new_question)
 
 
 @router.get('/{id}')
-def get_question(id: str):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
-    pipeline = [
-        {'$match': {'_id': ObjectId(id)}},
-        {'$lookup': {'from': 'answers', 'localField': 'answer_id',
-                     'foreignField': '_id', 'as': 'answer'}},
-        {'$unwind': {'path': '$answer', 'preserveNullAndEmptyArrays': True}},
-    ]
-    db_cursor = Question.aggregate(pipeline)
-    results = list(db_cursor)
+async def get_question(id: PydanticObjectId):
+    question = await Question.get(id, fetch_links=True)
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No question with this id: {id} found"
+        )
+    return _serialize_question(question)
 
-    if len(results) == 0:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"No question with this id: {id} found")
 
-    question = questionListEntity(results)[0]
-    return question
+@router.put('/{id}')
+async def update_question(id: PydanticObjectId, payload: UpdateQuestionSchema):
+    question = await Question.get(id)
+    if not question:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No question with this id: {id} found'
+        )
+    
+    update_data = payload.model_dump(exclude_none=True)
+
+    if 'category' in update_data:
+        update_data['category'] = await ensure_category_exists(
+            update_data['category']
+        )
+    
+    # Resolver answer_id a un Link si viene en el payload
+    if 'answer_id' in update_data:
+        answer = await Answer.get(PydanticObjectId(update_data.pop('answer_id')))
+        if not answer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Answer not found"
+            )
+        question.answer = answer
+
+    update_data['updated_at'] = datetime.now(timezone.utc)
+    
+    # set() para los campos simples, save() para persistir el link
+    await question.set({k: v for k, v in update_data.items()})
+    await question.save()
+    await question.fetch_link(Question.answer)
+    
+    return _serialize_question(question)
 
 
 @router.delete('/{id}')
-def delete_question(id: str):
-    if not ObjectId.is_valid(id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Invalid id: {id}")
-    question = Question.find_one_and_delete({'_id': ObjectId(id)})
+async def delete_question(id: PydanticObjectId):
+    question = await Question.get(id)
     if not question:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f'No question with this id: {id} found')
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No question with this id: {id} found'
+        )
+    await question.delete()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

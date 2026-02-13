@@ -1,16 +1,24 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import settings
+from app.database import init_db
 from app.routers import question, answer, admin, category
 
-app = FastAPI()
 
-origins = [
-    settings.CLIENT_ORIGIN,
-]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Todo lo que está antes del yield se ejecuta al arrancar
+    await init_db()
+    yield
+    # Todo lo que está después del yield se ejecuta al cerrar (cleanup)
+
+
+app = FastAPI(lifespan=lifespan)
+
+origins = [settings.CLIENT_ORIGIN]
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,17 +28,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Montar archivos estáticos (CSS, JS)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
-# Configurar templates
 templates = Jinja2Templates(directory="app/templates")
-
 
 app.include_router(question.router, tags=['Questions'], prefix='/api/questions')
 app.include_router(answer.router, tags=['Answers'], prefix='/api/answers')
 app.include_router(category.router, tags=['Categories'], prefix='/api/categories')
-app.include_router(admin.router, tags=['Admin Panel'], prefix='/admin')  # Nuevo
+app.include_router(admin.router, tags=['Admin Panel'], prefix='/admin')
+
 
 @app.get("/api/healthchecker")
 def root():

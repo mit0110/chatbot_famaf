@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str
 
     CLIENT_ORIGIN: str
+
+    # Superusuario inicial
+    SUPERUSER_EMAIL: str
+    SUPERUSER_PASSWORD: str
+    SUPERUSER_FULL_NAME: str
+
     class Config:
         env_file = './.env'
         extra = "ignore"  # ignorar campos extra del .env

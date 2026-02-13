@@ -24,6 +24,24 @@ Puedes generar una clave secreta segura con:
 openssl rand -hex 32
 ```
 
+## Superusuario Inicial
+
+Al iniciar la aplicación por primera vez, **automáticamente se crea un superusuario** si no existe ningún usuario en la base de datos.
+
+### Personalizar Credenciales
+
+Puedes personalizar las credenciales del superusuario inicial definiendo las siguientes variables de entorno en tu archivo `.env`:
+
+- `SUPERUSER_EMAIL`: Email del superusuario
+- `SUPERUSER_PASSWORD`: Contraseña del superusuario
+- `SUPERUSER_FULL_NAME`: Nombre completo del superusuario
+
+### ⚠️ Importante
+
+**Cambia la contraseña del superusuario inmediatamente después del primer inicio de sesión** usando el endpoint `PATCH /auth/users/me`.
+
+El superusuario solo se crea si la base de datos está vacía (no existe ningún usuario). Si ya existen usuarios, no se creará ningún superusuario adicional.
+
 ## Endpoints de la API
 
 ### Endpoints de Autenticación

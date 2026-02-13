@@ -1,109 +1,170 @@
 # Admin Panel (FastAPI + MongoDB)
 
-Este servicio levanta una app web (FastAPI) y una base de datos (MongoDB) con Docker.
+Este servicio levanta una aplicación web construida con FastAPI y una
+base de datos MongoDB utilizando Docker Compose.
 
-## Pasos
+------------------------------------------------------------------------
 
-1) Instala Docker y Docker Compose.
-2) Abre una terminal en esta carpeta.
-3) Ejecuta:
+## Configuración inicial (PRIMERO)
 
-```bash
-docker compose up -d
-```
+Antes de levantar los contenedores, es necesario configurar las
+variables de entorno.
 
-Eso inicia todo.
+### 1) Crear el archivo `.env`
 
-Opcional (solo si cambiaste dependencias o el Dockerfile):
+Copiá el archivo de ejemplo:
 
-```bash
-docker compose up --build
-```
-
-## Dónde abrir la app
-
-- App: http://localhost:8000
-- Documentación API (Swagger): http://localhost:8000/docs
-- Documentación API (ReDoc): http://localhost:8000/redoc
-
-## Puertos usados
-
-- App (Uvicorn/FastAPI): `8000` en tu computadora -> `8000` dentro del contenedor
-- MongoDB: `6000` en tu computadora -> `27017` dentro del contenedor
-
-## Configurar .env
-
-1) Copia el archivo de ejemplo:
-
-```bash
+``` bash
 cp .env_example .env
 ```
 
-2) Abre `.env`. En este archivo podés modificar las variables.
+Luego abrí `.env` y ajustá las variables según tu entorno.
 
-Claves principales y para qué se usan:
+### Variables principales
 
-- `MONGO_INITDB_ROOT_USERNAME`: usuario administrador que crea MongoDB al iniciar.
-- `MONGO_INITDB_ROOT_PASSWORD`: contraseña del usuario administrador.
-- `MONGO_INITDB_DATABASE`: nombre de la base de datos inicial que crea MongoDB.
-- `DATABASE_URL`: cadena de conexión que usa la app para conectarse a MongoDB.
-- `CLIENT_ORIGIN`: origen permitido para CORS (la URL del frontend si aplica).
+-   `MONGO_INITDB_ROOT_USERNAME`\
+    Usuario administrador que se crea al iniciar MongoDB.
 
-Ejemplo de `DATABASE_URL`:
+-   `MONGO_INITDB_ROOT_PASSWORD`\
+    Contraseña del usuario administrador.
 
-```bash
+-   `MONGO_INITDB_DATABASE`\
+    Base de datos inicial que crea MongoDB.
+
+-   `DATABASE_URL`\
+    Cadena de conexión que usa la app para conectarse a MongoDB.
+
+-   `CLIENT_ORIGIN`\
+    Origen permitido para CORS (URL del frontend si aplica).
+
+### Ejemplo de `DATABASE_URL`
+
+``` bash
 mongodb://<usuario>:<password>@mongo:27017/<database>?authSource=admin
 ```
-Para una prueba inicial se pueden utilizar las variables tal como están, pero te recomendamos elegir una contraseña más fuerte para el administrador de tu base de datos.
 
-## Detener el servicio (normal)
+Para una prueba inicial podés usar los valores por defecto, pero se
+recomienda elegir una contraseña más segura.
 
-Para detener sin borrar datos:
+------------------------------------------------------------------------
 
-```bash
+## Levantar el servicio con Docker
+
+### 2) Instalar Docker y Docker Compose
+
+Asegurate de tener Docker y Docker Compose instalados.
+
+### 3) Primera vez (obligatorio)
+
+La primera vez que levantes el proyecto es necesario construir la imagen
+para instalar todas las dependencias:
+
+``` bash
+docker compose up --build
+```
+
+Esto construye la imagen, instala dependencias, crea los contenedores y
+levanta la aplicación.
+
+### 4) Siguientes ejecuciones
+
+Una vez construida la imagen, podés iniciar el servicio en segundo plano
+con:
+
+``` bash
+docker compose up -d
+```
+
+Solo será necesario volver a usar `--build` si:
+
+-   Modificás el `Dockerfile`
+-   Agregás nuevas dependencias
+-   Cambiás algo que afecte la construcción de la imagen
+
+------------------------------------------------------------------------
+
+## Acceso a la aplicación
+
+Una vez levantado el servicio:
+
+-   App:\
+    http://localhost:8000
+
+-   Documentación Swagger:\
+    http://localhost:8000/docs
+
+-   Documentación ReDoc:\
+    http://localhost:8000/redoc
+
+------------------------------------------------------------------------
+
+## Puertos utilizados
+
+| Servicio | Puerto local | Puerto contenedor |
+|----------|--------------|-------------------|
+| FastAPI  | 8000         | 8000              |
+| MongoDB  | 6000         | 27017             |
+
+------------------------------------------------------------------------
+
+## Detener el servicio
+
+### Detener sin borrar datos
+
+``` bash
 docker compose stop
 ```
 
-Para detener y eliminar los contenedores, pero conservar la base de datos:
+### Detener y eliminar contenedores (conservar datos)
 
-```bash
+``` bash
 docker compose down
 ```
 
-## Borrar la base de datos (MUY IMPORTANTE)
+------------------------------------------------------------------------
 
-Si querés borrar la base de datos, tenés que eliminar el volumen. Esto borra TODOS los datos y no se pueden recuperar.
+## Borrar la base de datos (IMPORTANTE)
 
-```bash
+Si querés eliminar completamente la base de datos (incluye todos los
+datos):
+
+``` bash
 docker compose down -v
 ```
 
+Esto elimina el volumen de MongoDB y los datos no se pueden recuperar.
+
+------------------------------------------------------------------------
+
 ## Acceder a MongoDB desde Docker
 
-Podés acceder a la consola de MongoDB:
+Podés abrir la consola de MongoDB:
 
-```bash
+``` bash
 docker compose exec mongo mongosh -u <usuario> -p <password> --authenticationDatabase admin
 ```
 
-Usa el usuario y password del `.env`.
+Usá el usuario y contraseña definidos en el `.env`.
 
-## Opcional: exponer con ngrok (para n8n)
+------------------------------------------------------------------------
 
-Si tenés cuenta de ngrok, podés exponer la app con una URL publica para usarla desde n8n:
+## Opcional: Exponer con ngrok (por ejemplo para n8n)
 
-1) Iniciá sesion en ngrok y configurá tu token (una sola vez):
+### 1) Configurar token (una sola vez)
 
-```bash
+``` bash
 ngrok config add-authtoken <tu_token>
 ```
 
-2) Exponé el puerto de la app:
+### 2) Exponer la app
 
-```bash
+``` bash
 ngrok http 8000
 ```
 
-ngrok va a mostrar una URL publica (por ejemplo, `https://xxxx.ngrok-free.app`).
+ngrok va a mostrar una URL pública similar a:
 
+https://xxxx.ngrok-free.app
+
+Esa URL puede usarse desde servicios externos como n8n.
 

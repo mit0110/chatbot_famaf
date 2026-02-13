@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File, D
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.auth import current_active_user
+from app.dependencies import get_user_or_redirect
 from app.models.question import Question
 from app.models.answer import Answer
 from app.models.category import Category
@@ -23,7 +24,7 @@ templates = Jinja2Templates(directory="app/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1, user: User = Depends(current_active_user)):
+async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1, user: User = Depends(get_user_or_redirect)):
     limit = 10
     skip = (page - 1) * limit
 
@@ -71,7 +72,7 @@ async def admin_home(request: Request, q: str = "", category: str = "", page: in
 
 
 @router.get("/create", response_class=HTMLResponse)
-async def create_question_form(request: Request, user: User = Depends(current_active_user)):
+async def create_question_form(request: Request, user: User = Depends(get_user_or_redirect)):
     category_names = await get_category_names()
     return templates.TemplateResponse(
         "question_form.html",
@@ -85,6 +86,7 @@ async def create_question(
     content: str = Form(...),
     category: str = Form(...),
     answer_content: str = Form(...),
+    user: User = Depends(current_active_user)
 ):
     category = await ensure_category_exists(category)
     answer = await get_or_create_answer(answer_content, category)
@@ -93,7 +95,6 @@ async def create_question(
     if existing:
         # Fetchear el answer para mostrarlo en el template
         await existing.fetch_link(Question.answer)
-        user = await current_active_user(request)
         return templates.TemplateResponse(
             "question_duplicate.html",
             {
@@ -112,7 +113,7 @@ async def create_question(
 
 
 @router.get("/edit/{question_id}", response_class=HTMLResponse)
-async def edit_question_form(request: Request, question_id: PydanticObjectId, user: User = Depends(current_active_user)):
+async def edit_question_form(request: Request, question_id: PydanticObjectId, user: User = Depends(get_user_or_redirect)):
     question = await Question.get(question_id, fetch_links=True)
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -147,6 +148,7 @@ async def update_question(
     category: str = Form(...),
     answer_content: str = Form(...),
     update_all_answers: Optional[str] = Form(None),
+    user: User = Depends(current_active_user)
 ):
     question = await Question.get(question_id, fetch_links=True)
     if not question:
@@ -182,7 +184,10 @@ async def update_question(
 
 
 @router.post("/delete/{question_id}")
-async def delete_question(question_id: PydanticObjectId):
+async def delete_question(
+    question_id: PydanticObjectId,
+    user: User = Depends(current_active_user)
+):
     question = await Question.get(question_id, fetch_links=True)
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
@@ -195,6 +200,7 @@ async def delete_question(question_id: PydanticObjectId):
 @router.post("/delete-multiple")
 async def delete_multiple_questions(
     question_ids: List[PydanticObjectId] = Form(...),
+    user: User = Depends(current_active_user)
 ):
     for question_id in question_ids:
         question = await Question.get(question_id, fetch_links=True)
@@ -230,12 +236,18 @@ async def _delete_question_and_cleanup(question: Question) -> None:
 
 
 @router.get("/upload-csv", response_class=HTMLResponse)
-async def csv_upload_form(request: Request, user: User = Depends(current_active_user)):
+async def csv_upload_form(
+    request: Request,
+    user: User = Depends(get_user_or_redirect)
+):
     return templates.TemplateResponse("csv_upload.html", {"request": request, "user": user})
 
 
 @router.post("/upload-csv")
-async def upload_csv(file: UploadFile = File(...)):
+async def upload_csv(
+    file: UploadFile = File(...),
+    user = Depends(current_active_user)
+):
     if not file.filename.endswith(".csv"):
         return {"status": "error", "message": "El archivo debe ser un CSV"}
 

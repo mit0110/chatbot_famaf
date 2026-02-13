@@ -1,12 +1,14 @@
 from datetime import datetime, timezone
-from fastapi import HTTPException, status, APIRouter
+from fastapi import HTTPException, status, APIRouter, Depends
 from pydantic import BaseModel
 from beanie.exceptions import RevisionIdWasChanged
 from app.models.category import Category
 from app.utils import normalize_category_name
+from app.auth import current_active_user
 
-router = APIRouter()
-
+router = APIRouter(
+    dependencies=[Depends(current_active_user)]
+)
 
 class CategorySchema(BaseModel):
     name: str

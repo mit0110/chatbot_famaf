@@ -10,8 +10,9 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
 from app.config import settings
+from app.dependencies import get_user_or_redirect
 from app.models.users import User
-from app.routers import auth, pages, question, answer, admin, category
+from app.routers import auth, question, answer, admin, category, login
 from app.database import init_db
 from app.auth import current_active_user
 
@@ -44,44 +45,7 @@ app.include_router(answer.router, tags=['Answers'], prefix='/api/answers')
 app.include_router(category.router, tags=['Categories'], prefix='/api/categories')
 app.include_router(admin.router, tags=['Admin Panel'], prefix='/admin')
 app.include_router(auth.router, tags=['Authentication'], prefix='/auth')
-app.include_router(pages.router, tags=['Pages'])
-
-
-# Manejador de excepciones para redirigir a login si el usuario no está autenticado
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    """
-    Manejador personalizado de excepciones HTTP.
-
-    Redirige a la página de login si el usuario intenta acceder a una ruta
-    protegida sin estar autenticado (HTTP 401 - Unauthorized o 403 - Forbidden).
-
-    Para errores de autenticación (400 con LOGIN_BAD_CREDENTIALS), devuelve
-    un mensaje amigable.
-
-    Args:
-        request (Request): La solicitud HTTP actual.
-        exc (HTTPException): La excepción levantada.
-
-    Returns:
-        RedirectResponse: Redirige a /login si es 401 o 403.
-        JSONResponse: Devuelve un mensaje de error apropiado para otros casos.
-    """
-    if exc.status_code in [401, 403]:
-        return RedirectResponse(url="/login", status_code=303)
-
-    # Manejar errores de credenciales incorrectas
-    if exc.status_code == 400 and exc.detail == "LOGIN_BAD_CREDENTIALS":
-        return JSONResponse(
-            status_code=400,
-            content={"detail": "Email o contraseña incorrectos."}
-        )
-
-    # Para otros errores HTTP, devolver la respuesta estándar
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail}
-    )
+app.include_router(login.router, tags=['Login'])
 
 
 @app.get("/api/healthchecker")
@@ -90,9 +54,9 @@ def root():
 
 
 @app.get("/docs", include_in_schema=False)
-async def get_documentation(user: Optional[User] = Depends(current_active_user)):
+async def get_documentation(_: Optional[User] = Depends(get_user_or_redirect)):
     return get_swagger_ui_html(openapi_url="/openapi.json", title="Admin Panel - Chatbot FAMAF")
 
 @app.get("/openapi.json", include_in_schema=False)
-async def openapi(user: Optional[User] = Depends(current_active_user)):
+async def openapi(_: Optional[User] = Depends(current_active_user)):
     return get_openapi(title=app.title, version=app.version, routes=app.routes)

@@ -1,11 +1,14 @@
 from datetime import datetime, timezone
-from fastapi import HTTPException, status, APIRouter, Response
+from fastapi import Depends, HTTPException, status, APIRouter, Response
 from app.schemas.answer import CreateAnswerSchema, UpdateAnswerSchema
 from app.models.answer import Answer
 from beanie import PydanticObjectId
+from app.auth import current_active_user
 from app.utils import ensure_category_exists
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(current_active_user)]
+)
 
 
 @router.get('/')

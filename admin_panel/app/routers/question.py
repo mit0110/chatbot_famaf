@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
-from fastapi import HTTPException, status, APIRouter, Response
+from fastapi import HTTPException, status, APIRouter, Response, Depends
 from app.schemas.question import CreateQuestionSchema, UpdateQuestionSchema
 from app.models.question import Question
 from app.models.answer import Answer
 from beanie import PydanticObjectId
 from app.utils import ensure_category_exists
+from app.auth import current_active_user
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(current_active_user)]
+)
 
 
 def _serialize_question(q: Question) -> dict:

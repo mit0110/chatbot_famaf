@@ -1,39 +1,90 @@
-#  CRUD RESTful API Server with Python, FastAPI, and MongoDB
+# Panel Admin (FastAPI + MongoDB)
 
-This article will teach you how to create a CRUD RESTful API with Python, FastAPI, PyMongo, MongoDB, and Docker-compose to perform the basic Create/Read/Update/Delete operations against a database.
+Este servicio levanta una app web (FastAPI) y una base de datos (MongoDB) con Docker.
 
-![CRUD RESTful API Server with Python, FastAPI, and MongoDB](https://codevoweb.com/wp-content/uploads/2022/07/CRUD-RESTful-API-Server-with-Python-FastAPI-and-MongoDB.webp)
+## Pasos
 
-## Topics Covered
+1) Instala Docker y Docker Compose.
+2) Abre una terminal en esta carpeta.
+3) Ejecuta:
 
-- Python, FastAPI, MongoDB CRUD API Overview
-- Setting up FastAPI with MongoDB
-    - Installing FastAPI
-- Running the FastAPI Server
-- Loading Environment Variables with Pydantic
-- Connecting to the MongoDB Database Server
-- Creating the Schemas with Pydantic
-- Serializers for the MongoDB Documents
-- Creating the API Route Controllers
-    - Get All Posts Controller
-    - Create New Post Controller
-    - Update Post Controller
-    - Get Single Post Controller
-    - Delete Post Controller
-- Add the Routes to the FastAPI Middleware Stack
+```bash
+docker compose up -d
+```
 
-Read the entire article here: [https://codevoweb.com/crud-restful-api-server-with-python-fastapi-and-mongodb](https://codevoweb.com/crud-restful-api-server-with-python-fastapi-and-mongodb)
+Eso inicia todo.
 
-Articles in this series:
+Opcional (solo si cambiaste dependencias o el Dockerfile):
 
-### 1. API with Python, FastAPI, and MongoDB: JWT Authentication
+```bash
+docker compose up --build
+```
 
-[API with Python, FastAPI, and MongoDB: JWT Authentication](https://codevoweb.com/api-with-python-fastapi-and-mongodb-jwt-authentication)
+## Dónde abrir la app
 
-### 2. Build API with Python & FastAPI: SignUp User and Verify Email
+- App: http://localhost:8000
+- Documentación API (Swagger): http://localhost:8000/docs
+- Documentación API (ReDoc): http://localhost:8000/redoc
 
-[Build API with Python & FastAPI: SignUp User and Verify Email](https://codevoweb.com/api-with-python-fastapi-signup-user-and-verify-email)
+## Puertos usados
 
-### 3. CRUD RESTful API Server with Python, FastAPI, and MongoDB
+- App (Uvicorn/FastAPI): `8000` en tu computadora -> `8000` dentro del contenedor
+- MongoDB: `6000` en tu computadora -> `27017` dentro del contenedor
 
-[CRUD RESTful API Server with Python, FastAPI, and MongoDB](https://codevoweb.com/crud-restful-api-server-with-python-fastapi-and-mongodb)
+## Configurar .env
+
+1) Copia el archivo de ejemplo:
+
+```bash
+cp .env_example .env
+```
+
+2) Abre `.env`. En este archivo podés modificar las variables.
+
+Claves principales y para qué se usan:
+
+- `MONGO_INITDB_ROOT_USERNAME`: usuario administrador que crea MongoDB al iniciar.
+- `MONGO_INITDB_ROOT_PASSWORD`: contraseña del usuario administrador.
+- `MONGO_INITDB_DATABASE`: nombre de la base de datos inicial que crea MongoDB.
+- `DATABASE_URL`: cadena de conexión que usa la app para conectarse a MongoDB.
+- `CLIENT_ORIGIN`: origen permitido para CORS (la URL del frontend si aplica).
+
+Ejemplo de `DATABASE_URL`:
+
+```bash
+mongodb://<usuario>:<password>@mongo:27017/<database>?authSource=admin
+```
+Para una prueba inicial se pueden utilizar las variables tal como están, pero te recomendamos elegir una contraseña más fuerte para el administrador de tu base de datos.
+
+## Detener el servicio (normal)
+
+Para detener sin borrar datos:
+
+```bash
+docker compose stop
+```
+
+Para detener y eliminar los contenedores, pero conservar la base de datos:
+
+```bash
+docker compose down
+```
+
+## Borrar la base de datos (MUY IMPORTANTE)
+
+Si querés borrar la base de datos, tenés que eliminar el volumen. Esto borra TODOS los datos y no se pueden recuperar.
+
+```bash
+docker compose down -v
+```
+
+## Acceder a MongoDB desde Docker
+
+Podés acceder a la consola de MongoDB:
+
+```bash
+docker compose exec mongo mongosh -u <usuario> -p <password> --authenticationDatabase admin
+```
+
+Usa el usuario y password del `.env`.
+

@@ -88,3 +88,22 @@ docker compose exec mongo mongosh -u <usuario> -p <password> --authenticationDat
 
 Usa el usuario y password del `.env`.
 
+## Opcional: exponer con ngrok (para n8n)
+
+Si tenés cuenta de ngrok, podés exponer la app con una URL publica para usarla desde n8n:
+
+1) Iniciá sesion en ngrok y configurá tu token (una sola vez):
+
+```bash
+ngrok config add-authtoken <tu_token>
+```
+
+2) Exponé el puerto de la app:
+
+```bash
+ngrok http 8000
+```
+
+ngrok va a mostrar una URL publica (por ejemplo, `https://xxxx.ngrok-free.app`).
+
+

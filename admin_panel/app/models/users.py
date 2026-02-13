@@ -31,6 +31,7 @@ class User(BeanieBaseUser, Document):
     email: Annotated[EmailStr, Indexed(unique=True)]
     hashed_password: str
     is_active: bool = True
+    is_superuser: bool = False  # Solo superusuarios pueden registrar nuevos
 
     # Campos personalizados adicionales
     full_name: Optional[str] = None

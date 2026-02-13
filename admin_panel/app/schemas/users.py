@@ -25,9 +25,11 @@ class UserRead(schemas.BaseUser[str]):
         id (str): Identificador único del usuario.
         email (EmailStr): Correo electrónico del usuario.
         is_active (bool): Si la cuenta del usuario está activa.
+        is_superuser (bool): Si el usuario es un superusuario.
         full_name (Optional[str]): Nombre completo del usuario (opcional).
     """
     full_name: Optional[str] = None
+    is_superuser: bool = False
 
     @field_validator('id', mode='before')
     @classmethod
@@ -62,6 +64,7 @@ class UserCreate(schemas.BaseUserCreate):
         full_name (Optional[str]): Nombre completo del usuario (opcional).
     """
     full_name: Optional[str] = None
+    is_superuser: bool = False
 
     @field_validator('password')
     @classmethod

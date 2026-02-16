@@ -9,7 +9,7 @@ Utiliza Beanie como ODM para MongoDB y FastAPI Users para autenticación.
 from typing import Optional
 from beanie import Document, Indexed
 from typing import Annotated
-from fastapi_users.db import BeanieBaseUser, BeanieUserDatabase
+from fastapi_users.db import BeanieBaseUser
 from pydantic import EmailStr, field_validator
 from bson import ObjectId
 
@@ -70,10 +70,11 @@ async def get_user_db():
 
     Yields:
         BeanieUserDatabase[User, str]: Gestor de base de datos de usuarios.
-    
+
     Ejemplo:
         >>> from fastapi import Depends
         >>> async def protected_route(user_db = Depends(get_user_db)):
         ...     pass
     """
+    from fastapi_users.db import BeanieUserDatabase
     yield BeanieUserDatabase(User)

@@ -54,10 +54,3 @@ router.include_router(
     prefix="/users",
     tags=["users"],
 )
-
-# Password reset routes
-router.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/reset-password",
-    tags=["auth"],
-)

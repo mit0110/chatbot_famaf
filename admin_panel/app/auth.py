@@ -27,14 +27,12 @@ class UserManager(BaseUserManager[User, str]):
     Gestor de usuarios para manejar operaciones relacionadas con usuarios.
 
     Extiende BaseUserManager de FastAPI Users para proporcionar funcionalidades
-    personalizadas de gestión de usuarios incluyendo registro, recuperación de
-    contraseña y verificación de correo electrónico.
+    personalizadas de gestión de usuarios incluyendo registro y verificación
+    de correo electrónico.
 
     Atributos:
-        reset_password_token_secret (str): Clave secreta para tokens de recuperación.
         verification_token_secret (str): Clave secreta para tokens de verificación.
     """
-    reset_password_token_secret = settings.SECRET_KEY
     verification_token_secret = settings.SECRET_KEY
 
     def parse_id(self, value: str) -> str:
@@ -63,22 +61,6 @@ class UserManager(BaseUserManager[User, str]):
             request (Optional[Request]): La solicitud HTTP actual.
         """
         print(f"User {user.id} has registered.")
-
-    async def on_after_forgot_password(
-        self, user: User, token: str, request: Optional[Request] = None
-    ):
-        """
-        Callback ejecutado después de solicitar recuperación de contraseña.
-
-        Actualmente registra el token en la consola. En producción, debería
-        enviarse por correo electrónico al usuario.
-
-        Args:
-            user (User): El usuario que solicitó recuperación.
-            token (str): Token de recuperación único.
-            request (Optional[Request]): La solicitud HTTP actual.
-        """
-        print(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(
         self, user: User, token: str, request: Optional[Request] = None

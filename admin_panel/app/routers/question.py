@@ -30,6 +30,24 @@ def _serialize_question(q: Question) -> dict:
     }
 
 
+@router.get('/all')
+async def get_all_questions(search: str = '', category: str = ''):
+    filters = []
+    if search:
+        filters.append({"content": {"$regex": search, "$options": "i"}})
+    if category:
+        filters.append(Question.category == category)
+    
+    query = Question.find(*filters, fetch_links=True)
+    questions = await query.sort("-created_at").to_list()
+    
+    return {
+        'status': 'success',
+        'results': len(questions),
+        'questions': [_serialize_question(q) for q in questions]
+    }
+
+
 @router.get('/')
 async def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = ''):
     skip = (page - 1) * limit

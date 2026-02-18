@@ -34,7 +34,13 @@ def _serialize_question(q: Question) -> dict:
 async def get_all_questions(search: str = '', category: str = ''):
     filters = []
     if search:
-        filters.append({"content": {"$regex": search, "$options": "i"}})
+        # Buscar en pregunta O respuesta
+        filters.append({
+            "$or": [
+                {"content": {"$regex": search, "$options": "i"}},
+                {"answer.content": {"$regex": search, "$options": "i"}}
+            ]
+        })
     if category:
         filters.append(Question.category == category)
     
@@ -54,7 +60,13 @@ async def get_questions(limit: int = 10, page: int = 1, search: str = '', catego
     
     filters = []
     if search:
-        filters.append({"content": {"$regex": search, "$options": "i"}})
+        # Buscar en pregunta O respuesta
+        filters.append({
+            "$or": [
+                {"content": {"$regex": search, "$options": "i"}},
+                {"answer.content": {"$regex": search, "$options": "i"}}
+            ]
+        })
     if category:
         filters.append(Question.category == category)
     

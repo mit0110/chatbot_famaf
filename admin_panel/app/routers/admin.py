@@ -28,7 +28,12 @@ async def admin_home(request: Request, q: str = "", category: str = "", page: in
     # Construir filtros
     filters = []
     if q:
-        filters.append({"content": {"$regex": q, "$options": "i"}})
+        filters.append({
+            "$or": [
+                {"content": {"$regex": q, "$options": "i"}},
+                {"answer.content": {"$regex": q, "$options": "i"}}
+            ]
+        })
     if category:
         filters.append(Question.category == category)
 

@@ -10,8 +10,7 @@ DEFAULT_CATEGORIES = [
     "Cursado",
     "Exámenes",
     "Ingreso",
-    "Egreso",
-    "Sin Información",
+    "Egreso"
 ]
 
 

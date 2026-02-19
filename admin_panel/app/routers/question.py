@@ -30,34 +30,8 @@ def _serialize_question(q: Question) -> dict:
     }
 
 
-@router.get('/all')
-async def get_all_questions(search: str = '', category: str = ''):
-    filters = []
-    if search:
-        # Buscar en pregunta O respuesta
-        filters.append({
-            "$or": [
-                {"content": {"$regex": search, "$options": "i"}},
-                {"answer.content": {"$regex": search, "$options": "i"}}
-            ]
-        })
-    if category:
-        filters.append(Question.category == category)
-    
-    query = Question.find(*filters, fetch_links=True)
-    questions = await query.sort("-created_at").to_list()
-    
-    return {
-        'status': 'success',
-        'results': len(questions),
-        'questions': [_serialize_question(q) for q in questions]
-    }
-
-
 @router.get('/')
-async def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = ''):
-    skip = (page - 1) * limit
-    
+async def get_questions(limit: int = 10, page: int = 1, search: str = '', category: str = '', all: bool = False):
     filters = []
     if search:
         # Buscar en pregunta O respuesta
@@ -73,20 +47,31 @@ async def get_questions(limit: int = 10, page: int = 1, search: str = '', catego
     query = Question.find(*filters, fetch_links=True)
     total_count = await Question.find(*filters).count()
     
-    questions = await query.skip(skip).limit(limit).sort("-created_at").to_list()
-    total_pages = (total_count + limit - 1) // limit
-    
-    return {
-        'status': 'success',
-        'results': len(questions),
-        'questions': [_serialize_question(q) for q in questions],
-        'pagination': {
-            'current_page': page,
-            'total_pages': total_pages,
-            'total_items': total_count,
-            'per_page': limit
+    if all:
+        # Fetch all without pagination
+        questions = await query.sort("-created_at").to_list()
+        return {
+            'status': 'success',
+            'results': len(questions),
+            'questions': [_serialize_question(q) for q in questions]
         }
-    }
+    else:
+        # Fetch with pagination
+        skip = (page - 1) * limit
+        questions = await query.skip(skip).limit(limit).sort("-created_at").to_list()
+        total_pages = (total_count + limit - 1) // limit
+        
+        return {
+            'status': 'success',
+            'results': len(questions),
+            'questions': [_serialize_question(q) for q in questions],
+            'pagination': {
+                'current_page': page,
+                'total_pages': total_pages,
+                'total_items': total_count,
+                'per_page': limit
+            }
+        }
 
 
 @router.post('/', status_code=status.HTTP_201_CREATED)
@@ -109,7 +94,7 @@ async def create_question(payload: CreateQuestionSchema):
     
     new_question = Question(
         content=payload.content,
-        category=await ensure_category_exists(payload.category),
+        category=await ensure_category_exists(payload.category) if payload.category else None,
         answer=answer,
     )
     await new_question.insert()
@@ -138,7 +123,7 @@ async def update_question(id: PydanticObjectId, payload: UpdateQuestionSchema):
             detail=f'No question with this id: {id} found'
         )
     
-    update_data = payload.model_dump(exclude_none=True)
+    update_data = payload.dict(exclude_none=True)
 
     if 'category' in update_data:
         update_data['category'] = await ensure_category_exists(

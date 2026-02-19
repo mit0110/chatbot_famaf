@@ -1,0 +1,16 @@
+# Web framework
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+
+# MongoDB
+motor>=3.4.0
+beanie>=1.26.0,<2.0.0
+
+# Pydantic v2
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# Utils
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+Jinja2==3.1.2

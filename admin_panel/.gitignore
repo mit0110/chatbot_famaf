@@ -1,0 +1,4 @@
+__pycache__
+venv/
+.env
+admin_panel_env/

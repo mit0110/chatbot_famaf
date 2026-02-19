@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Crear Pregunta{% endblock %}
+
+{% block content %}
+<h1>Crear Nueva Pregunta</h1>
+
+<form action="/admin/create" method="post" id="questionForm">
+
+    <div class="mb-3">
+        <label for="content" class="form-label">Contenido de la Pregunta</label>
+        <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label for="category" class="form-label">Categoría</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="category" name="category" list="categoryList" required
+                placeholder="Selecciona o escribe una categoría">
+            <button type="button" class="btn btn-outline-secondary" id="addCategoryBtn"
+                title="Agregar nueva categoría">+</button>
+        </div>
+        <datalist id="categoryList">
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+            {% endfor %}
+        </datalist>
+    </div>
+
+    <div class="mb-3">
+        <label for="answer_content" class="form-label">Respuesta</label>
+        <textarea class="form-control" id="answer_content" name="answer_content" rows="4" required></textarea>
+        <small class="form-text text-muted">Si esta respuesta ya existe, se vinculará automáticamente.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Crear</button>
+    <a href="/admin" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<script>
+    document.getElementById('addCategoryBtn').addEventListener('click', async function () {
+        const categoryInput = document.getElementById('category');
+        const currentValue = categoryInput.value.trim();
+
+        if (!currentValue) {
+            alert('Por favor, escribe el nombre de la categoría');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/categories/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: currentValue })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Actualizar la datalist con la nueva categoría
+                const categoryList = document.getElementById('categoryList');
+                const existingOption = Array.from(categoryList.options).find(opt => opt.value === currentValue);
+
+                if (!existingOption) {
+                    const newOption = document.createElement('option');
+                    newOption.value = currentValue;
+                    categoryList.appendChild(newOption);
+                }
+
+                alert('Categoría agregada exitosamente');
+            } else {
+                alert('Error al agregar la categoría: ' + (data.message || 'Error desconocido'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al conectar con el servidor');
+        }
+    });
+</script>
+{% endblock %}

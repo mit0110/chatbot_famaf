@@ -108,7 +108,17 @@
     },
     {
       "parameters": {
-        "inputSource": "passthrough"
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "trace_name"
+            },
+            {
+              "name": "accuracy_threshold",
+              "type": "number"
+            }
+          ]
+        }
       },
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -190,7 +200,7 @@
             {
               "id": "fd47d589-2716-465a-ad87-2697a65fdc5e",
               "leftValue": "={{ $json.output[0].score }}",
-              "rightValue": 0.73,
+              "rightValue": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.accuracy_threshold }}",
               "operator": {
                 "type": "number",
                 "operation": "gte"
@@ -209,92 +219,6 @@
       ],
       "id": "119b3963-1e46-41fa-b35a-d5ce205a1f10",
       "name": "¿El bot respondió usando Fallback?"
-    },
-    {
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "uLKx0D4QulKxd65P",
-          "mode": "list",
-          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
-          "cachedResultName": "save_metrics"
-        },
-        "workflowInputs": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "traceId": "={{ $('Unión por Consulta').item.json.traceId }}",
-            "datasetItemId": "={{ $('Unión por Consulta').item.json.datasetItemId }}",
-            "trace_name": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
-            "metric_name": "=\"Reciprocal rank\"",
-            "metric_value": "={{ $json.reciprocal_rank }}"
-          },
-          "matchingColumns": [
-            "traceId",
-            "reciprocal_rank",
-            "datasetItemId",
-            "trace_name"
-          ],
-          "schema": [
-            {
-              "id": "traceId",
-              "displayName": "traceId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "datasetItemId",
-              "displayName": "datasetItemId",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "trace_name",
-              "displayName": "trace_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "metric_name",
-              "displayName": "metric_name",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "type": "string",
-              "removed": false
-            },
-            {
-              "id": "metric_value",
-              "displayName": "metric_value",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": true
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.2,
-      "position": [
-        1024,
-        944
-      ],
-      "name": "Call save_metrics",
-      "id": "7d03bd36-4e37-4532-be33-f36cc7ea42b3"
     },
     {
       "parameters": {
@@ -541,13 +465,100 @@
       ],
       "id": "6dc91d23-8be3-4544-8753-762e377055d4",
       "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uLKx0D4QulKxd65P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
+          "cachedResultName": "save_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "traceId": "={{ $('Unión por Consulta').item.json.traceId }}",
+            "datasetItemId": "={{ $('Unión por Consulta').item.json.datasetItemId }}",
+            "trace_name": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
+            "metric_name": "=\"Reciprocal rank\"",
+            "metric_value": "={{ $json.reciprocal_rank }}"
+          },
+          "matchingColumns": [
+            "traceId",
+            "reciprocal_rank",
+            "datasetItemId",
+            "trace_name"
+          ],
+          "schema": [
+            {
+              "id": "traceId",
+              "displayName": "traceId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "datasetItemId",
+              "displayName": "datasetItemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "trace_name",
+              "displayName": "trace_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_value",
+              "displayName": "metric_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        944
+      ],
+      "name": "Guardar Término MRR",
+      "id": "7d03bd36-4e37-4532-be33-f36cc7ea42b3"
     }
   ],
   "pinData": {
     "Al ser Ejecutado por Otro Workflow": [
       {
         "json": {
-          "trace_name": "embedding-google-text-embedding-004-v1"
+          "trace_name": "embedding-prueba-prueba-v3",
+          "accuracy_threshold": 0.73
         }
       }
     ]
@@ -651,7 +662,7 @@
       "main": [
         [
           {
-            "node": "Call save_metrics",
+            "node": "Guardar Término MRR",
             "type": "main",
             "index": 0
           }
@@ -699,11 +710,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f6243ed6-8420-4d6e-bee4-ecb9c4baecf4",
+  "versionId": "6b476b56-621d-4a3e-82c8-c19f3de14a80",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

@@ -45,6 +45,15 @@ LANGFUSE_PUBLIC_KEY=pk-lf-xxxxxxxx
 NEXTAUTH_SECRET=una-clave-secreta-segura
 NEXTAUTH_URL=http://localhost:3000
 
+# Langfuse - Usuario y proyecto inicial (se crean automáticamente)
+LANGFUSE_INIT_ORG_ID=mi-org-id
+LANGFUSE_INIT_ORG_NAME=FaMAF
+LANGFUSE_INIT_PROJECT_ID=mi-proyecto-id
+LANGFUSE_INIT_PROJECT_NAME=chatbot-famaf
+LANGFUSE_INIT_USER_EMAIL=admin@famaf.unc.edu.ar
+LANGFUSE_INIT_USER_NAME=Admin
+LANGFUSE_INIT_USER_PASSWORD=Admin123!
+
 # ============================================================
 # MongoDB - Admin Panel
 # ============================================================
@@ -79,12 +88,19 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 
 #### Langfuse
 
-| Variable              | Descripción                                                                                                                   |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `LANGFUSE_SECRET_KEY` | Clave secreta de tu proyecto en Langfuse (se genera en la UI de Langfuse)                                                     |
-| `LANGFUSE_PUBLIC_KEY` | Clave pública de tu proyecto en Langfuse                                                                                      |
-| `NEXTAUTH_SECRET`     | Clave secreta para encriptar sesiones de login. **Importante:** usar un valor fijo para evitar errores de sesión al reiniciar |
-| `NEXTAUTH_URL`        | URL donde corre Langfuse (para redirecciones de auth)                                                                         |
+| Variable                      | Descripción                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `LANGFUSE_SECRET_KEY`         | Clave secreta de tu proyecto en Langfuse (se genera en la UI de Langfuse)                                                     |
+| `LANGFUSE_PUBLIC_KEY`         | Clave pública de tu proyecto en Langfuse                                                                                      |
+| `NEXTAUTH_SECRET`             | Clave secreta para encriptar sesiones de login. **Importante:** usar un valor fijo para evitar errores de sesión al reiniciar |
+| `NEXTAUTH_URL`                | URL donde corre Langfuse (para redirecciones de auth)                                                                         |
+| `LANGFUSE_INIT_ORG_ID`        | ID único de la organización inicial (requerido para activar la inicialización)                                                |
+| `LANGFUSE_INIT_ORG_NAME`      | Nombre de la organización que se crea automáticamente al iniciar                                                              |
+| `LANGFUSE_INIT_PROJECT_ID`    | ID único del proyecto inicial                                                                                                 |
+| `LANGFUSE_INIT_PROJECT_NAME`  | Nombre del proyecto inicial                                                                                                   |
+| `LANGFUSE_INIT_USER_EMAIL`    | Email del usuario administrador inicial                                                                                       |
+| `LANGFUSE_INIT_USER_NAME`     | Nombre del usuario administrador inicial                                                                                      |
+| `LANGFUSE_INIT_USER_PASSWORD` | Contraseña del usuario administrador inicial (debe incluir letras, números y caracteres especiales)                           |
 
 #### MongoDB (Admin Panel)
 
@@ -121,6 +137,16 @@ docker compose up -d
 ```
 
 > **Nota:** Usá `--build` cada vez que modifiques el código de FastAPI o su Dockerfile.
+
+### Acceder a los servicios
+
+Una vez levantados los contenedores, podés acceder a:
+
+| Servicio        | URL                   | Descripción                     |
+| --------------- | --------------------- | ------------------------------- |
+| **n8n**         | http://localhost:5678 | Crear y gestionar workflows     |
+| **Langfuse**    | http://localhost:3000 | Observabilidad de LLMs          |
+| **Admin Panel** | http://localhost:8000 | Panel de administración FastAPI |
 
 ### Ver logs
 

@@ -122,7 +122,7 @@ async def update_question(id: PydanticObjectId, payload: UpdateQuestionSchema):
             detail=f'No question with this id: {id} found'
         )
     
-    update_data = payload.dict(exclude_none=True)
+    update_data = payload.model_dump(exclude_none=True)
 
     if 'category' in update_data:
         update_data['category'] = await ensure_category_exists(

@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.models.question import Question
-from app.models.answer import Answer
 from app.models.category import Category
 from app.utils import (
     DEFAULT_CATEGORIES,

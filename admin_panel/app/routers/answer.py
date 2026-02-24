@@ -21,9 +21,10 @@ def _serialize_answer(a: Answer) -> dict:
 async def get_answers(limit: int = 10, page: int = 1, search: str = ''):
     skip = (page - 1) * limit
     
-    query = Answer.find_all()
     if search:
         query = Answer.find({"content": {"$regex": search, "$options": "i"}})
+    else:
+        query = Answer.find_all()
     
     answers = await query.skip(skip).limit(limit).to_list()
     

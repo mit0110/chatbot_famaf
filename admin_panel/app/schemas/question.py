@@ -5,22 +5,24 @@ from app.schemas.answer import AnswerResponse
 
 
 class CreateQuestionSchema(BaseModel):
+    """Schema para crear una pregunta con categoría y respuesta obligatorias"""
     content: str
-    category: str | None = None
-    answer_id: str | None = None  # recibís el ID en el request
+    category: str  # obligatorio
+    answer_id: str  # obligatorio - ID de la respuesta asociada
 
 
 class UpdateQuestionSchema(BaseModel):
-    content: str | None = None
-    category: str | None = None
-    answer_id: str | None = None
-
+    """Schema para actualizar una pregunta"""
+    content: str 
+    category: str 
+    answer_id: str 
 
 class QuestionResponse(BaseModel):
+    """Pregunta serializada con su respuesta completa"""
     id: str
     content: str
-    category: str | None = None
-    answer: AnswerResponse | None = None  # en la response mostrás el objeto completo
+    category: str
+    answer: AnswerResponse  # obligatorio
     created_at: datetime
     updated_at: datetime
 

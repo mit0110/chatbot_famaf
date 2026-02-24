@@ -4,23 +4,23 @@ from pydantic import BaseModel
 
 
 class CreateAnswerSchema(BaseModel):
+    """Schema para crear una respuesta (sin categoría, se hereda de Question)"""
     content: str
-    category: str | None = None
 
 
 class UpdateAnswerSchema(BaseModel):
+    """Schema para actualizar una respuesta"""
     content: str | None = None
-    category: str | None = None
 
 
 class AnswerResponse(BaseModel):
+    """Respuesta serializada (la categoría viene de la Question asociada)"""
     id: str
     content: str
-    category: str | None = None
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}  # orm_mode en Pydantic v2
+    model_config = {"from_attributes": True}
 
 
 class ListAnswerResponse(BaseModel):

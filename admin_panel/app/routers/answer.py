@@ -3,9 +3,18 @@ from fastapi import HTTPException, status, APIRouter, Response
 from app.schemas.answer import CreateAnswerSchema, UpdateAnswerSchema
 from app.models.answer import Answer
 from beanie import PydanticObjectId
-from app.utils import ensure_category_exists
 
 router = APIRouter()
+
+
+def _serialize_answer(a: Answer) -> dict:
+    """Helper para serializar una respuesta."""
+    return {
+        'id': str(a.id),
+        'content': a.content,
+        'created_at': a.created_at,
+        'updated_at': a.updated_at
+    }
 
 
 @router.get('/')
@@ -21,16 +30,7 @@ async def get_answers(limit: int = 10, page: int = 1, search: str = ''):
     return {
         'status': 'success',
         'results': len(answers),
-        'answers': [
-            {
-                'id': str(a.id),
-                'content': a.content,
-                'category': a.category,
-                'created_at': a.created_at,
-                'updated_at': a.updated_at
-            }
-            for a in answers
-        ]
+        'answers': [_serialize_answer(a) for a in answers]
     }
 
 
@@ -42,22 +42,11 @@ async def create_answer(payload: CreateAnswerSchema):
             status_code=status.HTTP_409_CONFLICT,
             detail="Answer already exists"
         )
-
-    category = await ensure_category_exists(payload.category)
     
-    new_answer = Answer(
-        content=payload.content,
-        category=category,
-    )
+    new_answer = Answer(content=payload.content)
     await new_answer.insert()
     
-    return {
-        'id': str(new_answer.id),
-        'content': new_answer.content,
-        'category': new_answer.category,
-        'created_at': new_answer.created_at,
-        'updated_at': new_answer.updated_at
-    }
+    return _serialize_answer(new_answer)
 
 
 @router.put('/{id}')
@@ -70,21 +59,11 @@ async def update_answer(id: PydanticObjectId, payload: UpdateAnswerSchema):
         )
     
     update_data = payload.model_dump(exclude_none=True)
-    if 'category' in update_data:
-        update_data['category'] = await ensure_category_exists(
-            update_data['category']
-        )
     update_data['updated_at'] = datetime.now(timezone.utc)
     
     await answer.set(update_data)
     
-    return {
-        'id': str(answer.id),
-        'content': answer.content,
-        'category': answer.category,
-        'created_at': answer.created_at,
-        'updated_at': answer.updated_at
-    }
+    return _serialize_answer(answer)
 
 
 @router.get('/{id}')
@@ -95,13 +74,7 @@ async def get_answer(id: PydanticObjectId):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No answer with this id: {id} found"
         )
-    return {
-        'id': str(answer.id),
-        'content': answer.content,
-        'category': answer.category,
-        'created_at': answer.created_at,
-        'updated_at': answer.updated_at
-    }
+    return _serialize_answer(answer)
 
 
 @router.delete('/{id}')

@@ -88,7 +88,7 @@ async def create_question(
     answer_content: str = Form(...),
 ):
     category = await ensure_category_exists(category)
-    answer = await get_or_create_answer(answer_content, category)
+    answer = await get_or_create_answer(answer_content)
 
     existing = await Question.find_one(Question.content == content)
     if existing:
@@ -157,12 +157,11 @@ async def update_question(
         # Modificar la respuesta existente — afecta a todas las preguntas que la usan
         await current_answer.set({
             "content": answer_content,
-            "category": category,
             "updated_at": datetime.now(timezone.utc),
         })
         new_answer = current_answer
     else:
-        new_answer = await get_or_create_answer(answer_content, category)
+        new_answer = await get_or_create_answer(answer_content)
 
     question.content = content
     question.category = category
@@ -251,7 +250,7 @@ async def upload_csv(file: UploadFile = File(...)):
         for item in data:
             try:
                 category_name = await ensure_category_exists(item["category"])
-                answer = await get_or_create_answer(item["answer"], category_name)
+                answer = await get_or_create_answer(item["answer"])
 
                 existing_q = await Question.find_one(
                     Question.content == item["question"]

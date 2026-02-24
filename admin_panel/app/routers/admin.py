@@ -98,7 +98,6 @@ async def create_question(
             "question_duplicate.html",
             {
                 "request": request,
-                "error": True,
                 "message": "Una pregunta con este contenido ya existe",
                 "question": existing,
             },

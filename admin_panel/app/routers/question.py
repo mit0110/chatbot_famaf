@@ -11,15 +11,12 @@ router = APIRouter()
 
 def _serialize_question(q: Question) -> dict:
     """Helper para serializar una pregunta con su answer resuelto."""
-    answer_data = None
-    if q.answer and hasattr(q.answer, 'content'):  # el link fue fetcheado
-        answer_data = {
-            'id': str(q.answer.id),
-            'content': q.answer.content,
-            'category': q.answer.category,
-            'created_at': q.answer.created_at,
-            'updated_at': q.answer.updated_at
-        }
+    answer_data = {
+        'id': str(q.answer.id),
+        'content': q.answer.content,
+        'created_at': q.answer.created_at,
+        'updated_at': q.answer.updated_at
+    }
     return {
         'id': str(q.id),
         'content': q.content,
@@ -83,18 +80,20 @@ async def create_question(payload: CreateQuestionSchema):
             detail=f"Question with content: '{payload.content}' already exists"
         )
     
-    answer = None
-    if payload.answer_id:
-        answer = await Answer.get(PydanticObjectId(payload.answer_id))
-        if not answer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"No answer with id: '{payload.answer_id}' found"
-            )
+    # Buscar la respuesta (obligatoria)
+    answer = await Answer.get(PydanticObjectId(payload.answer_id))
+    if not answer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No answer with id: '{payload.answer_id}' found"
+        )
+    
+    # Asegurar que la categoría existe
+    category = await ensure_category_exists(payload.category)
     
     new_question = Question(
         content=payload.content,
-        category=await ensure_category_exists(payload.category) if payload.category else None,
+        category=category,
         answer=answer,
     )
     await new_question.insert()
@@ -123,7 +122,7 @@ async def update_question(id: PydanticObjectId, payload: UpdateQuestionSchema):
             detail=f'No question with this id: {id} found'
         )
     
-    update_data = payload.dict(exclude_none=True)
+    update_data = payload.model_dump(exclude_none=True)
 
     if 'category' in update_data:
         update_data['category'] = await ensure_category_exists(

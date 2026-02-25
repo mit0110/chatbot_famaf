@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.models.question import Question
-from app.models.answer import Answer
 from app.models.category import Category
 from app.utils import (
     DEFAULT_CATEGORIES,
@@ -89,7 +88,7 @@ async def create_question(
     answer_content: str = Form(...),
 ):
     category = await ensure_category_exists(category)
-    answer = await get_or_create_answer(answer_content, category)
+    answer = await get_or_create_answer(answer_content)
 
     existing = await Question.find_one(Question.content == content)
     if existing:
@@ -99,7 +98,6 @@ async def create_question(
             "question_duplicate.html",
             {
                 "request": request,
-                "error": True,
                 "message": "Una pregunta con este contenido ya existe",
                 "question": existing,
             },
@@ -152,18 +150,18 @@ async def update_question(
         raise HTTPException(status_code=404, detail="Question not found")
 
     current_answer = question.answer if hasattr(question.answer, "id") else None
+    old_category = question.category
     category = await ensure_category_exists(category)
 
     if update_all_answers == "yes" and current_answer:
         # Modificar la respuesta existente — afecta a todas las preguntas que la usan
         await current_answer.set({
             "content": answer_content,
-            "category": category,
             "updated_at": datetime.now(timezone.utc),
         })
         new_answer = current_answer
     else:
-        new_answer = await get_or_create_answer(answer_content, category)
+        new_answer = await get_or_create_answer(answer_content)
 
     question.content = content
     question.category = category
@@ -171,11 +169,11 @@ async def update_question(
     question.updated_at = datetime.now(timezone.utc)
     await question.save()
 
-    # Si se cambió la respuesta y la anterior quedó huérfana, eliminarla
+    # Limpiar answer y categoría huérfanas si cambiaron
     if current_answer and new_answer.id != current_answer.id:
-        remaining = await Question.find({"answer.$id": current_answer.id}).count()
-        if remaining == 0:
-            await current_answer.delete()
+        await _cleanup_orphan_answer(current_answer)
+    if old_category != category:
+        await _cleanup_orphan_category(old_category)
 
     return RedirectResponse(url="/admin", status_code=303)
 
@@ -204,28 +202,34 @@ async def delete_multiple_questions(
     return RedirectResponse(url="/admin", status_code=303)
 
 
+async def _cleanup_orphan_answer(answer) -> None:
+    """Elimina la respuesta si no está siendo usada por ninguna pregunta."""
+    if not answer:
+        return
+    remaining = await Question.find({"answer.$id": answer.id}).count()
+    if remaining == 0:
+        await answer.delete()
+
+
+async def _cleanup_orphan_category(category_name: str) -> None:
+    """Elimina la categoría si no está siendo usada por ninguna pregunta y no es default."""
+    if not category_name or category_name in DEFAULT_CATEGORIES:
+        return
+    remaining = await Question.find(Question.category == category_name).count()
+    if remaining == 0:
+        existing_category = await Category.find_one(Category.name == category_name)
+        if existing_category:
+            await existing_category.delete()
+
+
 async def _delete_question_and_cleanup(question: Question) -> None:
     current_answer = question.answer if hasattr(question.answer, "id") else None
     question_category = question.category
 
     await question.delete()
 
-    # Eliminar la respuesta si quedó huérfana
-    if current_answer:
-        remaining = await Question.find({"answer.$id": current_answer.id}).count()
-        if remaining == 0:
-            await current_answer.delete()
-
-    if question_category and question_category not in DEFAULT_CATEGORIES:
-        remaining_questions = await Question.find(
-            Question.category == question_category
-        ).count()
-        if remaining_questions == 0:
-            existing_category = await Category.find_one(
-                Category.name == question_category
-            )
-            if existing_category:
-                await existing_category.delete()
+    await _cleanup_orphan_answer(current_answer)
+    await _cleanup_orphan_category(question_category)
 
 
 @router.get("/upload-csv", response_class=HTMLResponse)
@@ -252,7 +256,7 @@ async def upload_csv(file: UploadFile = File(...)):
         for item in data:
             try:
                 category_name = await ensure_category_exists(item["category"])
-                answer = await get_or_create_answer(item["answer"], category_name)
+                answer = await get_or_create_answer(item["answer"])
 
                 existing_q = await Question.find_one(
                     Question.content == item["question"]

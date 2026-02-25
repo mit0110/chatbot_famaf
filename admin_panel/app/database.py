@@ -24,7 +24,6 @@ async def init_db():
 
 async def seed_default_categories():
     from app.models.category import Category
-    from datetime import datetime
 
     count = await Category.count()
     if count == 0:

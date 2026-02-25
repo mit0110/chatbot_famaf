@@ -22,10 +22,9 @@ async def get_category_names() -> List[str]:
     return [cat.name for cat in categories]
 
 
-async def get_or_create_answer(answer_content: str, category: str) -> Answer:
+async def get_or_create_answer(answer_content: str) -> Answer:
     """
     Buscar una respuesta existente (case-insensitive) o crear una nueva.
-
     Returns:
         El documento Answer (existente o recién creado)
     """
@@ -37,10 +36,7 @@ async def get_or_create_answer(answer_content: str, category: str) -> Answer:
     if existing:
         return existing
 
-    new_answer = Answer(
-        content=answer_content,
-        category=category,
-    )
+    new_answer = Answer(content=answer_content)
     try:
         await new_answer.insert()
         return new_answer

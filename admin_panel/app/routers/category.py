@@ -1,7 +1,5 @@
-from datetime import datetime, timezone
 from fastapi import HTTPException, status, APIRouter
 from pydantic import BaseModel
-from beanie.exceptions import RevisionIdWasChanged
 from app.models.category import Category
 from app.utils import normalize_category_name
 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Pregunta Duplicada{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger" role="alert">
+    <h4 class="alert-heading">⚠️ Pregunta Duplicada</h4>
+    <p>{{ message }}</p>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <strong>Pregunta Existente</strong>
+        <span class="badge bg-info">{{ question.category }}</span>
+    </div>
+    <div class="card-body">
+        <p><strong>Contenido:</strong></p>
+        <p>{{ question.content }}</p>
+        <hr>
+        <p><strong>Respuesta:</strong></p>
+        {% if question.answer %}
+        <p class="text-muted">{{ question.answer.content }}</p>
+        {% else %}
+        <p class="text-danger">Sin respuesta</p>
+        {% endif %}
+    </div>
+    <div class="card-footer d-flex gap-2">
+        <a href="/admin/edit/{{ question.id }}" class="btn btn-warning">
+            ✏️ ¿Quieres modificar la respuesta?
+        </a>
+        <a href="/admin/create" class="btn btn-secondary">
+            Volver a crear
+        </a>
+        <a href="/admin" class="btn btn-outline-secondary">
+            Ir al listado
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -148,6 +148,17 @@ Una vez levantados los contenedores, podés acceder a:
 | **Langfuse**    | http://localhost:3000 | Observabilidad de LLMs          |
 | **Admin Panel** | http://localhost:8000 | Panel de administración FastAPI |
 
+### Links internos para n8n
+
+Cuando configures credenciales o conexiones desde n8n hacia otros servicios (como Langfuse o FastAPI), usa las URLs internas de Docker:
+
+- Para Langfuse: `http://langfuse-web:3000`
+- Para FastAPI: `http://fastapi:8000`
+
+Estas URLs permiten que n8n se comunique directamente con los servicios dentro de la red de Docker, evitando problemas de acceso o firewall. No uses las URLs externas (localhost) para conexiones internas entre contenedores.
+
+Ejemplo: Al crear una credencial en n8n para Langfuse, usar `http://langfuse-web:3000` como host.
+
 ### Ver logs
 
 ```bash

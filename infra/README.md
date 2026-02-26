@@ -98,6 +98,14 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 | `LANGFUSE_INIT_USER_NAME`     | Nombre del usuario administrador inicial                                                                                      |
 | `LANGFUSE_INIT_USER_PASSWORD` | Contraseña del usuario administrador inicial (debe incluir letras, números y caracteres especiales)                           |
 
+##### 🔐 Generar un NEXTAUTH_SECRET seguro
+
+Podés generar una clave segura con OpenSSL:
+
+```bash
+openssl rand -base64 32
+```
+
 #### MongoDB (Admin Panel)
 
 | Variable                     | Descripción                                                                                                         |
@@ -184,20 +192,29 @@ Para exponer n8n a internet usando ngrok:
 
 ### 1. Modificar compose.yml
 
-Descomentar las líneas de configuración para ngrok en el servicio `n8n`:
+Descomentar / comentar las variables según el modo de uso:
+
+- ✅ **Modo local (desarrollo sin acceso externo)** → usar las variables por defecto (`localhost`)
+- 🌍 **Modo externo con ngrok** → comentar las de `localhost` y descomentar las de `ngrok`
 
 ```yaml
 environment:
-  # Comentar estas líneas (localhost):
-  # - N8N_HOST=localhost
-  # - N8N_PROTOCOL=http
-  # - WEBHOOK_URL=http://localhost:5678/
+  # ============================================================
+  # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
+  # ============================================================
+  - N8N_HOST=localhost
+  - N8N_PROTOCOL=http
+  - WEBHOOK_URL=http://localhost:5678/
 
-  # Descomentar estas líneas (ngrok):
-  - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
-  - N8N_PROTOCOL=https
-  - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+  # ============================================================
+  # MODO NGROK (usar cuando exponés con dominio público)
+  # ============================================================
+  # - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+  # - N8N_PROTOCOL=https
+  # - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
 ```
+
+⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n. 
 
 ### 2. Configurar .env
 

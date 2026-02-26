@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # ============================================================
   # TRAEFIK - Reverse Proxy
@@ -65,9 +63,6 @@ services:
       - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
       - TZ=${GENERIC_TIMEZONE}
       - NODE_FUNCTION_ALLOW_BUILTIN=crypto
-      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
-      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
-      - LANGFUSE_HOST=http://langfuse-web:3000
     volumes:
       - chatbot_famaf_n8n_data:/home/node/.n8n
       - ./local-files:/files

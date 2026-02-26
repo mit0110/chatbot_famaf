@@ -36,12 +36,10 @@ GENERIC_TIMEZONE=America/Argentina/Buenos_Aires
 SSL_EMAIL=tu-email@ejemplo.com
 
 # ============================================================
-# Langfuse - Claves API (se generan en Langfuse)
+# Langfuse
 # ============================================================
-LANGFUSE_SECRET_KEY=sk-lf-xxxxxxxx
-LANGFUSE_PUBLIC_KEY=pk-lf-xxxxxxxx
 
-# Langfuse Auth (importante para que funcione el login)
+# Langfuse Autenticación y URL base
 NEXTAUTH_SECRET=una-clave-secreta-segura
 NEXTAUTH_URL=http://localhost:3000
 
@@ -90,8 +88,6 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 
 | Variable                      | Descripción                                                                                                                   |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `LANGFUSE_SECRET_KEY`         | Clave secreta de tu proyecto en Langfuse (se genera en la UI de Langfuse)                                                     |
-| `LANGFUSE_PUBLIC_KEY`         | Clave pública de tu proyecto en Langfuse                                                                                      |
 | `NEXTAUTH_SECRET`             | Clave secreta para encriptar sesiones de login. **Importante:** usar un valor fijo para evitar errores de sesión al reiniciar |
 | `NEXTAUTH_URL`                | URL donde corre Langfuse (para redirecciones de auth)                                                                         |
 | `LANGFUSE_INIT_ORG_ID`        | ID único de la organización inicial (requerido para activar la inicialización)                                                |

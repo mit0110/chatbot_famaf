@@ -30,7 +30,7 @@ services:
   # N8N - Workflow Automation
   # ============================================================
   n8n:
-    image: docker.n8n.io/n8nio/n8n
+    image: docker.n8n.io/n8nio/n8n:2.7.0
     restart: always
     ports:
       - "127.0.0.1:5678:5678"
@@ -51,12 +51,12 @@ services:
       - traefik.http.routers.n8n.middlewares=n8n@docker
     environment:
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
-      # - N8N_HOST=localhost
-      # - N8N_PROTOCOL=http
-      # - WEBHOOK_URL=http://localhost:5678/
-      - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
-      - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - N8N_HOST=localhost
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      #- N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      #- N8N_PROTOCOL=https
+      #- WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
       - N8N_PORT=5678
       - N8N_RUNNERS_ENABLED=true
       - NODE_ENV=production

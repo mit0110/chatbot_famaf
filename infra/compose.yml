@@ -1,9 +1,127 @@
-# Make sure to update the credential placeholders with your own secrets.
-# We mark them with # CHANGEME in the file below.
-# In addition, we recommend to restrict inbound traffic on the host to langfuse-web (port 3000) and minio (port 9090) only.
-# All other components are bound to localhost (127.0.0.1) to only accept connections from the local machine.
-# External connections from other machines will not be able to reach these services directly.
 services:
+  # ============================================================
+  # TRAEFIK - Reverse Proxy
+  # ============================================================
+  traefik:
+    image: "traefik"
+    restart: always
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.mytlschallenge.acme.tlschallenge=true"
+      - "--certificatesresolvers.mytlschallenge.acme.email=${SSL_EMAIL}"
+      - "--certificatesresolvers.mytlschallenge.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - chatbot_famaf_traefik_data:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - observability
+      - app-network
+
+  # ============================================================
+  # N8N - Workflow Automation
+  # ============================================================
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.7.0
+    restart: always
+    ports:
+      - "127.0.0.1:5678:5678"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n.rule=Host(`${SUBDOMAIN}.${DOMAIN_NAME}`)
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.routers.n8n.entrypoints=web,websecure
+      - traefik.http.routers.n8n.tls.certresolver=mytlschallenge
+      - traefik.http.middlewares.n8n.headers.SSLRedirect=true
+      - traefik.http.middlewares.n8n.headers.STSSeconds=315360000
+      - traefik.http.middlewares.n8n.headers.browserXSSFilter=true
+      - traefik.http.middlewares.n8n.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.n8n.headers.forceSTSHeader=true
+      - traefik.http.middlewares.n8n.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.n8n.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.n8n.headers.STSPreload=true
+      - traefik.http.routers.n8n.middlewares=n8n@docker
+    environment:
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_HOST=localhost
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      #- N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+      #- N8N_PROTOCOL=https
+      #- WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+      - N8N_PORT=5678
+      - N8N_RUNNERS_ENABLED=true
+      - NODE_ENV=production
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - TZ=${GENERIC_TIMEZONE}
+      - NODE_FUNCTION_ALLOW_BUILTIN=crypto
+    volumes:
+      - chatbot_famaf_n8n_data:/home/node/.n8n
+      - ./local-files:/files
+    depends_on:
+      - langfuse-web
+    networks:
+      - observability
+      - app-network
+
+  # ============================================================
+  # FASTAPI - Admin Panel
+  # ============================================================
+  fastapi:
+    build:
+      context: ../admin_panel
+      dockerfile: Dockerfile
+    container_name: fastapi-admin-panel
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${MONGO_DATABASE_URL}
+    ports:
+      - "8000:8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
+    volumes:
+      - ../admin_panel:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # ============================================================
+  # MONGO - Admin Panel Database
+  # ============================================================
+  mongo:
+    image: mongo:latest
+    container_name: mongo-admin-panel
+    env_file:
+      - ./.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    volumes:
+      - chatbot_famaf_mongo:/data/db
+    ports:
+      - "6000:27017"
+    networks:
+      - app-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  # LANGFUSE - LLM Observability
+  # ============================================================
   langfuse-worker:
     image: docker.io/langfuse/langfuse-worker:3
     restart: always
@@ -22,9 +140,9 @@ services:
       - observability
     environment: &langfuse-worker-env
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://langfuse-web:3000}
-      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/postgres} # CHANGEME
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/postgres}
       SALT: ${SALT:-mysalt} # CHANGEME
-      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000} # CHANGEME: generate via `openssl rand -hex 32`
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000} # CHANGEME
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
       LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
       CLICKHOUSE_MIGRATION_URL: ${CLICKHOUSE_MIGRATION_URL:-clickhouse://clickhouse:9000}
@@ -98,8 +216,8 @@ services:
       CLICKHOUSE_USER: ${CLICKHOUSE_USER:-clickhouse}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse} # CHANGEME
     volumes:
-      - langfuse_clickhouse_data:/var/lib/clickhouse
-      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+      - chatbot_famaf_langfuse_clickhouse_data:/var/lib/clickhouse
+      - chatbot_famaf_langfuse_clickhouse_logs:/var/log/clickhouse-server
     ports:
       - 127.0.0.1:8123:8123
       - 127.0.0.1:9000:9000
@@ -116,7 +234,6 @@ services:
     image: cgr.dev/chainguard/minio
     restart: always
     entrypoint: sh
-    # create the 'langfuse' bucket before starting the service
     command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio}
@@ -127,7 +244,7 @@ services:
     networks:
       - observability
     volumes:
-      - langfuse_minio_data:/data
+      - chatbot_famaf_langfuse_minio_data:/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 1s
@@ -138,7 +255,6 @@ services:
   redis:
     image: docker.io/redis:7
     restart: always
-    # CHANGEME: row below to secure redis password
     command: >
       --requirepass ${REDIS_AUTH:-myredissecret}
       --maxmemory-policy noeviction
@@ -171,18 +287,32 @@ services:
     networks:
       - observability
     volumes:
-      - langfuse_postgres_data:/var/lib/postgresql/data
+      - chatbot_famaf_langfuse_postgres_data:/var/lib/postgresql/data
 
+# ============================================================
+# VOLUMES
+# ============================================================
 volumes:
-  langfuse_postgres_data:
+  # n8n
+  chatbot_famaf_n8n_data:
+  chatbot_famaf_traefik_data:
+  # admin panel
+  chatbot_famaf_mongo:
+  # langfuse
+  chatbot_famaf_langfuse_postgres_data:
     driver: local
-  langfuse_clickhouse_data:
+  chatbot_famaf_langfuse_clickhouse_data:
     driver: local
-  langfuse_clickhouse_logs:
+  chatbot_famaf_langfuse_clickhouse_logs:
     driver: local
-  langfuse_minio_data:
+  chatbot_famaf_langfuse_minio_data:
     driver: local
 
+# ============================================================
+# NETWORKS
+# ============================================================
 networks:
   observability:
-    external: true
+    driver: bridge
+  app-network:
+    driver: bridge

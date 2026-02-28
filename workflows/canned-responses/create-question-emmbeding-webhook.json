@@ -1,0 +1,228 @@
+{
+  "name": "create-question-emmbeding",
+  "nodes": [
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.content }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "answer",
+                "value": "={{ $json.answer.content }}"
+              },
+              {
+                "name": "category",
+                "value": "={{ $json.answer.category }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        240
+      ],
+      "id": "6789d954-4ff0-433f-8dee-ad0392806c74",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "google-gemini-embedding-001-3072",
+          "mode": "list",
+          "cachedResultName": "google-gemini-embedding-001-3072"
+        },
+        "options": {
+          "clearNamespace": true,
+          "pineconeNamespace": "test_docker_unified "
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        0
+      ],
+      "id": "604c295c-49b9-4ca4-856f-26f8a2f21ad5",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "pgLyiErf4OBvu0aO",
+          "name": "PineconeApi unc"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        832,
+        224
+      ],
+      "id": "396e2470-bd47-4e27-bc65-c3732a0b4b2d",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "D2jO7HgfFHvnY88q",
+          "name": "Gemini(unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.FAST_API_URL }}/api/questions?all=true\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4eaa67d5-9d5f-4748-96ea-c6b60620d9b5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "questions",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "fe04a35d-95f1-48e4-b046-d8cff910466c",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4f8364bd-88dc-41b4-8bb2-cd0ba547bf92",
+              "name": "FAST_API_URL",
+              "value": "http://fastapi-admin-panel:8000",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ec42c383-281c-4612-9be9-c7258bd6aa88",
+      "name": "configurar url"
+    },
+    {
+      "parameters": {
+        "path": "export-to-pinecone",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        0
+      ],
+      "id": "f5b92d96-57ce-4f69-a014-4a4bf9eefdad",
+      "name": "Webhook",
+      "webhookId": "74270830-bbc5-48b8-9947-fa773b904ef8"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "configurar url": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "configurar url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "98e12074-bd92-4a10-ac3d-e86585e01051",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0d5d2172063a89ffb23af4bef2de72811cb593a669e5fe5fabaa7ac3b40951f8"
+  },
+  "id": "modziefYvSZKAE2J",
+  "tags": []
+}

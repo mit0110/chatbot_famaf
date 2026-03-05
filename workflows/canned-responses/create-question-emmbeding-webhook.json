@@ -4,17 +4,17 @@
     {
       "parameters": {
         "jsonMode": "expressionData",
-        "jsonData": "={{ $json.content }}",
+        "jsonData": "={{ $json['body.questions'].content }}",
         "options": {
           "metadata": {
             "metadataValues": [
               {
                 "name": "answer",
-                "value": "={{ $json.answer.content }}"
+                "value": "={{ $json['body.questions'].answer.content }}"
               },
               {
                 "name": "category",
-                "value": "={{ $json.answer.category }}"
+                "value": "={{ $json['body.questions'].category }}"
               }
             ]
           }
@@ -65,7 +65,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        832,
+        800,
         224
       ],
       "id": "396e2470-bd47-4e27-bc65-c3732a0b4b2d",
@@ -79,21 +79,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $json.FAST_API_URL }}/api/questions?all=true\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        416,
-        0
-      ],
-      "id": "4eaa67d5-9d5f-4748-96ea-c6b60620d9b5",
-      "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "questions",
+        "fieldToSplitOut": "questions, body.questions",
         "options": {}
       },
       "type": "n8n-nodes-base.splitOut",
@@ -107,29 +93,7 @@
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "4f8364bd-88dc-41b4-8bb2-cd0ba547bf92",
-              "name": "FAST_API_URL",
-              "value": "http://fastapi-admin-panel:8000",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        208,
-        0
-      ],
-      "id": "ec42c383-281c-4612-9be9-c7258bd6aa88",
-      "name": "configurar url"
-    },
-    {
-      "parameters": {
+        "httpMethod": "POST",
         "path": "export-to-pinecone",
         "responseMode": "lastNode",
         "options": {}
@@ -137,7 +101,7 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        16,
+        368,
         0
       ],
       "id": "f5b92d96-57ce-4f69-a014-4a4bf9eefdad",
@@ -169,17 +133,6 @@
         ]
       ]
     },
-    "HTTP Request": {
-      "main": [
-        [
-          {
-            "node": "Split Out",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Split Out": {
       "main": [
         [
@@ -191,22 +144,11 @@
         ]
       ]
     },
-    "configurar url": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Webhook": {
       "main": [
         [
           {
-            "node": "configurar url",
+            "node": "Split Out",
             "type": "main",
             "index": 0
           }
@@ -218,7 +160,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "98e12074-bd92-4a10-ac3d-e86585e01051",
+  "versionId": "cd3d06e3-8adb-40db-8200-e7380caf72d0",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d5d2172063a89ffb23af4bef2de72811cb593a669e5fe5fabaa7ac3b40951f8"

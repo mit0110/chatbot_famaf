@@ -192,7 +192,7 @@
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ejecutando...';
 
         try {
-            const res = await fetch('/admin/run-workflow', { method: 'GET' });
+            const res = await fetch('/admin/run-workflow', { method: 'POST' });
             const data = await res.json();
             if (data.ok) {
                 btn.innerHTML = '✓ Actualización exitosa';

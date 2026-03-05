@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from app.routers.question import _serialize_question
 from app.models.question import Question
 from app.models.category import Category
 from app.utils import (
@@ -16,10 +17,16 @@ from typing import List, Optional
 from io import StringIO
 import httpx
 import os
+import json
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "webhook/export-to-pinecone" 
+
+def _serialize_for_n8n(data):
+    return json.loads(json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o)))
+
 
 @router.get("/", response_class=HTMLResponse)
 async def admin_home(request: Request, q: str = "", category: str = "", page: int = 1):
@@ -204,12 +211,21 @@ async def delete_multiple_questions(
     return RedirectResponse(url="/admin", status_code=303)
 
 
-@router.get("/run-workflow")
+@router.post("/run-workflow")
 async def run_workflow():
     try:
+        questions = await Question.find(fetch_links=True).sort("-created_at").to_list()
+        data = {
+            'status': 'success',
+            'results': len(questions),
+            'questions': [_serialize_question(q) for q in questions]
+        }
+
+        data_clean = _serialize_for_n8n(data)
+        
         print(f"[run-workflow] Llamando a n8n en: {N8N_WEBHOOK_URL}")
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(N8N_WEBHOOK_URL)
+            response = await client.post(N8N_WEBHOOK_URL, json=data_clean)
         if response.status_code == 200:
             return JSONResponse(status_code=200, content={"ok": True, "message": "Workflow iniciado correctamente"})
         else:

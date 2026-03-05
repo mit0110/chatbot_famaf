@@ -1,0 +1,724 @@
+{
+  "name": "embedding_metrics",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT \n  input1.id AS traceId,\n  input1.input AS traceInput,\n  input1.output,\n  input2.id AS datasetItemId,\n  input2.expectedOutput,\n  input2.metadata AS category\nFROM input1\nINNER JOIN input2 \nON input1.input = input2.input",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        768
+      ],
+      "id": "d5bfee4f-a5fa-405b-b97e-2bc7b3c3505e",
+      "name": "Unión por Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Trazas a Evaluar y Valores Esperados",
+        "height": 448,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        608
+      ],
+      "id": "6948d6f0-845f-40f9-8d2c-53cf6140b7b2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "url": "http://langfuse-web:3000/api/public/dataset-items?datasetName=faq_dataset_v1&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -96,
+        864
+      ],
+      "id": "d8c7e763-26c0-40bc-8557-c21a70d69e8c",
+      "name": "Obtener Conjunto de Datos",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        128,
+        864
+      ],
+      "id": "3fcd61cf-9c91-4d28-8ee6-1cd1ad6fb6e3",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "url": "=http://langfuse-web:3000/api/public/traces?name={{ $json.trace_name }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -96,
+        672
+      ],
+      "id": "9cb7abfd-e987-41c8-881a-a64592fed3d3",
+      "name": "Obtener Trazas por su Nombre",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        128,
+        672
+      ],
+      "id": "696e3f7d-b7d0-4cf4-a0bd-ca558acb4645",
+      "name": "Agregar Trazas a un Arreglo"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "trace_name"
+            },
+            {
+              "name": "accuracy_threshold",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        768
+      ],
+      "id": "0c4faa6d-b177-4ef8-80c1-d3c94e96b2b7",
+      "name": "Al ser Ejecutado por Otro Workflow"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1d68e4cb-67d9-4cd2-9cdd-449e002bbb7f",
+              "leftValue": "={{ $json.category }}",
+              "rightValue": "Sin Información",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        1040
+      ],
+      "id": "fb6d9b9d-b570-43bd-a333-419f67d7c290",
+      "name": "¿La respuesta está en la Base de Conocimiento?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        800,
+        1136
+      ],
+      "id": "e11258d1-a4fb-402e-97b2-1b071bfa0a1a",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const pineconeResults = $json.output\nconst found = pineconeResults.find(res => res.answer === $json.expectedOutput);\n\nlet reciprocalRank = 0;\n\nif (found !== undefined) {\n  reciprocalRank = 1 / found.rank;\n}\n\nreturn {\n  json: {\n    reciprocal_rank: reciprocalRank\n  }\n};\n\n/**\n * TODO:\n   * Manejar si no encuentra ningún item.\n */"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        944
+      ],
+      "id": "bef6f49d-8a0a-4840-bbd3-c7c689bce94d",
+      "name": "Calcular Rango Recíproco"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "fd47d589-2716-465a-ad87-2697a65fdc5e",
+              "leftValue": "={{ $json.output[0].score }}",
+              "rightValue": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.accuracy_threshold }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        576,
+        528
+      ],
+      "id": "119b3963-1e46-41fa-b35a-d5ce205a1f10",
+      "name": "¿El bot respondió usando Fallback?"
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "={{ $json.expectedOutput }}",
+        "actualAnswer": "=Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        816,
+        624
+      ],
+      "id": "b24ffe9a-ea9d-43d4-b012-c3be3cd3dc0f",
+      "name": "Evaluación de Accuracy usando Fallback"
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "={{ $json.expectedOutput }}",
+        "actualAnswer": "={{ $json.output[0].answer }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        816,
+        432
+      ],
+      "id": "204de17b-f842-486e-a1c1-efe81340050e",
+      "name": "Evaluación de Accuracy de lo Recuperado"
+    },
+    {
+      "parameters": {
+        "content": "## ✅ Evaluar Recall@1",
+        "height": 432,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        368
+      ],
+      "id": "1d3a3352-8127-4802-9983-1f12f7d648a2",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uLKx0D4QulKxd65P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
+          "cachedResultName": "save_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "traceId": "={{ $('Unión por Consulta').item.json.traceId }}",
+            "datasetItemId": "={{ $('Unión por Consulta').item.json.datasetItemId }}",
+            "trace_name": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
+            "metric_value": "={{ $json.Categorization }}",
+            "metric_name": "=\"Accuracy\""
+          },
+          "matchingColumns": [
+            "traceId",
+            "reciprocal_rank",
+            "datasetItemId",
+            "trace_name"
+          ],
+          "schema": [
+            {
+              "id": "traceId",
+              "displayName": "traceId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "datasetItemId",
+              "displayName": "datasetItemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "trace_name",
+              "displayName": "trace_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_value",
+              "displayName": "metric_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        432
+      ],
+      "name": "Guardar Precisión con lo Recuperado",
+      "id": "d2a7b58c-9f32-427d-b98e-3b75e4d1bbd4"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uLKx0D4QulKxd65P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
+          "cachedResultName": "save_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "traceId": "={{ $('Unión por Consulta').item.json.traceId }}",
+            "datasetItemId": "={{ $('¿El bot respondió usando Fallback?').item.json.datasetItemId }}",
+            "trace_name": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
+            "metric_value": "={{ $json.Categorization }}",
+            "metric_name": "=\"Accuracy\""
+          },
+          "matchingColumns": [
+            "traceId",
+            "reciprocal_rank",
+            "datasetItemId",
+            "trace_name"
+          ],
+          "schema": [
+            {
+              "id": "traceId",
+              "displayName": "traceId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "datasetItemId",
+              "displayName": "datasetItemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "trace_name",
+              "displayName": "trace_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_value",
+              "displayName": "metric_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1040,
+        624
+      ],
+      "name": "Guardar Precisión con Fallback",
+      "id": "a81e0d45-f15b-4c00-8c68-c62f6b26717f"
+    },
+    {
+      "parameters": {
+        "content": "## ✅ Evaluar MRR\n* Descarta las preguntas que no tienen respuestas en la base de conocimiento.",
+        "height": 432,
+        "width": 720,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        512,
+        848
+      ],
+      "id": "6dc91d23-8be3-4544-8753-762e377055d4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "uLKx0D4QulKxd65P",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/uLKx0D4QulKxd65P",
+          "cachedResultName": "save_metrics"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "traceId": "={{ $('Unión por Consulta').item.json.traceId }}",
+            "datasetItemId": "={{ $('Unión por Consulta').item.json.datasetItemId }}",
+            "trace_name": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}",
+            "metric_name": "=\"Reciprocal rank\"",
+            "metric_value": "={{ $json.reciprocal_rank }}"
+          },
+          "matchingColumns": [
+            "traceId",
+            "reciprocal_rank",
+            "datasetItemId",
+            "trace_name"
+          ],
+          "schema": [
+            {
+              "id": "traceId",
+              "displayName": "traceId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "datasetItemId",
+              "displayName": "datasetItemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "trace_name",
+              "displayName": "trace_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "metric_name",
+              "displayName": "metric_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "metric_value",
+              "displayName": "metric_value",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        944
+      ],
+      "name": "Guardar Término MRR",
+      "id": "7d03bd36-4e37-4532-be33-f36cc7ea42b3"
+    }
+  ],
+  "pinData": {
+    "Al ser Ejecutado por Otro Workflow": [
+      {
+        "json": {
+          "trace_name": "embedding-prueba-prueba-v3",
+          "accuracy_threshold": 0.73
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Unión por Consulta": {
+      "main": [
+        [
+          {
+            "node": "¿La respuesta está en la Base de Conocimiento?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "¿El bot respondió usando Fallback?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Obtener Trazas por su Nombre": {
+      "main": [
+        [
+          {
+            "node": "Agregar Trazas a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Trazas a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Al ser Ejecutado por Otro Workflow": {
+      "main": [
+        [
+          {
+            "node": "Obtener Trazas por su Nombre",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿La respuesta está en la Base de Conocimiento?": {
+      "main": [
+        [
+          {
+            "node": "Calcular Rango Recíproco",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calcular Rango Recíproco": {
+      "main": [
+        [
+          {
+            "node": "Guardar Término MRR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿El bot respondió usando Fallback?": {
+      "main": [
+        [
+          {
+            "node": "Evaluación de Accuracy de lo Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Evaluación de Accuracy usando Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluación de Accuracy usando Fallback": {
+      "main": [
+        [
+          {
+            "node": "Guardar Precisión con Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluación de Accuracy de lo Recuperado": {
+      "main": [
+        [
+          {
+            "node": "Guardar Precisión con lo Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6b476b56-621d-4a3e-82c8-c19f3de14a80",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "97A7FOsgMlh45mLS",
+  "tags": []
+}

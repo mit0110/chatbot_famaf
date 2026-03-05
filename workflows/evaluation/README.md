@@ -29,4 +29,3 @@ Para realizar experimentos controlados y visualizar correctamente las métricas 
     * Ubica el nodo **"Enlazar con el Dataset en LangFuse vía API"**.
     * Actualiza el parámetro `run_name` en el JSON para diferenciarlo del run base (p. ej. `run-threshold-0.79-v1`).
 
----

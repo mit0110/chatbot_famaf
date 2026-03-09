@@ -2,6 +2,9 @@
 
 Se generalizaron las evaluaciones para permitir definir, desde el nodo de configuración, los principales parámetros del proceso de evaluación. Esto incluye el **dataset a evaluar** (`dataset`), la **URL de Langfuse** (`langfuse_host_url`) lo que permite alternar fácilmente entre una instancia local o en la nube y el **nombre de las trazas** (`trace_name`), que además se utiliza como nombre del *dataset run* asociado a la evaluación.
 
+> ⚠️ **Nota sobre Langfuse Cloud**  
+>  Si se utiliza **Langfuse Cloud**, es necesario activar el nodo **Esperar 20 Segundos** que se encuentra al final de cada evaluador. Este nodo introduce una pequeña pausa entre la carga de una traza y otra para evitar superar el **rate limit de carga** de Langfuse Cloud durante las evaluaciones.
+
 ## Generadores de trazas
 
 Los siguientes nodos permiten generar las trazas necesarias para evaluar distintas versiones de Scored-Gated-RAG.

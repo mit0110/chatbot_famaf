@@ -43,7 +43,7 @@
       "typeVersion": 1,
       "position": [
         1216,
-        112
+        160
       ],
       "id": "7b5b72a0-354a-4cc9-a500-e063a68ef64e",
       "name": "Sticky Note1"
@@ -253,7 +253,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1808,
+        1760,
         464
       ],
       "id": "6d39610f-ed3e-4bfa-b99a-ca7380a7e103",
@@ -271,7 +271,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        1728,
+        1680,
         208
       ],
       "id": "c452d8cf-fbd8-4d16-9975-3d0eba1038a1",
@@ -307,7 +307,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1488,
+        1440,
         192
       ],
       "id": "16f5a305-fb7e-4917-93a2-2ed777b68a4b",
@@ -372,7 +372,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        1712,
+        1664,
         480
       ],
       "id": "e8d47bde-ee3e-477a-ae8a-418f66853387",
@@ -391,25 +391,12 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2080,
+        2032,
         208
       ],
       "id": "3d3cdd68-1153-46f3-a6ac-870076518529",
       "name": "Wait",
       "webhookId": "12abf1ea-a9ed-4651-ba39-e8ee88dd237d"
-    },
-    {
-      "parameters": {
-        "maxItems": 3
-      },
-      "type": "n8n-nodes-base.limit",
-      "typeVersion": 1,
-      "position": [
-        1248,
-        192
-      ],
-      "id": "8c507b2e-33ca-436f-99b0-3aef5b8514d4",
-      "name": "Limit"
     },
     {
       "parameters": {
@@ -419,7 +406,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmOllama",
       "typeVersion": 1,
       "position": [
-        1824,
+        1776,
         640
       ],
       "id": "63c24860-095f-488b-81d1-83a191e479e3",
@@ -448,7 +435,7 @@
       "main": [
         [
           {
-            "node": "Limit",
+            "node": "send to evaluation",
             "type": "main",
             "index": 0
           }
@@ -644,17 +631,6 @@
         ]
       ]
     },
-    "Limit": {
-      "main": [
-        [
-          {
-            "node": "send to evaluation",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ollama Model": {
       "ai_languageModel": [
         [
@@ -673,7 +649,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "430cf65b-d68d-4042-9e1d-535d4626daa4",
+  "versionId": "3c847bf4-47ed-4383-9b7d-1cfde9bab96e",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "451e310e95c8355352e14d312f5b100ab5cf21ce8e254fe18bad5ff98803cdd1"

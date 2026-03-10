@@ -10,10 +10,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        704,
-        288
+        1056,
+        192
       ],
-      "id": "0ffd88d6-6953-48fb-9adc-b45f502fa9e5",
+      "id": "603aea7a-4641-474f-a038-33b76ae1ca16",
       "name": "Unión por Consulta"
     },
     {
@@ -26,26 +26,26 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -128,
-        112
+        224,
+        16
       ],
-      "id": "daa653f2-b2c6-460a-a35c-f6bf6c5f0556",
+      "id": "6176f059-6300-434f-99c6-0c12a9c4b748",
       "name": "Sticky Note"
     },
     {
       "parameters": {
         "content": "## ⚙️ Evaluación",
         "height": 608,
-        "width": 950,
+        "width": 1158,
         "color": 6
       },
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        864,
-        208
+        1216,
+        112
       ],
-      "id": "1beb8f40-570a-46dd-997f-8cb15b98ff78",
+      "id": "7b5b72a0-354a-4cc9-a500-e063a68ef64e",
       "name": "Sticky Note1"
     },
     {
@@ -58,10 +58,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1840,
-        112
+        2400,
+        16
       ],
-      "id": "d340961b-435c-42ae-9403-2415317977f3",
+      "id": "b9c0c2f1-289c-4353-a9a3-058e15c1d432",
       "name": "Sticky Note2"
     },
     {
@@ -74,10 +74,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -144,
-        560
+        208,
+        464
       ],
-      "id": "d141891f-d428-4aa1-970d-a5da3561e9d8",
+      "id": "1da895e1-9d48-48e9-9ace-c0d83090e2d0",
       "name": "Sticky Note3"
     },
     {
@@ -90,16 +90,16 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        256,
-        384
+        608,
+        288
       ],
-      "id": "4985bd83-85b5-45b9-9ee8-c4868015fadd",
+      "id": "df2713e2-32b9-4100-af2c-8ee8e9e0b7ed",
       "name": "Obtener Conjunto de Datos",
       "executeOnce": false,
       "credentials": {
         "httpBasicAuth": {
-          "id": "HTVaRblu302CrjUN",
-          "name": "Langfuse credential local"
+          "id": "Ro1aPwBRmKy7iBE6",
+          "name": "Langfuse basic auth"
         }
       }
     },
@@ -127,7 +127,7 @@
             },
             {
               "name": "runName",
-              "value": "={{ $('Al ser Ejecutado por Otro Workflow').item.json.trace_name }}"
+              "value": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}"
             },
             {
               "name": "traceId",
@@ -140,15 +140,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        2688,
-        288
+        3248,
+        192
       ],
-      "id": "fa72c321-3e93-479e-b6c3-4577420f2f38",
+      "id": "82363bfc-d24d-40d8-a064-6e17e2abcb18",
       "name": "Enlazar con el Dataset en LangFuse vía API",
       "credentials": {
         "httpBasicAuth": {
-          "id": "HTVaRblu302CrjUN",
-          "name": "Langfuse credential local"
+          "id": "Ro1aPwBRmKy7iBE6",
+          "name": "Langfuse basic auth"
         }
       }
     },
@@ -159,10 +159,10 @@
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
       "position": [
-        -256,
-        192
+        96,
+        96
       ],
-      "id": "7ec3cbe8-b140-4ea8-8af8-32d5cf28f9e5",
+      "id": "f6afa911-3860-4f88-b3fb-bb3b9886688d",
       "name": "Al ser Ejecutado por Otro Workflow"
     },
     {
@@ -173,10 +173,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        480,
-        384
+        832,
+        288
       ],
-      "id": "de91969d-0c24-495e-be7d-e2a7ec352cc9",
+      "id": "5a97718d-81a3-4089-b05e-7fbcc31aff07",
       "name": "Agregar Items a un Arreglo"
     },
     {
@@ -189,16 +189,16 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        272,
-        192
+        624,
+        96
       ],
-      "id": "808c7bea-146f-48ed-abab-829a44e09527",
+      "id": "07c54344-04f3-4fc4-9d17-15e85b6bc7f7",
       "name": "Obtener Trazas por su Nombre",
       "executeOnce": false,
       "credentials": {
         "httpBasicAuth": {
-          "id": "HTVaRblu302CrjUN",
-          "name": "Langfuse credential local"
+          "id": "Ro1aPwBRmKy7iBE6",
+          "name": "Langfuse basic auth"
         }
       }
     },
@@ -210,10 +210,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        480,
-        192
+        832,
+        96
       ],
-      "id": "0045e4f8-35a4-44d0-8d37-6322b2424c58",
+      "id": "dc1dd4d8-ede4-4c30-b47e-d294628acdad",
       "name": "Agregar Trazas a un Arreglo"
     },
     {
@@ -224,10 +224,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        2000,
-        272
+        2560,
+        176
       ],
-      "id": "c0d2bfd1-156f-465b-a807-7aca10475730",
+      "id": "7dcd5a2b-1bda-48bf-96d6-8cfeadd7298f",
       "name": "Loop Over Items"
     },
     {
@@ -237,10 +237,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        2912,
-        288
+        3472,
+        192
       ],
-      "id": "5fdb6e95-822c-46d9-a706-5009992fd2b6",
+      "id": "9d20e54f-2da9-4789-afb3-e7260c81723d",
       "name": "Esperar 20 Segundos",
       "webhookId": "a7d6dc20-cdc0-4308-9047-6ad8f3b78fa6",
       "disabled": true
@@ -253,37 +253,11 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1248,
-        560
+        1808,
+        464
       ],
-      "id": "5d698063-316d-4930-a62c-a6eceeb30fde",
+      "id": "6d39610f-ed3e-4bfa-b99a-ca7380a7e103",
       "name": "Structured Output Parser"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "gemma3:4b",
-          "mode": "list",
-          "cachedResultName": "gemma3:4b"
-        },
-        "builtInTools": {},
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        1232,
-        688
-      ],
-      "id": "84c09116-33d2-4d20-b402-d5849b6dbc8d",
-      "name": "OpenAI Chat Model2",
-      "credentials": {
-        "openAiApi": {
-          "id": "xMKlkv0iNnIGbw5j",
-          "name": "OpenAi for models"
-        }
-      }
     },
     {
       "parameters": {
@@ -297,10 +271,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        1168,
-        304
+        1728,
+        208
       ],
-      "id": "49df28b4-d1ac-42a9-8060-b10b18693fa1",
+      "id": "c452d8cf-fbd8-4d16-9975-3d0eba1038a1",
       "name": "Evaluation WildBench"
     },
     {
@@ -320,10 +294,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        80,
-        384
+        432,
+        288
       ],
-      "id": "435108a2-cacd-4caa-88ef-99fd6bdc5bef",
+      "id": "5403094a-44bc-453d-b438-8400bf40c43c",
       "name": "set checklist for wildbench"
     },
     {
@@ -333,24 +307,24 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        928,
-        288
+        1488,
+        192
       ],
-      "id": "b16318d6-b8d5-40bf-b5cd-2e6b30c25a4a",
+      "id": "16f5a305-fb7e-4917-93a2-2ed777b68a4b",
       "name": "send to evaluation"
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const strengthsRaw = $('Merge').item.json.output.strengths\nconst weaknessesRaw = $('Merge').item.json.output.weaknesses\n\nconst clean = (text) =>\n  String(text)\n    .replace(/[\"']/g, \"\")   // elimina \" y '\n    .replace(/\\n/g, \" \")    // elimina saltos de línea\n    .trim()\n\nconst strengths = clean(strengthsRaw)\nconst weaknesses = clean(weaknessesRaw)\n\nreturn {\n  json: {\n    metadata: {\n      strengths,\n      weaknesses\n    }\n  }\n}\n"
+        "jsCode": "const strengthsRaw = $json.output.strengths\nconst weaknessesRaw = $json.output.weaknesses\n\nconst clean = (text) =>\n  String(text)\n    .replace(/[\"']/g, \"\")   // elimina \" y '\n    .replace(/\\n/g, \" \")    // elimina saltos de línea\n    .trim()\n\nconst strengths = clean(strengthsRaw)\nconst weaknesses = clean(weaknessesRaw)\n\nreturn {\n  json: {\n    metadata: {\n      strengths,\n      weaknesses\n    }\n  }\n}\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2240,
-        288
+        2800,
+        192
       ],
-      "id": "c739548f-5cb1-4fd7-bb99-80da0fcbfdaf",
+      "id": "1f0c760d-6df6-479c-bfd9-10d4978169fd",
       "name": "format wildbench comment"
     },
     {
@@ -370,42 +344,42 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"WildBench\",\n  \"value\": {{ $('Merge').item.json.output.score }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}\n",
+        "jsonBody": "={\n  \"name\": \"WildBench\",\n  \"value\": {{ $('send to evaluation').item.json.output.score }},\n  \"metadata\": {{ JSON.stringify($json.metadata) }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        2464,
-        288
+        3024,
+        192
       ],
-      "id": "b874913c-cf81-4f58-bd39-71f314eb0d3a",
+      "id": "48a8337e-dd2e-4335-9ace-c71ce1192198",
       "name": "Registrar wildbench en LangFuse vía API",
       "alwaysOutputData": false,
       "executeOnce": false,
       "credentials": {
         "httpBasicAuth": {
-          "id": "HTVaRblu302CrjUN",
-          "name": "Langfuse credential local"
+          "id": "Ro1aPwBRmKy7iBE6",
+          "name": "Langfuse basic auth"
         }
       }
     },
     {
       "parameters": {
-        "model": "llama4:scout",
+        "model": "gemma3:27b",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
       "typeVersion": 1,
       "position": [
-        1152,
-        576
+        1712,
+        480
       ],
-      "id": "39b67a53-97af-410a-b88c-ba16f7658bc9",
+      "id": "e8d47bde-ee3e-477a-ae8a-418f66853387",
       "name": "Ollama Chat Model",
       "credentials": {
         "ollamaApi": {
-          "id": "5hfG2JZuvyqD0soc",
+          "id": "HZdgSnVc1iwhcbBC",
           "name": "Ollama account"
         }
       }
@@ -417,19 +391,52 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1520,
-        304
+        2080,
+        208
       ],
-      "id": "8a2ae685-8d63-4208-94f9-1fec4ca8840e",
+      "id": "3d3cdd68-1153-46f3-a6ac-870076518529",
       "name": "Wait",
       "webhookId": "12abf1ea-a9ed-4651-ba39-e8ee88dd237d"
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1248,
+        192
+      ],
+      "id": "8c507b2e-33ca-436f-99b0-3aef5b8514d4",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "model": "gemma3:4b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        640
+      ],
+      "id": "63c24860-095f-488b-81d1-83a191e479e3",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "HZdgSnVc1iwhcbBC",
+          "name": "Ollama account"
+        }
+      }
     }
   ],
   "pinData": {
     "Al ser Ejecutado por Otro Workflow": [
       {
         "json": {
-          "trace_name": "scored-gated-bge-m3(0.7277)-2",
+          "trace_name": "test-mili",
           "dataset": "faq_dataset_v1",
           "langfuse_host_url": "http://langfuse-web:3000"
         }
@@ -441,7 +448,7 @@
       "main": [
         [
           {
-            "node": "send to evaluation",
+            "node": "Limit",
             "type": "main",
             "index": 0
           }
@@ -553,17 +560,6 @@
         ]
       ]
     },
-    "OpenAI Chat Model2": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Evaluation WildBench": {
       "main": [
         [
@@ -647,23 +643,47 @@
           }
         ]
       ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "send to evaluation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
   },
-  "versionId": "deeef3b1-43d0-4b0f-ae58-efe5be470c83",
+  "versionId": "430cf65b-d68d-4042-9e1d-535d4626daa4",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+    "instanceId": "451e310e95c8355352e14d312f5b100ab5cf21ce8e254fe18bad5ff98803cdd1"
   },
-  "id": "gqSfUjhYZZE5Ivf8",
+  "id": "4nwDcBEvZIfXApH6",
   "tags": [
     {
-      "updatedAt": "2025-12-02T12:59:17.987Z",
-      "createdAt": "2025-12-02T12:59:17.987Z",
-      "id": "rzxlwRJmYPOYq1s2",
+      "updatedAt": "2026-02-25T15:14:35.595Z",
+      "createdAt": "2026-02-25T15:14:35.595Z",
+      "id": "orzRpfpxh15qiBvP",
       "name": "FAMAF"
     }
   ]

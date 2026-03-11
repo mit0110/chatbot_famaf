@@ -1,0 +1,1017 @@
+{
+  "name": "generate_traces_score-gated-rag-v1",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🤖 Generar Respuestas",
+        "height": 784,
+        "width": 2112,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        176
+      ],
+      "id": "c225accd-12c8-416f-b57d-21d9a1c82afc",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## 👣 Guardar Traza",
+        "height": 464,
+        "width": 976,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        288
+      ],
+      "id": "f3847ddb-e00b-4005-9489-e361f61ac335",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "trace_name",
+              "value": "={{ $('Configuracion').first().json.trace_name }}",
+              "type": "string"
+            },
+            {
+              "id": "b235fe41-104a-4fab-8dac-f68ca9a962d8",
+              "name": "response",
+              "value": "={{ $json.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2224,
+        368
+      ],
+      "id": "fe122941-d6c3-4e8d-83da-11ccbf315565",
+      "name": "Establecer Nombre de las Trazas"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Ciclo sobre Todas las Entradas').first().json.input }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - \"answer\": texto de la respuesta\n   - \"score\": valor numérico de similitud (entre 0 y 1)\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- violencia de género\n- acoso\n- conflictos interpersonales graves\n- situaciones sociales problemáticas dentro de la facultad\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73:\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve EXACTAMENTE el texto de la respuesta seleccionada.\n  - No modifiques ni una palabra.\n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response\": \"<respuesta exacta devuelta por Pinecone>\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No agregues explicaciones.\n- No incluyas texto fuera del JSON.\n- No reformules ni edites las respuestas.\n- Devuelve siempre un JSON válido.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        960,
+        368
+      ],
+      "id": "4e25a327-409a-4c24-a170-9db573d30da1",
+      "name": "Agente RAG",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=123456789"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        608
+      ],
+      "id": "242a8530-dfa3-48ef-b07b-13745bcb8087",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response\": {\n      \"type\": \"string\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        624
+      ],
+      "id": "7192caae-de0f-4642-a354-e101f668c7f9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "mistral-small3.2:24b",
+          "mode": "list",
+          "cachedResultName": "mistral-small3.2:24b"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1104,
+        800
+      ],
+      "id": "02e3e9a6-a15a-47f1-92a0-73254f8cfc4e",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1328,
+        352
+      ],
+      "id": "3284a3f2-ba05-43fb-a0fb-5d7443da5a4d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc61d60e-943c-4b6c-9eaa-04d0cfffebe3",
+              "name": "response",
+              "value": "Disculpa, por el momento no cuento con información específica sobre esa consulta.  Para obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:  - despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones. - usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc. - sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado. - nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.  Ellos van a poder orientarte mejor según tu situación.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        192
+      ],
+      "id": "5d8dc67a-d72a-483c-9e04-e5fc9ff9bcd5",
+      "name": "Fallback"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "faq-embeddings",
+          "mode": "list",
+          "cachedResultName": "faq-embeddings"
+        },
+        "prompt": "={{ $('Ciclo sobre Todas las Entradas').first().json.input }}",
+        "options": {
+          "pineconeNamespace": "create-question-emmbeding-extended"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        368
+      ],
+      "id": "23e85943-6854-444c-91af-86dad9e81824",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        464,
+        576
+      ],
+      "id": "e61edc5f-594f-46f4-b399-311a35b38200",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5281c6b9-2986-49dd-956b-ee92b4e40fb1",
+              "name": "response",
+              "value": "Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        368
+      ],
+      "id": "92d46bfd-54ce-4b1a-ac69-2beea3b45809",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "48400ac0-a270-4f22-abb9-d918c2797190",
+              "name": "response",
+              "value": "={{ $json.output.response }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        576
+      ],
+      "id": "4637f9df-0264-4f97-946f-3d7979aec0e4",
+      "name": "Canned-response"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.Answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        368
+      ],
+      "id": "d6a4213a-f052-4661-99f8-6189d985bd5a",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9e8f1f53-1345-4031-894a-79c5be3cb8d6",
+              "name": "dataset",
+              "value": "faq_dataset_v1",
+              "type": "string"
+            },
+            {
+              "id": "a1c8dbed-af4d-4d7a-91d0-a75b62643158",
+              "name": "threshold",
+              "value": "0.7277",
+              "type": "string"
+            },
+            {
+              "id": "b6c28089-1a5d-42d3-a4a2-6c0abe373d95",
+              "name": "trace_name",
+              "value": "scored-gated-rag-qwen3-embedding:8b(0.7277)",
+              "type": "string"
+            },
+            {
+              "id": "295f7a0d-01f0-423d-bf6e-a08819552222",
+              "name": "langfuse_host_url",
+              "value": "http://langfuse-web:3000",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        352
+      ],
+      "id": "a234e542-e540-441d-8a11-8aa3cbe73678",
+      "name": "Configuracion",
+      "notesInFlow": true,
+      "notes": "Descripción de parámetros\n\ndataset: nombre del dataset cargado en Langfuse sobre el cual se realiza la evaluación.\nEjemplo: faq_dataset_v1\n\nthreshold: valor de corte a partir del cual el modelo activa el fallback.\nEs importante ajustarlo según el modelo de embedding utilizado.\nEjemplo: 0.7277\n\ntrace_name: nombre asignado a las trazas y al experiment run asociado al dataset.\nEjemplo: scored-gated-rag-qwen3-embedding:8b(0.7277)\n\nlangfuse_host_url: URL del servidor de Langfuse. Puede ser una instancia en la nube o local.\nEjemplos:\n\nCloud: https://cloud.langfuse.com\n\nLocal: http://langfuse-web:3000"
+    },
+    {
+      "parameters": {
+        "content": "## 🛠 Configurar parametros del experimento",
+        "height": 272,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        256
+      ],
+      "id": "658f6c40-7d5e-414d-b5b0-f43081daeabc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 🔴 Trigger",
+        "height": 208,
+        "width": 224,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1504,
+        272
+      ],
+      "id": "ad24138f-ffcd-4667-aaf3-adc0c0f01e83",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Conjunto de Datos de Prueba\n",
+        "height": 272,
+        "width": 512,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        256
+      ],
+      "id": "098bb6c4-f49d-4b5f-80b4-6586939f35eb",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "aebad5af-b927-4ad2-bef2-8fd8be31ea27",
+              "name": "trace_name",
+              "value": "={{ $('Establecer Nombre de las Trazas').first().json.trace_name }}",
+              "type": "string"
+            },
+            {
+              "id": "66bf71c1-8e33-4e5d-bac9-5a2eddb8413b",
+              "name": "dataset",
+              "value": "={{ $('Configuracion').first().json.dataset }}",
+              "type": "string"
+            },
+            {
+              "id": "786c5411-2a23-4b8f-b39a-98837c64c285",
+              "name": "langfuse_host_url",
+              "value": "={{ $('Configuracion').first().json.langfuse_host_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        -64
+      ],
+      "id": "d6646ee9-5461-4309-a4b1-c03705bcc15a",
+      "name": "Retornar configuracion para subworkflow",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Llamar a Evaluación\n",
+        "height": 240,
+        "width": 880,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -128
+      ],
+      "id": "5efdc7a2-ce59-4e63-84be-a13436355f43",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "pNGzfIiPNQZdvH4j",
+          "cachedResultName": "evaluation_metrics_v2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        880,
+        -64
+      ],
+      "id": "fb362459-23db-4a01-a1ca-9c2be6f070a4",
+      "name": "Ejecutar sub-workflow 'evaluation_metrics'1",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -64
+      ],
+      "id": "61044ddd-0008-4725-a77b-1e2108aecf9e",
+      "name": "Esperar 2 Minutos1",
+      "webhookId": "846a0cf6-f490-46ca-a057-f82658245087",
+      "executeOnce": false,
+      "retryOnFail": false
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1440,
+        352
+      ],
+      "id": "75588951-2419-402a-a3dc-e1f1ba2d8575",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        32,
+        352
+      ],
+      "id": "7a62fb9a-459d-4855-a973-9a7357752e9b",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        864,
+        592
+      ],
+      "id": "770dafd6-4bf9-49ba-88aa-703c2851743d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 3
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        352
+      ],
+      "id": "35020adc-e068-44de-b6d8-68514cd4820b",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        272,
+        368
+      ],
+      "id": "a7c645fb-ca87-4302-9c51-abde73526189",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Tiempos en Nanosegundos\nconst startTime = $('Establecer Tiempo Inicial de la Consulta').first().json.start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// 2. Generamos los IDs\nconst crypto = require('crypto')\nconst uuidTrace = crypto.randomUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = crypto.randomUUID();\n\n// 3. OpenTelemetry exige Hexadecimal seguido sin guiones\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time_nano: startTime,\n    end_time_nano: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        368
+      ],
+      "id": "dcbb8d94-9af0-4294-86d1-b0e9e0018bd5",
+      "name": "Generar Datos Necesarios para OTLP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuracion').first().json.langfuse_host_url }}/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"{{ $('Establecer Nombre de las Trazas').first().json.trace_name }}\",\n              \"kind\": 2,\n              \"startTimeUnixNano\": \"{{ $json.start_time_nano }}\",\n              \"endTimeUnixNano\": \"{{ $json.end_time_nano }}\",\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Establecer Nombre de las Trazas').first().json.response) }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2704,
+        528
+      ],
+      "id": "5fe1844d-50cb-461e-9fad-c0723b3d5f32",
+      "name": "Registrar Traza en LangFuse usando OTLP",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        352
+      ],
+      "id": "fd9afe50-bc45-40e9-a59a-9578e7ce3e88",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Configuracion').first().json.langfuse_host_url }}/api/public/dataset-items?datasetName={{ $('Configuracion').first().json.dataset }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -752,
+        352
+      ],
+      "id": "b2b8045f-ef3c-48e1-ae9f-63be661350e4",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        },
+        "httpBearerAuth": {
+          "id": "5213Ft6qNH6K9KAn",
+          "name": "Bearer Auth token ollama"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Establecer Nombre de las Trazas": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned-response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned-response": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fallback": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre de las Trazas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuracion": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retornar configuracion para subworkflow": {
+      "main": [
+        [
+          {
+            "node": "Esperar 2 Minutos1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 2 Minutos1": {
+      "main": [
+        [
+          {
+            "node": "Ejecutar sub-workflow 'evaluation_metrics'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Configuracion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [
+          {
+            "node": "Retornar configuracion para subworkflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Registrar Traza en LangFuse usando OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Traza en LangFuse usando OTLP": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7cf7ae56-c8d4-48e6-ae2f-a39e91a8524c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "aW2z8pLyJeX6aLzs",
+  "tags": [
+    {
+      "updatedAt": "2025-12-02T12:59:17.987Z",
+      "createdAt": "2025-12-02T12:59:17.987Z",
+      "id": "rzxlwRJmYPOYq1s2",
+      "name": "FAMAF"
+    }
+  ]
+}

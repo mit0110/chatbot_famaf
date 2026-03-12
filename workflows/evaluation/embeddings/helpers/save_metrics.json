@@ -1,0 +1,159 @@
+{
+  "name": "save_metrics",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "traceId"
+            },
+            {
+              "name": "datasetItemId"
+            },
+            {
+              "name": "trace_name"
+            },
+            {
+              "name": "metric_name"
+            },
+            {
+              "name": "metric_value",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "2d4b6715-1d5e-4799-b678-3655bfb98ae5",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        816,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/scores",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": {{ $json.metric_name }},\n  \"value\": {{ $json.metric_value }},\n  \"traceId\": \"{{ $('Start').item.json.traceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1024,
+        880
+      ],
+      "id": "313eeadb-0e33-4210-b79f-e9f9000c097b",
+      "name": "Registrar Métrica en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/dataset-run-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetItemId",
+              "value": "={{ $('Start').item.json.datasetItemId }}"
+            },
+            {
+              "name": "runName",
+              "value": "=experiment-{{ $('Start').item.json.trace_name }}"
+            },
+            {
+              "name": "traceId",
+              "value": "={{ $('Start').item.json.traceId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1248,
+        880
+      ],
+      "id": "bfcdcecf-af82-40f8-8657-6040a39c4cd3",
+      "name": "Enlazar con el Dataset en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "traceId": "3e13df8c4f5b42fbb7defa53026f043b",
+          "datasetItemId": "fcf598a8-23f2-4c19-954d-e4f2facc9eff",
+          "trace_name": "embedding-google-text-embedding-004-v1",
+          "metric_name": "\"Reciprocal rank\"",
+          "metric_value": 0.5
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Registrar Métrica en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Métrica en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Enlazar con el Dataset en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c2cfcf9f-7f21-438b-ac70-7a6057ee8f58",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "uLKx0D4QulKxd65P",
+  "tags": []
+}

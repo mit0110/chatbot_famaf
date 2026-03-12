@@ -1,0 +1,449 @@
+{
+  "name": "evaluation_metrics_v2",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.langfuse_host_url }}/api/public/scores",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"Accuracy\",\n  \"value\": {{ $('Evaluación de Accuracy').item.json.Categorization }},\n  \"traceId\": \"{{ $('Unión por Consulta').item.json.traceId }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1344,
+        240
+      ],
+      "id": "0c795197-6cb9-4c5f-b49f-b8175e819882",
+      "name": "Registrar Métricas en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT \n  input1.id AS traceId,\n  input1.input,\n  input1.output,\n  input2.id AS datasetItemId,\n  input2.expectedOutput\nFROM input1\nINNER JOIN input2 \nON input1.input = input2.input",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        720,
+        160
+      ],
+      "id": "0be243c8-efb7-414c-a0d3-b61daad229ea",
+      "name": "Unión por Consulta"
+    },
+    {
+      "parameters": {
+        "content": "## ⬇️ Obtener Trazas a Evaluar y Valores Esperados",
+        "height": 432,
+        "width": 640,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "14a4ea7e-ecc8-4907-86d5-ba62a199790c",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ Evaluación",
+        "height": 208,
+        "width": 198,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        896,
+        112
+      ],
+      "id": "dd9ddba0-aea9-40b7-b81f-04da4babb26c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## 💾 Guardado de Puntuaciones",
+        "height": 432,
+        "width": 1104,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        848,
+        0
+      ],
+      "id": "8b60a2f3-83ff-463d-a658-1eb9971c5df0",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Descripción\nObtiene las trazas con el nombre que se usó para guardarlas y el conjunto de datos desde la API, para luego comparar el valor esperado con el valor resultante de la traza.",
+        "height": 112,
+        "width": 976,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        448
+      ],
+      "id": "bb842abc-c961-4cce-9739-2d383ad00495",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.langfuse_host_url }}/api/public/dataset-items?datasetName={{ $json.dataset }}&limit=100 ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        256
+      ],
+      "id": "d97a7ed3-475d-4f7b-80f6-c2ffe904df62",
+      "name": "Obtener Conjunto de Datos",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "setMetrics",
+        "metric": "categorization",
+        "expectedAnswer": "=\"{{ $json.expectedOutput }}\"",
+        "actualAnswer": "=\"{{ $json.output }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.evaluation",
+      "typeVersion": 4.8,
+      "position": [
+        944,
+        160
+      ],
+      "id": "c738b18c-e7c4-4717-a77b-c0fd08748335",
+      "name": "Evaluación de Accuracy"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.langfuse_host_url }}/api/public/dataset-run-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetItemId",
+              "value": "={{ $('Unión por Consulta').item.json.datasetItemId }}"
+            },
+            {
+              "name": "runName",
+              "value": "={{ $('Al ser Ejecutado por Otro Workflow').first().json.trace_name }}"
+            },
+            {
+              "name": "traceId",
+              "value": "={{ $('Unión por Consulta').item.json.traceId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1584,
+        240
+      ],
+      "id": "2ff3ef08-555f-4b85-bf47-c6816dfb0119",
+      "name": "Enlazar con el Dataset en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        160
+      ],
+      "id": "b52f2041-b23c-4d34-8e30-628edf4fd233",
+      "name": "Al ser Ejecutado por Otro Workflow"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        496,
+        256
+      ],
+      "id": "b0f1d209-22c6-40fa-9840-3fbd46705bf0",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.langfuse_host_url }}/api/public/traces?name={{ $json.trace_name }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        64
+      ],
+      "id": "7ca0539d-0c54-46a0-a709-882a06e42bd3",
+      "name": "Obtener Trazas por su Nombre",
+      "executeOnce": false,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "HTVaRblu302CrjUN",
+          "name": "Langfuse credential local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        496,
+        64
+      ],
+      "id": "20572818-a9dc-478b-a665-122e0f71839b",
+      "name": "Agregar Trazas a un Arreglo"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1152,
+        160
+      ],
+      "id": "e7642c1b-2363-4568-82c0-9b235578f31e",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        240
+      ],
+      "id": "87657542-4f0e-4410-b5e4-812569c05334",
+      "name": "Esperar 20 Segundos",
+      "webhookId": "85731d99-767b-4d13-b006-521edfc1e759",
+      "disabled": true
+    }
+  ],
+  "pinData": {
+    "Al ser Ejecutado por Otro Workflow": [
+      {
+        "json": {
+          "trace_name": "testing_new_eval",
+          "dataset": "faq_dataset_v1",
+          "langfuse_host_url": "https://us.cloud.langfuse.com"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Registrar Métricas en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Enlazar con el Dataset en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unión por Consulta": {
+      "main": [
+        [
+          {
+            "node": "Evaluación de Accuracy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluación de Accuracy": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Al ser Ejecutado por Otro Workflow": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Obtener Trazas por su Nombre",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Obtener Trazas por su Nombre": {
+      "main": [
+        [
+          {
+            "node": "Agregar Trazas a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Trazas a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Unión por Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Registrar Métricas en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enlazar con el Dataset en LangFuse vía API": {
+      "main": [
+        [
+          {
+            "node": "Esperar 20 Segundos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Esperar 20 Segundos": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "58d32003-4683-444c-ac9b-301e84b0c0e1",
+  "meta": {
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "pNGzfIiPNQZdvH4j",
+  "tags": [
+    {
+      "updatedAt": "2025-12-02T12:59:17.987Z",
+      "createdAt": "2025-12-02T12:59:17.987Z",
+      "id": "rzxlwRJmYPOYq1s2",
+      "name": "FAMAF"
+    }
+  ]
+}

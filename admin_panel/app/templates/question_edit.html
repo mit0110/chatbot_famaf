@@ -1,0 +1,150 @@
+{% extends "base.html" %} {% block title %}Editar Pregunta{% endblock %} {%
+block content %}
+<h1>Editar Pregunta</h1>
+
+<form
+  action="/admin/edit/{{ question.id }}"
+  method="post"
+  id="editQuestionForm"
+>
+  <div class="mb-3">
+    <label for="content" class="form-label">Pregunta</label>
+    <textarea
+      class="form-control"
+      id="content"
+      name="content"
+      rows="3"
+      required
+    >
+{{ question.content }}</textarea
+    >
+  </div>
+
+  <div class="mb-3">
+    <label for="category" class="form-label">Categoría</label>
+    <div class="input-group">
+      <input
+        type="text"
+        class="form-control"
+        id="category"
+        name="category"
+        list="categoryList"
+        value="{{ question.category }}"
+        required
+        placeholder="Selecciona o escribe una categoría"
+      />
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        id="addCategoryBtn"
+        title="Agregar nueva categoría"
+      >
+        +
+      </button>
+    </div>
+    <datalist id="categoryList">
+      {% for cat in categories %}
+      <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+    </datalist>
+  </div>
+
+  <div class="mb-3">
+    <label for="answer_content" class="form-label">Respuesta</label>
+    <textarea
+      class="form-control"
+      id="answer_content"
+      name="answer_content"
+      rows="4"
+      required
+    >
+{{ question.answer.content if question.answer else '' }}</textarea
+    >
+  </div>
+
+  {% if shared_answer %}
+  <div class="alert alert-warning">
+    <strong>⚠️ Atención:</strong> Esta respuesta está asociada a otras
+    preguntas.
+    <div class="form-check mt-2">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="update_all_answers"
+        id="updateAll"
+        value="yes"
+        checked
+      />
+      <label class="form-check-label" for="updateAll">
+        Actualizar la respuesta para TODAS las preguntas
+      </label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="update_all_answers"
+        id="createNew"
+        value="no"
+      />
+      <label class="form-check-label" for="createNew">
+        Crear una nueva respuesta solo para esta pregunta
+      </label>
+    </div>
+  </div>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+  <a href="/admin" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<script>
+  document
+    .getElementById("addCategoryBtn")
+    .addEventListener("click", async function () {
+      const categoryInput = document.getElementById("category");
+      const currentValue = categoryInput.value.trim();
+
+      if (!currentValue) {
+        alert("Por favor, escribe el nombre de la categoría");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/categories/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: currentValue }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          // Actualizar la datalist con la nueva categoría
+          const categoryList = document.getElementById("categoryList");
+          const existingOption = Array.from(categoryList.options).find(
+            (opt) => opt.value === currentValue,
+          );
+
+          if (!existingOption) {
+            const newOption = document.createElement("option");
+            newOption.value = currentValue;
+            categoryList.appendChild(newOption);
+          }
+
+          alert("Categoría agregada exitosamente");
+        } else {
+          alert(
+            "Error al agregar la categoría: " +
+              (data.message || "Error desconocido"),
+          );
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error al conectar con el servidor");
+      }
+    });
+</script>
+{% endblock %}

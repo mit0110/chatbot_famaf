@@ -1,0 +1,150 @@
+{% extends "base.html" %} {% block title %}Importar CSV{% endblock %} {% block
+content %}
+<h1>Importar Preguntas desde CSV</h1>
+
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Importar Archivo CSV</h5>
+
+      <h6 class="mt-4 mb-3">Formato del archivo CSV</h6>
+      <p>
+        El archivo debe contener las siguientes columnas (separadas por comas):
+      </p>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th>Columna</th>
+            <th>Descripción</th>
+            <th>Ejemplo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Preguntas</strong></td>
+            <td>Pregunta</td>
+            <td>¿Cuál es la capital de Francia?</td>
+          </tr>
+          <tr>
+            <td><strong>Respuesta</strong></td>
+            <td>Respuesta</td>
+            <td>París</td>
+          </tr>
+          <tr>
+            <td><strong>Categoría</strong></td>
+            <td>La categoría de la pregunta</td>
+            <td>Geografía</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="text-muted small">
+        Si una respuesta ya existe en la base de datos, se vinculará
+        automáticamente. Si una categoría no existe, se creará automáticamente.
+      </p>
+
+      <hr />
+
+      <h6 class="mt-4 mb-3">Selecciona el archivo CSV</h6>
+      <form id="csvForm" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="csvFile" class="form-label">Archivo CSV</label>
+          <input
+            type="file"
+            class="form-control"
+            id="csvFile"
+            name="file"
+            accept=".csv"
+            required
+          />
+          <small class="form-text text-muted"
+            >Solo se aceptan archivos .csv</small
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary">Importar</button>
+        <a href="/admin" class="btn btn-secondary">Cancelar</a>
+      </form>
+    </div>
+  </div>
+
+  <div id="resultMessage" class="mt-4" style="display: none">
+    <div id="resultAlert" class="alert" role="alert">
+      <strong id="resultTitle"></strong>
+      <p id="resultText"></p>
+      <div id="errorsList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("csvForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const fileInput = document.getElementById("csvFile");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Por favor selecciona un archivo");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/admin/upload-csv", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        const resultDiv = document.getElementById("resultMessage");
+        const resultAlert = document.getElementById("resultAlert");
+        const resultTitle = document.getElementById("resultTitle");
+        const resultText = document.getElementById("resultText");
+        const errorsList = document.getElementById("errorsList");
+
+        if (data.status === "success") {
+          resultAlert.className = "alert alert-success";
+          resultTitle.textContent = "✓ Éxito";
+          resultText.textContent = data.message;
+
+          if (data.errors && data.errors.length > 0) {
+            errorsList.innerHTML =
+              '<h6 class="mt-3">Errores encontrados:</h6><ul>' +
+              data.errors.map((e) => `<li>${e}</li>`).join("") +
+              "</ul>";
+          } else {
+            errorsList.innerHTML = "";
+          }
+
+          // Limpiar formulario después de 2 segundos
+          setTimeout(() => {
+            fileInput.value = "";
+            // Redirigir al home del admin
+            window.location.href = "/admin";
+          }, 2000);
+        } else {
+          resultAlert.className = "alert alert-danger";
+          resultTitle.textContent = "✗ Error";
+          resultText.textContent = data.message;
+          errorsList.innerHTML = "";
+        }
+
+        resultDiv.style.display = "block";
+      } catch (error) {
+        console.error("Error:", error);
+        const resultDiv = document.getElementById("resultMessage");
+        const resultAlert = document.getElementById("resultAlert");
+        resultAlert.className = "alert alert-danger";
+        document.getElementById("resultTitle").textContent = "✗ Error";
+        document.getElementById("resultText").textContent =
+          "Error al conectar con el servidor";
+        document.getElementById("errorsList").innerHTML = "";
+        resultDiv.style.display = "block";
+      }
+    });
+</script>
+{% endblock %}

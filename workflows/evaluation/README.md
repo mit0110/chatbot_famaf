@@ -1,21 +1,31 @@
 ## 🧪 Configuración de Experimentos y Evaluaciones
 
-Para realizar experimentos controlados y visualizar correctamente las métricas agrupadas en LangFuse, es **obligatorio** actualizar los identificadores de ejecución antes de lanzar cada prueba.
+Para realizar experimentos controlados y visualizar correctamente las métricas agrupadas en Langfuse, es **obligatorio** actualizar los identificadores de ejecución antes de cada prueba.
 
-Si no se actualizan estos valores, las nuevas métricas se mezclarán con las de experimentos anteriores, ensuciando los resultados.
+> **⚠️ IMPORTANTE:** Asegúrate de que el nombre del `datasetRun` sea único para cada experimento. Si reutilizas un nombre, LangFuse promediará los nuevos resultados con los viejos, ensuciando los datos.
 
-### 📝 Pasos para configurar una nueva ejecución (Run)
+### Ejecución Estándar (Sin Umbral)
+*Usa este procedimiento para el flujo base `generate_traces`.*
 
-Debes modificar dos flujos de trabajo en n8n:
+1.  **En el flujo `generate_traces`:**
+    * Ubica el nodo **"Establecer Nombre de las Trazas"**.
+    * Modifica el nombre para reflejar la prueba (p. ej. `exp-no-threshold`).
 
-#### 1. En el flujo `generate_traces`
-Ubica el nodo llamado **"Establecer Nombre de Trazas"** y modifica el nombre de la traza para reflejar la configuración actual.
-* **Ejemplo:** `no-threshold` o `threshold-0.8`.
-
-#### 2. En el flujo `evaluation_metrics`
-Ubica el nodo llamado **"Enlazar con el Dataset en LangFuse vía API"** y actualiza el parámetro `run_name` dentro del cuerpo JSON. Esto sirve para agrupar las puntuaciones dentro de LangFuse dentro de la pestaña _Datasets_
-* **Ejemplo:** `experimento-no-threshold`.
+2.  **En el flujo `evaluation_metrics`:**
+    * Ubica el nodo **"Enlazar con el Dataset en LangFuse vía API"**.
+    * Actualiza el parámetro `run_name` en el JSON (p. ej. `run-base-v1`).
+    * Este será el nombre con el que se verá en el menú Dataset Runs de Langfuse.
 
 ---
 
-> **⚠️ IMPORTANTE:** Asegúrate de que el nombre del `datasetRun` sea único para cada experimento. Si reutilizas un nombre, LangFuse promediará los nuevos resultados con los viejos.
+### Ejecución con Corte (Umbral)
+*Usa este procedimiento para el flujo modificado `generate_traces_threshold`.*
+
+1.  **En el flujo `generate_traces_threshold`:**
+    * **Nombre de Traza:** En el nodo **"Establecer Nombre de las Trazas"**, asigna un nombre que las identifique (p. ej. `exp-threshold-0.78`).
+    * **Valor del Umbral:** En el nodo **"Si Similitud >= Punto de Corte"**, modifica el *Value 2* con el valor deseado (p. ej., `0.78`).
+
+2.  **En el flujo `evaluation_metrics`:**
+    * Ubica el nodo **"Enlazar con el Dataset en LangFuse vía API"**.
+    * Actualiza el parámetro `run_name` en el JSON para diferenciarlo del run base (p. ej. `run-threshold-0.79-v1`).
+

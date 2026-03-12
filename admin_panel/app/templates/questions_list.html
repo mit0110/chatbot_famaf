@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Preguntas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Preguntas y Respuestas</h1>
+    <div>
+        <a href="/admin/upload-csv" class="btn btn-info">↑ Importar CSV</a>
+        <a href="/admin/create" class="btn btn-primary">+ Nueva Pregunta</a>
+    </div>
+</div>
+
+<!-- Búsqueda y filtro por categoría -->
+<form id="searchForm" action="/admin/" method="get" class="mb-4">
+    <div class="input-group">
+        <input type="text" class="form-control" name="q" placeholder="Buscar preguntas..."
+            value="{{ search_query or '' }}">
+        {% if categories %}
+        <select name="category" id="categorySelect" class="form-select ms-2" style="max-width:220px;">
+            <option value="" {% if not selected_category %}selected{% endif %}>Todas las categorías</option>
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if selected_category==cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <button class="btn btn-outline-secondary d-none" type="submit">Buscar</button>
+    </div>
+</form>
+
+<form id="bulkDeleteForm" action="/admin/delete-multiple" method="post">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="selectAllQuestions">
+            <label class="form-check-label" for="selectAllQuestions">Seleccionar todo</label>
+        </div>
+        <button id="bulkDeleteButton" type="submit" class="btn btn-sm btn-danger" disabled
+            onclick="return confirm('¿Estás seguro de eliminar las preguntas seleccionadas?')">
+            Eliminar seleccionadas
+        </button>
+    </div>
+
+    <!-- Lista de preguntas -->
+    <div class="row">
+        {% for question in questions %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <input class="form-check-input question-checkbox" type="checkbox" name="question_ids"
+                        value="{{ question.id }}">
+                    <span class="badge bg-info">{{ question.category }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Pregunta:</strong> {{ question.content }}</p>
+                    <hr>
+                    <p><strong>Respuesta:</strong></p>
+                    {% if question.answer %}
+                    <div class="answer-text">
+                        <div class="answer-preview" id="preview{{ loop.index }}">
+                            {{ question.answer.content[:100] }}{% if question.answer.content|length > 100 %}...{% endif %}
+                        </div>
+                        <div class="collapse" id="answerCollapse{{ loop.index }}">
+                            {{ question.answer.content }}
+                        </div>
+                        {% if question.answer.content|length > 100 %}
+                        <a class="text-primary small" style="cursor: pointer; text-decoration: none;"
+                            data-bs-toggle="collapse" data-bs-target="#answerCollapse{{ loop.index }}"
+                            onclick="toggleText(this)">
+                            Ver más
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-danger">Sin respuesta</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="/admin/edit/{{ question.id }}" class="btn btn-sm btn-warning">Editar</a>
+                    <button type="submit" class="btn btn-sm btn-danger" formaction="/admin/delete/{{ question.id }}"
+                        formmethod="post" onclick="return confirm('¿Estás seguro de eliminar esta pregunta?')">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</form>
+
+{% if not questions %}
+<div class="alert alert-info">No hay preguntas disponibles.</div>
+{% endif %}
+
+<!-- Paginación -->
+{% if pagination and pagination.total_pages > 1 %}
+<nav aria-label="Paginación de preguntas" class="mt-4">
+    <ul class="pagination justify-content-center">
+        <!-- Botón Anterior -->
+        <li class="page-item {% if pagination.current_page == 1 %}disabled{% endif %}">
+            <a class="page-link"
+                href="?page={{ pagination.current_page - 1 }}&q={{ search_query or '' }}&category={{ selected_category or '' }}">
+                Anterior
+            </a>
+        </li>
+
+        <!-- Páginas numeradas -->
+        {% for page_num in range(1, pagination.total_pages + 1) %}
+        {% if page_num == 1 or page_num == pagination.total_pages or (page_num >= pagination.current_page - 2 and
+        page_num <= pagination.current_page + 2) %} <li
+            class="page-item {% if page_num == pagination.current_page %}active{% endif %}">
+            <a class="page-link"
+                href="?page={{ page_num }}&q={{ search_query or '' }}&category={{ selected_category or '' }}">
+                {{ page_num }}
+            </a>
+            </li>
+            {% elif page_num == pagination.current_page - 3 or page_num == pagination.current_page + 3 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+
+            <!-- Botón Siguiente -->
+            <li class="page-item {% if pagination.current_page == pagination.total_pages %}disabled{% endif %}">
+                <a class="page-link"
+                    href="?page={{ pagination.current_page + 1 }}&q={{ search_query or '' }}&category={{ selected_category or '' }}">
+                    Siguiente
+                </a>
+            </li>
+    </ul>
+</nav>
+
+<!-- Info de paginación -->
+<p class="text-center text-muted">
+    Mostrando {{ questions|length }} de {{ pagination.total_items }} preguntas
+    (Página {{ pagination.current_page }} de {{ pagination.total_pages }})
+</p>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-submit when category selection changes
+    document.getElementById('categorySelect')?.addEventListener('change', function () {
+        document.getElementById('searchForm').submit();
+    });
+
+    // Toggle "Ver más" / "Ver menos"
+    function toggleText(element) {
+        setTimeout(() => {
+            const isExpanded = element.getAttribute('aria-expanded') === 'true';
+            element.textContent = isExpanded ? 'Ver menos' : 'Ver más';
+        }, 10);
+    }
+
+    function updateBulkDeleteState() {
+        const checkboxes = document.querySelectorAll('.question-checkbox');
+        const checked = document.querySelectorAll('.question-checkbox:checked');
+        const selectAll = document.getElementById('selectAllQuestions');
+        const bulkButton = document.getElementById('bulkDeleteButton');
+
+        if (selectAll) {
+            selectAll.checked = checkboxes.length > 0 && checked.length === checkboxes.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < checkboxes.length;
+        }
+
+        if (bulkButton) {
+            bulkButton.disabled = checked.length === 0;
+        }
+    }
+
+    // Ensure correct initial state
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.collapse').forEach(collapse => {
+            collapse.addEventListener('show.bs.collapse', function () {
+                this.previousElementSibling.style.display = 'none';
+            });
+            collapse.addEventListener('hide.bs.collapse', function () {
+                this.previousElementSibling.style.display = 'block';
+            });
+        });
+
+        const selectAll = document.getElementById('selectAllQuestions');
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                document.querySelectorAll('.question-checkbox').forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+                updateBulkDeleteState();
+            });
+        }
+
+        document.querySelectorAll('.question-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkDeleteState);
+        });
+
+        updateBulkDeleteState();
+    });
+</script>
+{% endblock %}

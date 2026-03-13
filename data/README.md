@@ -17,6 +17,7 @@ Todos los archivos `.csv` siguen este formato:
 
 | Columna | Descripción |
 | :--- | :--- |
-| `pregunta` | La consulta del usuario o la variante. |
-| `respuesta` | El texto que se almacenará en los metadatos y se mostrará al usuario para responder a la consulta. |
-| `categoria` | Etiqueta para marcar el tipo de pregunta (P. ej., "ingreso", "cursado"). |
+| `Preguntas` | La consulta del usuario o la variante. |
+| `Respuesta` | La respuesta a la pregunta que se usó para generar la "respuesta mejorada" . |
+| `Respuesta Mejorada` | Respuesta que el bot le dará al usuario cuando haga una pregunta similar a la que responde. Formateada para mensaje de WhatsApp. |
+| `Categoría` | Etiqueta para marcar el tipo de pregunta (P. ej., "ingreso", "cursado"). |

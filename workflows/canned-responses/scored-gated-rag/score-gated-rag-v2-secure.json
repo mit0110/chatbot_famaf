@@ -1,0 +1,697 @@
+{
+  "name": "score-gated-rag-v2-secure",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "9b7f3167-13f8-4e7a-9e71-34da5a16199c",
+      "name": "Cambiar estado a \"Escribiendo...\"",
+      "webhookId": "e54af1ef-8b49-44da-9f9f-df46d03eb5e7",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - Una pregunta frecuente\n   - Su respuesta correspondiente\n   - Un score de relevancia (0 a 1)\n   - Un numero que identifica el registro\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73 :\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve el numero que identifica la respuesta. \n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No incluyas texto fuera del JSON.\n-SIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        912,
+        208
+      ],
+      "id": "be3d9641-97d7-416d-8040-6453f133ae5a",
+      "name": "Agente RAG",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        960,
+        576
+      ],
+      "id": "c08f3bf4-43d0-45e0-bc0a-cfed67814d2b",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        192
+      ],
+      "id": "d9e75cc3-64c1-4cc8-a8a8-c27d63119236",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "51941c03-dc08-4069-8c2e-bf3fe5d44426",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response_num\": {\n      \"type\": \"int\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        480
+      ],
+      "id": "f8f2b411-1cd9-46f3-b2e7-e5c4565737f1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=google/gemma-3-12b-it",
+          "mode": "id"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1056,
+        672
+      ],
+      "id": "98786087-a945-4982-b622-ab7803ba801f",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Vbq2iEcYzUNvp4pF",
+          "name": "OpenAi compatible ollama"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1280,
+        176
+      ],
+      "id": "0fa0f3ae-f855-4494-9d01-ae67f0a2a9b7",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        192
+      ],
+      "id": "d5f73af9-b968-4edf-ba38-d5f7cd4f2147",
+      "name": "Enviar Mensaje",
+      "webhookId": "1fe3a211-1c16-4f69-8b60-afc349cc0813",
+      "credentials": {
+        "telegramApi": {
+          "id": "adn3cue2Jg2A3qbb",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "ollama-bge-m3-1024",
+          "mode": "list",
+          "cachedResultName": "ollama-bge-m3-1024"
+        },
+        "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "options": {
+          "pineconeNamespace": "faq-dataset-v1"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        208
+      ],
+      "id": "df6f70fc-fa55-48f4-b4cc-febfa789764e",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "lLucWytnZu0lbbXv",
+          "name": "PineconeApi (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        208
+      ],
+      "id": "d48bbed6-efca-4573-8347-f11884d536cd",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        16
+      ],
+      "id": "b732554d-25e5-4dc7-af8d-996459b3a72b",
+      "name": "fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        368
+      ],
+      "id": "a8257fa8-af50-46e4-9cb5-05b8a452f32a",
+      "name": "Canned answer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        192
+      ],
+      "id": "e0ea37ca-2484-43f2-8178-d4f1c7a938fd",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "model": "bge-m3:latest"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        448,
+        432
+      ],
+      "id": "c774d740-e5ed-4903-8cef-cb56e9c4f57f",
+      "name": "Embeddings Ollama",
+      "credentials": {
+        "ollamaApi": {
+          "id": "5hfG2JZuvyqD0soc",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        848,
+        496
+      ],
+      "id": "cc7c27e0-cb70-44c0-aa94-9f366b46a323",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ImG0DtqmwGrZGAsz",
+          "name": "chatbot-famaf (unc)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let msg_valid_type = false\n\nif ($input.first().json.message.text) {\n  msg_valid_type = true\n}\n\n/**\nlet msg_valid_type = true\n\nif ($input.first().json.message.photo){\n  msg_valid_type= false  \n}\nelse if ($input.first().json.message.voice) {\n  msg_type= false\n}\nelse if($input.first().json.message.video) {\n  msg_valid_type= false\n}\nelse if($input.first().json.message.document){\n  msg_valid_type= false\n} \n **/\n\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        192
+      ],
+      "id": "66df66c0-2138-4e66-a7b6-dadacc8a9cf3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
+                    "rightValue": "valid",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "48d6d0a2-15f5-43b4-b102-c191722a94bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invalid_type"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2caa24ea-cefe-4608-936d-b46423c1212c",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.msg_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "valid_type"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        192,
+        192
+      ],
+      "id": "014fc937-ca22-48a3-98bc-b4642171e9a1",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, solo puedo responder mensajes de texto. Por favor, envía tu consulta escribiendo tu pregunta.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        -160
+      ],
+      "id": "299e3dbd-abff-4b4d-8b6b-202b4bdc2603",
+      "name": "Invalid format"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Ocurrió un error al procesar la consulta.\n  Por favor, intentá nuevamente más tarde.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        560
+      ],
+      "id": "36a59a38-7e42-4774-a431-e82d6694eb87",
+      "name": "Redireccionar a un humano1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cambiar estado a \"Escribiendo...\"": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fallback": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned answer": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Invalid format",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Invalid format": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano1": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "082bc46f-f9be-471a-b132-0f52122a9090",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5c7a7a1c803a60941291bdab51d4ad63fef182956b74a9df3e2c88d06c52b259"
+  },
+  "id": "aSvHfTXDOfRvtuD8",
+  "tags": []
+}

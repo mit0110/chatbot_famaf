@@ -1,0 +1,315 @@
+{
+  "name": "save_traces_to_langfuse",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54d95495-0e9a-4038-bb05-942c125bcc28",
+              "name": "trace_name",
+              "value": "famaf-student-query",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1088,
+        176
+      ],
+      "id": "c5e52004-3721-4a8f-be04-830c6950a9c8",
+      "name": "Establecer Nombre para Guardar la Traza"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\",\n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\",\n              \"name\": \"RAG: {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }} + {{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\",\n              \n              \"kind\": 1,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.input) }} }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.output) }} }\n                },\n                {\n                  \"key\": \"langfuse.tags\", \n                  \"value\": {\n                    \"arrayValue\": {\n                      \"values\": [\n                        { \"stringValue\": \"gen:{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" },\n                        { \"stringValue\": \"emb:{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                      ]\n                    }\n                  }\n                },\n                \n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelProvider, 'unknown')}}\" }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.promptToken, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.completionTokens, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.totalTokens, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"embedding.model_name\",\n                  \"value\": { \"stringValue\": \"{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                },\n                {\n                  \"key\": \"embedding.usage.tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Start').item.json.embedding_total_tokens || 0 }} \n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1328,
+        176
+      ],
+      "id": "db22076f-1965-435b-a1b9-06146cbaf84b",
+      "name": "Registrar en Langfuse Contexto Recuperado",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function generateUUID() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\n// Pasar tiempos a nano\nconst startTime = $input.first().json.query_start_time_ms * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// Generamos los IDs basándonos en UUID v4\nconst uuidTrace = generateUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = generateUUID();\n\n// OpenTelemetry exige Hexadecimal seguido sin guiones\n// TraceID: 32 chars (quitamos los guiones al UUID completo)\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time: startTime,\n    end_time: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        176
+      ],
+      "id": "93e3c7ba-5125-42d8-82d3-2448289f145a",
+      "name": "Generar Datos Necesarios para OTLP",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "input"
+            },
+            {
+              "name": "output"
+            },
+            {
+              "name": "query_start_time_ms",
+              "type": "number"
+            },
+            {
+              "name": "execution_id",
+              "type": "number"
+            },
+            {
+              "name": "dataset_item_id"
+            },
+            {
+              "name": "model_supplier"
+            },
+            {
+              "name": "embedding_model_name"
+            },
+            {
+              "name": "embedding_total_tokens",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "157146b6-2cac-4550-9fb8-861f28deaf54",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        160,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0b818ba-c1c6-4264-892d-c8dcd4f164c4",
+              "name": "execution_id",
+              "value": "={{ $('Start').item.json.execution_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        176
+      ],
+      "id": "306d67f5-363d-4e26-a127-c8248a30a7c8",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "9aQr94qKsMwm6jjQ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9aQr94qKsMwm6jjQ",
+          "cachedResultName": "get_execution_info"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        176
+      ],
+      "name": "Call get_execution_info",
+      "id": "84d5dcde-72a1-4e01-bbad-d0c461aa7872"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/dataset-run-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "datasetItemId",
+              "value": "={{ $('Start').item.json.dataset_item_id }}"
+            },
+            {
+              "name": "runName",
+              "value": "=costs-{{ $('Start').item.json.embedding_model_name }}-{{ $('Call get_execution_info').item.json.modelName }}"
+            },
+            {
+              "name": "traceId",
+              "value": "={{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1552,
+        176
+      ],
+      "id": "8121a6c7-bdd7-45fb-8183-9fcab6b94799",
+      "name": "Enlazar con el Dataset en LangFuse vía API",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "input": "\"¿Cómo me postulo a la Beca Manuel Belgarno?\"",
+          "output": "Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
+          "query_start_time_ms": 1769616712489,
+          "execution_id": 2369,
+          "dataset_item_id": "6f201504-87ef-41be-b6d7-b632f55250a8",
+          "model_supplier": "google",
+          "embedding_model_name": "gemini-embedding-001",
+          "embedding_total_tokens": 14
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Establecer Nombre para Guardar la Traza": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Langfuse Contexto Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Call get_execution_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call get_execution_info": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre para Guardar la Traza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar en Langfuse Contexto Recuperado": {
+      "main": [
+        [
+          {
+            "node": "Enlazar con el Dataset en LangFuse vía API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "2d77365a-66e1-417f-98ad-f25aa4cb25d4",
+  "meta": {
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "3kt2JuRYOlcefJwk",
+  "tags": []
+}

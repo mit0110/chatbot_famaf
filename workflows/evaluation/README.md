@@ -54,3 +54,5 @@ En el flujo `generate_traces_v3`:
 * **Índice en Pinecone:** en el nodo **"HTTP Request API de Pinecone (Gemini)"** o **"HTTP Request API de Pinecone (Ollama)"**, según corresponda con el modelo, cambiar la base URL por la del índice ya creado con **el mismo modelo de embedding** en Pinecone.
    * **En caso de ser necesario** cambiar los valores en el cuerpo de la consulta.
 * **Modelo de Generación:** Ir al subflujo desde el nodo "RAG-no-memory" y cambiar el modelo a utilizar.
+
+>  ⚠️ **IMPORTANTE:** Al cambiar el modelo, en las últimas versiones de n8n, es necesario "Publicar" además de guardar el flujo de trabajo para poder llamarlo desde otro flujo de trabajo.

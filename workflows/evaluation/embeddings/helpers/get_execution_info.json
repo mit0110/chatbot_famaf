@@ -16,133 +16,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "0898b5e8-43ab-4386-85f7-84f663822bec",
-              "leftValue": "={{ $json.workflowData.nodes[5].type }}",
-              "rightValue": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        1216,
-        272
-      ],
-      "id": "b8b7d8c7-76b3-4275-acd9-902dd5568bac",
-      "name": "If"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1da704a0-d5a9-4137-b7ad-4ebe1feb6a5f",
-              "name": "completionTokens",
-              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.completionTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "d6f2c158-d650-467c-93d2-b50006e1e96d",
-              "name": "totalTokens",
-              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.totalTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "3eed0370-5ebc-4cff-9a35-e7d48889fac2",
-              "name": "promptToken",
-              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsage.promptTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "191e2a18-a593-4ff0-858b-9497d2bc6b73",
-              "name": "modelName",
-              "value": "={{ $json.data.resultData.runData['Google Gemini Chat Model'][0].inputOverride.ai_languageModel[0][0].json.options.model }}",
-              "type": "string"
-            },
-            {
-              "id": "5e9b9f51-f6f7-49c0-a08e-b0d25d79388c",
-              "name": "modelProvider",
-              "value": "google",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1408,
-        96
-      ],
-      "id": "a0ce20c4-6738-4b60-844f-2a1c1dde8b58",
-      "name": "Return Token Usage for Google Models"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "1da704a0-d5a9-4137-b7ad-4ebe1feb6a5f",
-              "name": "completionTokens",
-              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.completionTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "d6f2c158-d650-467c-93d2-b50006e1e96d",
-              "name": "totalTokens",
-              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.totalTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "3eed0370-5ebc-4cff-9a35-e7d48889fac2",
-              "name": "promptToken",
-              "value": "={{ $json.data.resultData.runData['Ollama Chat Model'][0].data.ai_languageModel[0][0].json.tokenUsageEstimate.promptTokens }}",
-              "type": "number"
-            },
-            {
-              "id": "191e2a18-a593-4ff0-858b-9497d2bc6b73",
-              "name": "modelName",
-              "value": "={{ $('Get an execution').item.json.workflowData.nodes[5].parameters.model }}",
-              "type": "string"
-            },
-            {
-              "id": "5e9b9f51-f6f7-49c0-a08e-b0d25d79388c",
-              "name": "modelProvider",
-              "value": "ollama",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        1408,
-        384
-      ],
-      "id": "756344bf-2635-4d72-b19b-89e6cd5f0844",
-      "name": "Return Token Usage for CCAD Models"
-    },
-    {
-      "parameters": {
         "resource": "execution",
         "operation": "get",
         "executionId": "={{ $json.execution_id }}",
@@ -158,20 +31,33 @@
         272
       ],
       "id": "578e7847-b7d7-46ff-9a9b-23d73683fe58",
-      "name": "Get an execution",
+      "name": "Obtener Información de la Ejecución del Agente",
       "credentials": {
         "n8nApi": {
           "id": "LBdNV16JzKQuqHOB",
           "name": "Chatbot FAMAF"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const runData = $input.first().json.data.resultData.runData;\nconst nodosWorkflow = $input.first().json.workflowData.nodes;\n\nlet totalCompletionTokens = 0;\nlet totalPromptTokens = 0;\nlet totalTokens = 0;\n\nlet proveedor = \"Desconocido\";\nlet nombreNodoEjecutado = \"\";\nlet ejecuciones = [];\n\n// Verificar proveedor del modelo generativo\nif (runData['Ollama Chat Model']) {\n    ejecuciones = runData['Ollama Chat Model'];\n    proveedor = \"ollama\";\n    nombreNodoEjecutado = \"Ollama Chat Model\";\n} else if (runData['Google Gemini Chat Model']) {\n    ejecuciones = runData['Google Gemini Chat Model'];\n    proveedor = \"google\";\n    nombreNodoEjecutado = \"Google Gemini Chat Model\";\n} else {\n    return { error: \"No se encontró ni Ollama ni Gemini en esta ejecución\" };\n}\n\n// Extrear nombre del modelo usado\n\nlet modeloEspecifico = \"Desconocido\";\n\nif (ejecuciones.length > 0) {\n    const opcionesRuntime = ejecuciones[0].inputOverride?.ai_languageModel?.[0]?.[0]?.json?.options;\n    if (opcionesRuntime && opcionesRuntime.model) {\n        modeloEspecifico = opcionesRuntime.model;\n    }\n}\n\n// Para modelos Ollama que no guardan el nombre del modelo en las ejecuciones\nif (modeloEspecifico === \"Desconocido\") {\n    const nodoConfigurado = nodosWorkflow.find(nodo => nodo.name === nombreNodoEjecutado);\n    if (nodoConfigurado && nodoConfigurado.parameters) {\n        modeloEspecifico = nodoConfigurado.parameters.model || nodoConfigurado.parameters.modelName || \"Desconocido\";\n    }\n}\n\n// Contamos los tokens de todas las ejecuciones\nfor (const ejecucion of ejecuciones) {\n    try {\n        const jsonDatos = ejecucion.data?.ai_languageModel?.[0]?.[0]?.json;\n        if (!jsonDatos) continue; \n\n        let tokensInfo;\n        if (proveedor === \"ollama\") {\n            tokensInfo = jsonDatos.tokenUsageEstimate;\n        } else if (proveedor === \"google\") {\n            tokensInfo = jsonDatos.tokenUsage;\n        }\n\n        if (tokensInfo) {\n            totalCompletionTokens += (tokensInfo.completionTokens || 0);\n            totalPromptTokens += (tokensInfo.promptTokens || 0);\n            totalTokens += (tokensInfo.totalTokens || 0);\n        }\n    } catch (error) {\n        continue;\n    }\n}\n\nreturn {\n    modelProvider: proveedor,\n    modelName: modeloEspecifico,\n    completionTokens: totalCompletionTokens,\n    promptTokens: totalPromptTokens,\n    totalTokens: totalTokens\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        272
+      ],
+      "id": "2c2fcd4a-c3a5-44ed-ae1b-6a76a53712df",
+      "name": "Extraer Consumo de Tokens y Nombre del Modelo"
     }
   ],
   "pinData": {
     "Start": [
       {
         "json": {
-          "execution_id": 4137
+          "execution_id": 4193
         }
       }
     ]
@@ -181,36 +67,18 @@
       "main": [
         [
           {
-            "node": "Get an execution",
+            "node": "Obtener Información de la Ejecución del Agente",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "Obtener Información de la Ejecución del Agente": {
       "main": [
         [
           {
-            "node": "Return Token Usage for Google Models",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Return Token Usage for CCAD Models",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get an execution": {
-      "main": [
-        [
-          {
-            "node": "If",
+            "node": "Extraer Consumo de Tokens y Nombre del Modelo",
             "type": "main",
             "index": 0
           }
@@ -223,7 +91,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "9b638df7-ee8b-4ba6-8e4c-427803a532e0",
+  "versionId": "815553f9-c009-4b43-bf59-7c5074708d13",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

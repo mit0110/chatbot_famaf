@@ -64,6 +64,61 @@
     },
     {
       "parameters": {
+        "content": "## ⚠️ Importante \nAl cambiar el nodo dejar el nombre del mismo por defecto, ya que se utiliza para extraer los tokens consumidos en el flujo `get_execution_info`",
+        "height": 176,
+        "width": 272,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        736
+      ],
+      "id": "98012cf8-b11d-4bfd-ade9-95c6252c79ed",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": "mistral-small3.2:24b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        576
+      ],
+      "id": "2cbe6796-5257-411f-ac2b-6e7628c6a5d0",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "rQP61Wk2CEbvWB9b",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        800
+      ],
+      "id": "79ed878b-b90d-4747-92a0-16f4f89c54f2",
+      "name": "Ollama Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "rQP61Wk2CEbvWB9b",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -95,63 +150,7 @@
         368
       ],
       "id": "0237c7cc-a2ae-4dd9-bd6e-80fc5271d859",
-      "name": "Return"
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        -672,
-        800
-      ],
-      "id": "97e2b796-dc37-4051-b860-836cd5cfad6e",
-      "name": "Google Gemini Chat Model1",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "iDKuHCKqSAYAVPK3",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "modelName": "models/gemini-2.5-flash-lite",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
-      "typeVersion": 1,
-      "position": [
-        -944,
-        576
-      ],
-      "id": "658a24a7-0ca1-4b30-9727-402fabf1fa29",
-      "name": "Google Gemini Chat Model",
-      "credentials": {
-        "googlePalmApi": {
-          "id": "iDKuHCKqSAYAVPK3",
-          "name": "Google Gemini(PaLM) Api account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "content": "## ⚠️ Importante \nAl cambiar el nodo dejar el nombre del mismo por defecto, ya que se utiliza para extraer los tokens consumidos en el flujo `get_execution_info`",
-        "height": 176,
-        "width": 272,
-        "color": 3
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        -1088,
-        736
-      ],
-      "id": "98012cf8-b11d-4bfd-ade9-95c6252c79ed",
-      "name": "Sticky Note"
+      "name": "Devolver solo Información Necesaria"
     }
   ],
   "pinData": {
@@ -208,29 +207,29 @@
       "main": [
         [
           {
-            "node": "Return",
+            "node": "Devolver solo Información Necesaria",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model1": {
+    "Ollama Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Structured Output Parser",
+            "node": "Agente RAG",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "Ollama Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Agente RAG",
+            "node": "Structured Output Parser",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -243,7 +242,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "4b26c1af-7ba1-4467-936c-68c0facac37b",
+  "versionId": "a963b8ef-b40e-4da8-9338-29e177423a2d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

@@ -41,7 +41,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\",\n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\",\n              \"name\": \"RAG: {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }} + {{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\",\n              \n              \"kind\": 1,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.input) }} }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.output) }} }\n                },\n                {\n                  \"key\": \"langfuse.tags\", \n                  \"value\": {\n                    \"arrayValue\": {\n                      \"values\": [\n                        { \"stringValue\": \"gen:{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" },\n                        { \"stringValue\": \"emb:{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                      ]\n                    }\n                  }\n                },\n                \n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelProvider, 'unknown')}}\" }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.promptToken, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.completionTokens, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.totalTokens, 0) }}\n                  }\n                },\n                {\n                  \"key\": \"embedding.model_name\",\n                  \"value\": { \"stringValue\": \"{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                },\n                {\n                  \"key\": \"embedding.usage.tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Start').item.json.embedding_total_tokens || 0 }} \n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\",\n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\",\n              \"name\": \"RAG: {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }} + {{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\",\n              \n              \"kind\": 1,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.input) }} }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.output) }} }\n                },\n                {\n                  \"key\": \"langfuse.tags\", \n                  \"value\": {\n                    \"arrayValue\": {\n                      \"values\": [\n                        { \"stringValue\": \"gen:{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" },\n                        { \"stringValue\": \"emb:{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                      ]\n                    }\n                  }\n                },\n                \n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelProvider, 'unknown')}}\" }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.promptTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.completionTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.totalTokens }}\n                  }\n                },\n                {\n                  \"key\": \"embedding.model_name\",\n                  \"value\": { \"stringValue\": \"{{ $('Call get_execution_info').item.json.modelName }}\" }\n                },\n                {\n                  \"key\": \"embedding.usage.tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Start').item.json.embedding_total_tokens || 0 }} \n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -115,29 +115,6 @@
         160,
         176
       ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "b0b818ba-c1c6-4264-892d-c8dcd4f164c4",
-              "name": "execution_id",
-              "value": "={{ $('Start').item.json.execution_id }}",
-              "type": "number"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        608,
-        176
-      ],
-      "id": "306d67f5-363d-4e26-a127-c8248a30a7c8",
-      "name": "Edit Fields"
     },
     {
       "parameters": {
@@ -215,20 +192,43 @@
           "name": "Localhost credentials"
         }
       }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b0b818ba-c1c6-4264-892d-c8dcd4f164c4",
+              "name": "execution_id",
+              "value": "={{ $('Start').item.json.execution_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        176
+      ],
+      "id": "306d67f5-363d-4e26-a127-c8248a30a7c8",
+      "name": "Extrear Solo Id de Ejecución"
     }
   ],
   "pinData": {
     "Start": [
       {
         "json": {
-          "input": "\"¿Cómo me postulo a la Beca Manuel Belgarno?\"",
-          "output": "Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.",
-          "query_start_time_ms": 1769616712489,
-          "execution_id": 2369,
-          "dataset_item_id": "6f201504-87ef-41be-b6d7-b632f55250a8",
+          "input": "\"¿Cómo se si debo inscribirme en una materia como libre o como regular?\"",
+          "output": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Materias\", luego elegí la materia a la cual quieras inscribirte y hacé clic en \"Inscribirse\".\n\nEl sistema automáticamente intentará inscribirte con la condición de regular/promocional por defecto. Si te muestra algún mensaje de error, es porque no cumplís los requisitos.",
+          "query_start_time_ms": 1773544270734,
+          "execution_id": 4222,
+          "dataset_item_id": "04338967-4b42-4636-86ac-f54944d90ec0",
           "model_supplier": "google",
           "embedding_model_name": "gemini-embedding-001",
-          "embedding_total_tokens": 14
+          "embedding_total_tokens": 17
         }
       }
     ]
@@ -249,7 +249,7 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Extrear Solo Id de Ejecución",
             "type": "main",
             "index": 0
           }
@@ -261,17 +261,6 @@
         [
           {
             "node": "Generar Datos Necesarios para OTLP",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Edit Fields": {
-      "main": [
-        [
-          {
-            "node": "Call get_execution_info",
             "type": "main",
             "index": 0
           }
@@ -299,6 +288,17 @@
           }
         ]
       ]
+    },
+    "Extrear Solo Id de Ejecución": {
+      "main": [
+        [
+          {
+            "node": "Call get_execution_info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -306,7 +306,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "2d77365a-66e1-417f-98ad-f25aa4cb25d4",
+  "versionId": "96a92eb5-2b85-4e0a-9915-a22e87e6a707",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },

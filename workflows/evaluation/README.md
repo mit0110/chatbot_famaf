@@ -55,4 +55,8 @@ En el flujo `generate_traces_v3`:
    * **En caso de ser necesario** cambiar los valores en el cuerpo de la consulta.
 * **Modelo de Generación:** Ir al subflujo desde el nodo "RAG-no-memory" y cambiar el modelo a utilizar.
 
+El workflow etiqueta las trazas de Langfuse con los modelos utilizados (LLM y embedding) para agilizar su búsqueda. Cada traza sigue el formato estándar RAG: [Modelo LLM] + [Modelo Embedding], lo que facilita la búsqueda eficiente de las ejecuciones.
+
+Este flujo de trabajo fue utilizado para generar los datos que se pueden ver en el [siguiente documento](https://docs.google.com/spreadsheets/d/1Ju_nYXmQ5IoaE8zZeokdkeOTUwz35U6rZhQE_9gpCXI/edit?gid=841843015#gid=841843015) sobre el consumo de tokens de diferentes modelos para nuestra tarea.
+
 >  ⚠️ **IMPORTANTE:** Al cambiar el modelo, en las últimas versiones de n8n, es necesario "Publicar" además de guardar el flujo de trabajo para poder llamarlo desde otro flujo de trabajo.

@@ -105,11 +105,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -944,
-        576
+        -672,
+        800
       ],
-      "id": "658a24a7-0ca1-4b30-9727-402fabf1fa29",
-      "name": "Google Gemini Chat Model",
+      "id": "97e2b796-dc37-4051-b860-836cd5cfad6e",
+      "name": "Google Gemini Chat Model1",
       "credentials": {
         "googlePalmApi": {
           "id": "iDKuHCKqSAYAVPK3",
@@ -125,20 +125,62 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -672,
-        800
+        -944,
+        576
       ],
-      "id": "97e2b796-dc37-4051-b860-836cd5cfad6e",
-      "name": "Google Gemini Chat Model1",
+      "id": "658a24a7-0ca1-4b30-9727-402fabf1fa29",
+      "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
           "id": "iDKuHCKqSAYAVPK3",
           "name": "Google Gemini(PaLM) Api account"
         }
       }
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Importante \nAl cambiar el nodo dejar el nombre del mismo por defecto, ya que se utiliza para extraer los tokens consumidos en el flujo `get_execution_info`",
+        "height": 176,
+        "width": 272,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        736
+      ],
+      "id": "98012cf8-b11d-4bfd-ade9-95c6252c79ed",
+      "name": "Sticky Note"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "answers": [
+            {
+              "answer": "Quienes cursen el Curso de Nivelación podrán optar por: turno mañana, de 9 a 13 horas; o turno tarde, de 14 a 18 horas.",
+              "score": 0.873412967
+            },
+            {
+              "answer": "El curso de nivelación se dictará entre fines de enero y fines de febrero de 2026 y se ofrece bajo una única modalidad: presencial.",
+              "score": 0.871069312
+            },
+            {
+              "answer": "La preinscripción al Curso de Nivelación de FAMAF se encuentra abierta desde el 3 de noviembre hasta el 12 de diciembre de 2025. Este se dictará durante enero y febrero del año 2026, para los que deseen ingresar a una carrera en FAMAF en 2026.\n\nPara inscribirte necesitás tener un usuario en Sistema Guaraní; en caso de que no tengas, podés solicitarlo mediante el siguiente formulario:\nhttps://preinscripcion.guarani.unc.edu.ar/preinscripcion/\n\nSi ya tenés un usuario en sistema Guaraní, tenés que ingresar y seguir los pasos del siguiente video-tutorial:\n\nhttps://www.youtube.com/watch?v=deQuWbJnEDU\n\nEn caso de que seas alumno extranjero deberás seguir los pasos del siguiente instructivo:\n\nhttps://docs.google.com/document/d/1lea6U_TZ7dL1BqoBUjWK0cS2jW7ar4hCmtuIODqtSqQ/edit?tab=t.0",
+              "score": 0.664854228
+            },
+            {
+              "answer": "Las fechas definitivas de exámenes para las materias de grado se pueden encontrar en el siguiente enlace: https://drive.google.com/file/d/1OUEoMGZWouTDqw7uUFPtgdL3XQoHWc6Q/view?pli=1\nLas mismas se encuentran fijas, por lo que no cambia en qué día de la mesa de examen se va a rendir cierta materia. De esta manera se puede saber todo el año las fechas en que se va a rendir una materia y no hay que esperar las fechas definitivas para poder preparar el examen.\nEn el documento, se encuentran las materias listadas por fecha de examen. Para saber la fecha exacta que tenés que rendir debés consultar el calendario académico: https://www.famaf.unc.edu.ar/la-facultad/institucional/secretar%C3%ADas/secretaria-academica/calendario-acad%C3%A9mico/ y fijarte las fechas del turno de examen que deseas rendir.\nCada época de examen tiene 5 días para rendir que corresponden con las 5 fechas detalladas en el primer documento; de esta manera, si la materia que planeas rendir figura en la columna \"Fecha 1\" se rendiría en el primer día del turno.\nPor ejemplo, si el turno de época de exámenes en el cual deseas rendir es del 1/12 hasta el 5/12 y la materia que tenés que rendir figura en la columna 'Fecha 1', entonces dicha materia se rendiría el 1/12. Asimismo, si la materia figura en la columna 'Fecha 2' se rendiría el 2/12, si figura en la columna 'Fecha 3' el 3/12, y así sucesivamente.\n\nRecordá que tenés tiempo para inscribirte hasta 3 días hábiles antes del examen.",
+              "score": 0.582630515
+            }
+          ],
+          "query": "¿En qué fechas se va a hacer el curso de nivelación?"
+        }
+      }
+    ]
+  },
   "connections": {
     "Start": {
       "main": [
@@ -173,22 +215,22 @@
         ]
       ]
     },
-    "Google Gemini Chat Model": {
+    "Google Gemini Chat Model1": {
       "ai_languageModel": [
         [
           {
-            "node": "Agente RAG",
+            "node": "Structured Output Parser",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model1": {
+    "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Structured Output Parser",
+            "node": "Agente RAG",
             "type": "ai_languageModel",
             "index": 0
           }
@@ -201,7 +243,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "fe27f5cd-d3a2-4901-a554-966b9f12aa07",
+  "versionId": "4b26c1af-7ba1-4467-936c-68c0facac37b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

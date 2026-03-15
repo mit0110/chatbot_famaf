@@ -12,6 +12,8 @@ Este sub-workflow es un Agente RAG sin memoria, es decir, no guarda mensajes ant
 
 La separación de esta parte del flujo del resto fue importante para extraer los datos sobre los tokens consumidos ya que redujo considerablemente el tamaño del archivo que devuelve el nodo `Get an Execution` y esto facilitó la búsqueda de la información relacionada al uso de tokens.
 
+> ⚠️ **Importante:** Dejar el nombre de los nodos de los agentes que pone n8n por defecto, ya que **esos nombres se utilizan para obtener la información en el flujo `get_execution_info`**.
+
 ### 2. 📊 `save_traces_to_langfuse`
 Un sub-workflow que se llama para enviar métricas a **Langfuse** (MLOps).
 * **Objetivo:** Formatear correctamente los datos para cumplir con el estándar **OpenTelemetry (OTLP)** y enviar a Langfuse (Servidor de Observabilidad).

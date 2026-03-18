@@ -22,7 +22,7 @@ import json
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
-N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "webhook/export-to-pinecone" 
+N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "webhook-test/export-to-pinecone" 
 
 def _serialize_for_n8n(data):
     return json.loads(json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o)))
@@ -213,54 +213,25 @@ async def delete_multiple_questions(
 
 @router.post("/run-workflow")
 async def run_workflow():
-    try:
-        questions = await Question.find(fetch_links=True).sort("-created_at").to_list()
-        data = {
-            'status': 'success',
-            'results': len(questions),
-            'questions': [_serialize_question(q) for q in questions]
-        }
+    questions = await Question.find(fetch_links=True).sort("-created_at").to_list()
+    data_clean = _serialize_for_n8n({
+        'status': 'success',
+        'results': len(questions),
+        'questions': [_serialize_question(q) for q in questions]
+    })
 
-        data_clean = _serialize_for_n8n(data)
-        
-        print(f"[run-workflow] Llamando a n8n en: {N8N_WEBHOOK_URL}")
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(N8N_WEBHOOK_URL, json=data_clean)
-        if response.status_code == 200:
-            return JSONResponse(status_code=200, content={"ok": True, "message": "Workflow iniciado correctamente"})
-        else:
-            return JSONResponse(
-                status_code=502,
-                content={
-                    "ok": False,
-                    "error": f"n8n respondió con status {response.status_code}. Asegúrate de que el workflow 'create-question-emmbeding' está activo.",
-                },
-            )
-    except httpx.TimeoutException:
-        return JSONResponse(
-            status_code=504,
-            content={
-                "ok": False,
-                "error": "Timeout: n8n no respondió a tiempo. Asegúrate de que el workflow 'create-question-emmbeding' está activo.",
-            },
-        )
-    except httpx.ConnectError:
-        print(f"[run-workflow] Error de conexión al llamar a n8n en: {N8N_WEBHOOK_URL}")
-        return JSONResponse(
-            status_code=503,
-            content={
-                "ok": False,
-                "error": f"No se pudo conectar con n8n en {N8N_WEBHOOK_URL}. Asegúrate de que el workflow 'create-question-emmbeding' está activo.",
-            },
-        )
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "ok": False,
-                "error": f"Error inesperado: {str(e)}. Asegúrate de que el workflow 'create-question-emmbeding' está activo.",
-            },
-        )
+    async with httpx.AsyncClient(timeout=600.0) as client:
+        response = await client.post(N8N_WEBHOOK_URL, json=data_clean)
+
+    if response.status_code == 404:
+        return JSONResponse(status_code=503, content={
+            "ok": False,
+            "error": "El workflow de n8n está inactivo o el webhook no existe.",
+        })
+
+    response.raise_for_status()  # propaga cualquier otro error HTTP inesperado
+
+    return JSONResponse(status_code=200, content={"ok": True})
 
 async def _cleanup_orphan_answer(answer) -> None:
     """Elimina la respuesta si no está siendo usada por ninguna pregunta."""

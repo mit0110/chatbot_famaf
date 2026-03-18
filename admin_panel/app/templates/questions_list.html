@@ -185,36 +185,31 @@
             element.textContent = isExpanded ? 'Ver menos' : 'Ver más';
         }, 10);
     }
-
+ 
     async function runWorkflow() {
-        const btn = document.querySelector('[onclick="runWorkflow()"]');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ejecutando...';
+    const btn = document.querySelector('[onclick="runWorkflow()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ejecutando...';
 
-        try {
-            const res = await fetch('/admin/run-workflow', { method: 'POST' });
-            const data = await res.json();
-            if (data.ok) {
-                btn.innerHTML = '✓ Actualización exitosa';
-                btn.className = 'btn btn-success';
-            } else {
-                btn.innerHTML = 'Actualizar banco de preguntas';
-                btn.className = 'btn btn-success';
-                btn.disabled = false;
-                showErrorModal(data.error || 'Ocurrió un error inesperado.');
-            }
-        } catch (e) {
+    try {
+        const res = await fetch('/admin/run-workflow', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.ok) {
+            btn.innerHTML = '✓ Workflow de actualización iniciado';
+            btn.className = 'btn btn-success';
+        } else {
+            showErrorModal(data.error || 'Ocurrió un error inesperado.');
+        }
+    } catch (e) {
+        showErrorModal('No se pudo conectar con el servidor. Intenta de nuevo.');
+    } finally {
+        setTimeout(() => {
+            btn.disabled = false;
             btn.innerHTML = 'Actualizar banco de preguntas';
             btn.className = 'btn btn-success';
-            btn.disabled = false;
-            showErrorModal('No se pudo conectar con el servidor. Intenta de nuevo.');
-        } finally {
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = 'Actualizar banco de preguntas';
-                btn.className = 'btn btn-success';
-            }, 3000);
-        }
+        }, 3000);
+    }
     }
 
     function updateBulkDeleteState() {

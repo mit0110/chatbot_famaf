@@ -11,7 +11,7 @@ Fue creado con el objetivo de mantener la raíz del proyecto limpia y organizada
 
 ## Archivos del Directorio
 
-### Flujos de Trabajo de Telegram
+### Flujos de Trabajo de Telegram (`telegram-faq-bot`, `telegram-faq-bot-threshold` y `telegram-rate-limit`)
 
 El workflow `telegram-faq-bot` es una versión de prueba inicial de un bot que recibe un mensaje desde Telegram y lo utiliza para hacer una búsqueda semántica en una base de datos vectorial que contiene preguntas frecuentes, extrayendo de ella la pregunta que mayor valor de similitud obtenga junto con sus metadatos, donde está guardada la respuesta a dicha pregunta, y responde a la consulta realizada por Telegram.
 
@@ -23,13 +23,13 @@ El flujo `telegram-faq-bot-rate-limit` es una mejora a `telegram-faq-bot-thresho
 
 Estos flujos formaron la base para los que están en `score-gated-rag/`.
 
-### Flujos para Generar Embeddings
+### Flujos para Generar Embeddings (`create-question-embedding`)
 
 `create-question-embedding` es un flujo de trabajo que extrae un archivo `.csv` desde este repositorio que contiene preguntas, respuestas y categorías, genera los vectores de las preguntas usando un modelo de embedding y los inserta dentro de la base de datos de Pinecone. Funcionó como una prueba de concepto para comprender la integración con Pinecone.
 
 `create-question-embedding-via-admin` es un workflow que se ejecuta de manera manual y se encarga de obtener todas las preguntas con su respectiva respuesta y categoría desde el panel de administrador para insertarlas a la base de datos vectorial. Fue una iteración anterior a `create-question-embedding-webhook`.
 
-### RAG
+### RAG (`scored-gated-rag/`)
 El subdirectorio `score-gated-rag/` contiene las versiones anteriores a la de producción (`score-gated-rag-v2-secure`). En estos workflows se reemplazó la lógica estática de un punto de corte o *threshold* por un modelo que decida cuándo responder.
 
 `score-gated-rag-v1` implementa una lógica RAG (*Retrieval-Augmented Generation*) donde:
@@ -51,6 +51,12 @@ Introduciendo las siguientes mejoras estructurales:
   - No sean modificadas por el modelo.
 - Los mensajes de *fallback* y *derivación humana* se generan con nodos **Code**, evitando errores de formato.
 - Se mantiene la lógica de *score gating*, incorporando un  **umbral configurable** que puede ajustarse según el modelo de *embedding* utilizado.
+
+### Multiturno (`multiturn/`)
+
+Este subdirectorio contiene workflows que reformulan con un LLM la consulta del usuario recibida por Telegram, utilizando el contexto de la conversación cuando el modelo lo considere relevante. Luego, utiliza la pregunta reformulada o no, para buscar su respuesta enlatada en la base de datos vectorial.
+
+El workflow `rag_query_ollama_ccad-memory-gen-V2` a diferencia de `rag_query_ollama_ccad-memory-gen-V1` puede preguntar al usuario en caso de que considere que le falta información para responder correctamente.
 
 ---
 

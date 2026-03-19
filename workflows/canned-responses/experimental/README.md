@@ -3,11 +3,11 @@
 Este directorio contiene workflows de n8n que son:
 * **Versiones de prueba o experimentación:** Workflows utilizados para validar lógicas específicas o realizar experimentos (P. ej., `telegram-faq-bot` o `telegram-faq-bot-thershold`).
 * **Iteraciones:** Estructuras iniciales y mejoras antes de la versión final (P. ej., `telegram-faq-bot-rate-limit` es la versión con *rate limit* de `telegram-faq-bot-thershold`).
-* **PoC (Proof of Concept):** Pruebas aisladas de integración con APIs y bases de datos (P. ej., `create-question-embedding`).
+* **PoC (Proof of Concept):** Pruebas aisladas de integración con APIs y bases de datos (p. ej., `create-question-embedding`).
 
 Fue creado con el objetivo de mantener la raíz del proyecto limpia y organizada, manteniendo solo las versiones finales.
 
-> Dentro del sub-directorio `scored-gated-rag` se encontrarán las interaciones previas al flujo de trabajo `score-gated-rag-v2-secure`, lo dividimos del resto para mantener la estructura de `canned-responses`.
+> Dentro del subdirectorio `scored-gated-rag` se encontrarán las iteraciones previas al flujo de trabajo `score-gated-rag-v2-secure`, lo dividimos del resto para mantener la estructura de `canned-responses`.
 
 ## Archivos del Directorio
 
@@ -15,7 +15,7 @@ Fue creado con el objetivo de mantener la raíz del proyecto limpia y organizada
 
 El workflow `telegram-faq-bot` es una versión de prueba inicial de un bot que recibe un mensaje desde Telegram y lo utiliza para hacer una búsqueda semántica en una base de datos vectorial que contiene preguntas frecuentes, extrayendo de ella la pregunta que mayor valor de similitud obtenga junto con sus metadatos, donde está guardada la respuesta a dicha pregunta, y responde a la consulta realizada por Telegram.
 
-El flujo `telegram-faq-bot-threshold` viene a solucionar uno de los problemas de `telegram-faq-bot`: responder con la respuesta de la pregunta extraída de la base de datos sin importar la puntuación de similitud. Para eso, se agregó un condicional que verifica el valor de similitud justo después de la extracción y si es un bajo, comparado con el valor determinado por el usuario del flujo, responde usando *fallback*.
+El flujo `telegram-faq-bot-threshold` viene a solucionar uno de los problemas de `telegram-faq-bot`: responder con la respuesta de la pregunta extraída de la base de datos sin importar la puntuación de similitud. Para eso, se agregó un condicional que verifica el valor de similitud justo después de la extracción y si es bajo, comparado con el valor determinado por el usuario del flujo, responde usando *fallback*.
 
 > `telegram-faq-bot-threshold` fue el flujo utilizado en [este experimento](https://docs.google.com/document/d/1EC6ADsilP3oBhF6OFeuoPqWHkgeqJGgf4ot6L1j5cTw/edit?tab=t.0).
 
@@ -27,12 +27,12 @@ Estos flujos formaron la base para los que están en `score-gated-rag/`.
 
 `create-question-embedding` es un flujo de trabajo que extrae un archivo `.csv` desde este repositorio que contiene preguntas, respuestas y categorías, genera los vectores de las preguntas usando un modelo de embedding y los inserta dentro de la base de datos de Pinecone. Funcionó como una prueba de concepto para comprender la integración con Pinecone.
 
-`create-question-embedding-via-admin.json` es un workflow que se ejecuta de manera manual y se encarga de obtener todas las preguntas con su respectiva resupesta y categoría desde el panel de administrador para insertarlas a la base de datos vectorial. Fue una interación anterior a `create-question-embedding-webhook`.
+`create-question-embedding-via-admin` es un workflow que se ejecuta de manera manual y se encarga de obtener todas las preguntas con su respectiva respuesta y categoría desde el panel de administrador para insertarlas a la base de datos vectorial. Fue una iteración anterior a `create-question-embedding-webhook`.
 
 ### RAG
-El sub-directorio `score-gated-rag/` contiene las versiones anteriores a la de producción (`score-gated-rag-v2-secure`). En estos workflows se reemplazó la lógica estática de un punto de corte o *threshold* por un modelo que decida cuándo responder.
+El subdirectorio `score-gated-rag/` contiene las versiones anteriores a la de producción (`score-gated-rag-v2-secure`). En estos workflows se reemplazó la lógica estática de un punto de corte o *threshold* por un modelo que decida cuándo responder.
 
-`score-gated-rag-v1` implementa una lógica RAG (*Retrieval-Aigented Generation*) donde:
+`score-gated-rag-v1` implementa una lógica RAG (*Retrieval-Augmented Generation*) donde:
 
 - Se consulta Pinecone y se obtienen *N* posibles respuestas junto con su `score`.
 - El agente evalúa primero casos sensibles (derivación humana).

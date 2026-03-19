@@ -22,7 +22,7 @@ import json
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
-N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "webhook-test/export-to-pinecone" 
+N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "export-to-pinecone" 
 
 def _serialize_for_n8n(data):
     return json.loads(json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o)))

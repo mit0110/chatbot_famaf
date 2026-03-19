@@ -34,14 +34,14 @@ Crear un archivo `.env` en este directorio con las siguientes variables:
 # SUBDOMAIN=tu-subdominio-ngrok
 # N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
 # N8N_PROTOCOL=https
-# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
 
 # ------------------------------------------------------------
 # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
 # ------------------------------------------------------------
 N8N_HOST=localhost
 N8N_PROTOCOL=http
-WEBHOOK_URL=http://n8n:5678/
+WEBHOOK_URL=http://n8n:5678/webhook/
 
 # ============================================================
 # General
@@ -91,7 +91,7 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 | `SUBDOMAIN`    | Subdominio asignado por ngrok para tu instancia              |
 | `N8N_HOST`     | Host público donde se accede a n8n (ej: `subdominio.dominio.com` o `localhost`) |
 | `N8N_PROTOCOL` | Protocolo usado por n8n (`http` para local, `https` cuando se expone públicamente) |
-| `WEBHOOK_URL`  | URL pública base que n8n utiliza para generar webhooks (ej: `https://subdominio.dominio.com/`) |
+| `WEBHOOK_URL`  | URL pública base que n8n utiliza para generar webhooks (ej: `https://subdominio.dominio.com/webhook/` ( o  `https://subdominio.dominio.com/webhook-test/` en caso de estar haciendo pruebas) |
 | `SSL_EMAIL`    | Email para generar certificados SSL con Let's Encrypt (usado por Traefik) |
 
 #### General
@@ -223,18 +223,18 @@ Descomentar / comentar las variables según el modo de uso:
 # SUBDOMAIN=tu-subdominio-ngrok
 # N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
 # N8N_PROTOCOL=https
-# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
 
 # ------------------------------------------------------------
 # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
 # ------------------------------------------------------------
 N8N_HOST=localhost
 N8N_PROTOCOL=http
-WEBHOOK_URL=http://n8n:5678/
+WEBHOOK_URL=http://n8n:5678/webhook/
 
 ```
 
-⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n. 
+⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n, agregando `/webhook/` para webhooks en producción o `/webhook-test/` para pruebas.
 
 ### 2. Configurar .env
 
@@ -285,7 +285,7 @@ Los datos persistentes se guardan en los siguientes volúmenes Docker:
 
 ### n8n: Webhooks no funcionan
 
-Verificá que `WEBHOOK_URL` coincida con la URL desde donde accedés a n8n.
+Verificá que `WEBHOOK_URL` sea la URL de acceso a n8n + `/webhook/` (producción) o `/webhook-test/` (testing).
 
 ### Puertos en uso
 

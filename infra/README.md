@@ -24,10 +24,24 @@ Crear un archivo `.env` en este directorio con las siguientes variables:
 
 ```bash
 # ============================================================
-# N8N - Dominio para acceso externo (ngrok)
+# N8N 
 # ============================================================
-DOMAIN_NAME=ngrok-free.dev
-SUBDOMAIN=tu-subdominio-ngrok
+
+# ------------------------------------------------------------
+# MODO NGROK (usar cuando exponés con dominio público)
+# ------------------------------------------------------------
+# DOMAIN_NAME=ngrok-free.dev
+# SUBDOMAIN=tu-subdominio-ngrok
+# N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+# N8N_PROTOCOL=https
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
+
+# ------------------------------------------------------------
+# MODO LOCAL (usar cuando accedés desde http://localhost:5678)
+# ------------------------------------------------------------
+N8N_HOST=localhost
+N8N_PROTOCOL=http
+WEBHOOK_URL=http://n8n:5678/webhook/
 
 # ============================================================
 # General
@@ -71,11 +85,14 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 
 #### N8N y acceso externo
 
-| Variable      | Descripción                                                               |
-| ------------- | ------------------------------------------------------------------------- |
-| `DOMAIN_NAME` | Dominio base para n8n (ej: `ngrok-free.dev`)                              |
-| `SUBDOMAIN`   | Subdominio asignado por ngrok para tu instancia                           |
-| `SSL_EMAIL`   | Email para generar certificados SSL con Let's Encrypt (usado por Traefik) |
+| Variable       | Descripción                                                  |
+| -------------- | ------------------------------------------------------------ |
+| `DOMAIN_NAME`  | Dominio base para n8n (ej: `ngrok-free.dev`)                 |
+| `SUBDOMAIN`    | Subdominio asignado por ngrok para tu instancia              |
+| `N8N_HOST`     | Host público donde se accede a n8n (ej: `subdominio.dominio.com` o `localhost`) |
+| `N8N_PROTOCOL` | Protocolo usado por n8n (`http` para local, `https` cuando se expone públicamente) |
+| `WEBHOOK_URL`  | URL pública base que n8n utiliza para generar webhooks (ej: `https://subdominio.dominio.com/webhook/` ( o  `https://subdominio.dominio.com/webhook-test/` en caso de estar haciendo pruebas) |
+| `SSL_EMAIL`    | Email para generar certificados SSL con Let's Encrypt (usado por Traefik) |
 
 #### General
 
@@ -146,11 +163,11 @@ docker compose up -d
 
 Una vez levantados los contenedores, podés acceder a:
 
-| Servicio        | URL                   | Descripción                     |
-| --------------- | --------------------- | ------------------------------- |
-| **n8n**         | http://localhost:5678 | Crear y gestionar workflows     |
-| **Langfuse**    | http://localhost:3000 | Observabilidad de LLMs          |
-| **Admin Panel** | http://localhost:8000 | Panel de administración FastAPI |
+| Servicio        | URL                                                          | Descripción                     |
+| --------------- | ------------------------------------------------------------ | ------------------------------- |
+| **n8n**         | http://localhost:5678<br />  (o url de ngrok si estas utilizandolo) | Crear y gestionar workflows     |
+| **Langfuse**    | http://localhost:3000                                        | Observabilidad de LLMs          |
+| **Admin Panel** | http://localhost:8000/admin                                  | Panel de administración FastAPI |
 
 ### Links internos para n8n
 
@@ -158,6 +175,7 @@ Cuando configures credenciales o conexiones desde n8n hacia otros servicios (com
 
 - Para Langfuse: `http://langfuse-web:3000`
 - Para FastAPI: `http://fastapi:8000`
+- Para N8N: `http://n8n:5678` si estas corriendo local (o la URL de ngrok en caso de utilizar ngrok) 
 
 Estas URLs permiten que n8n se comunique directamente con los servicios dentro de la red de Docker, evitando problemas de acceso o firewall. No uses las URLs externas (localhost) para conexiones internas entre contenedores.
 
@@ -186,11 +204,11 @@ docker compose down
 docker compose restart n8n
 ```
 
-## Configurar n8n con ngrok (acceso externo)
+## Configurar n8n con ngrok (acceso externo) o Local
 
 Para exponer n8n a internet usando ngrok:
 
-### 1. Modificar compose.yml
+### 1. Modificar .env
 
 Descomentar / comentar las variables según el modo de uso:
 
@@ -198,23 +216,25 @@ Descomentar / comentar las variables según el modo de uso:
 - 🌍 **Modo externo con ngrok** → comentar las de `localhost` y descomentar las de `ngrok`
 
 ```yaml
-environment:
-  # ============================================================
-  # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
-  # ============================================================
-  - N8N_HOST=localhost
-  - N8N_PROTOCOL=http
-  - WEBHOOK_URL=http://localhost:5678/
+# ------------------------------------------------------------
+# MODO NGROK (usar cuando exponés con dominio público)
+# ------------------------------------------------------------
+# DOMAIN_NAME=ngrok-free.dev
+# SUBDOMAIN=tu-subdominio-ngrok
+# N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
+# N8N_PROTOCOL=https
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
 
-  # ============================================================
-  # MODO NGROK (usar cuando exponés con dominio público)
-  # ============================================================
-  # - N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
-  # - N8N_PROTOCOL=https
-  # - WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
+# ------------------------------------------------------------
+# MODO LOCAL (usar cuando accedés desde http://localhost:5678)
+# ------------------------------------------------------------
+N8N_HOST=localhost
+N8N_PROTOCOL=http
+WEBHOOK_URL=http://n8n:5678/webhook/
+
 ```
 
-⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n. 
+⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n, agregando `/webhook/` para webhooks en producción o `/webhook-test/` para pruebas.
 
 ### 2. Configurar .env
 
@@ -239,7 +259,7 @@ En una terminal separada:
 # Asegurate de tener configurado ngrok con tu api_key (necesario solo la primera vez)
 ngrok config add-authtoken <tu_token>
 
-# Expone tu puerto al dominio obtenido en n8n
+# Expone el puerto de n8n al dominio obtenido en ngrok
 ngrok http 5678 --domain=tu-subdominio-ngrok.ngrok-free.dev
 
 ```
@@ -265,7 +285,7 @@ Los datos persistentes se guardan en los siguientes volúmenes Docker:
 
 ### n8n: Webhooks no funcionan
 
-Verificá que `WEBHOOK_URL` coincida con la URL desde donde accedés a n8n.
+Verificá que `WEBHOOK_URL` sea la URL de acceso a n8n + `/webhook/` (producción) o `/webhook-test/` (testing).
 
 ### Puertos en uso
 

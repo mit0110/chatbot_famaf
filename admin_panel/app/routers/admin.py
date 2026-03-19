@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from app.routers.question import _serialize_question
 from app.models.question import Question
 from app.models.category import Category
 from app.utils import (
@@ -14,9 +15,17 @@ from beanie import PydanticObjectId
 from datetime import datetime, timezone
 from typing import List, Optional
 from io import StringIO
+import httpx
+import os
+import json
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
+N8N_WEBHOOK_URL = os.getenv("WEBHOOK_URL", "http://n8n:5678/") + "export-to-pinecone" 
+
+def _serialize_for_n8n(data):
+    return json.loads(json.dumps(data, default=lambda o: o.isoformat() if isinstance(o, datetime) else str(o)))
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -201,6 +210,28 @@ async def delete_multiple_questions(
 
     return RedirectResponse(url="/admin", status_code=303)
 
+
+@router.post("/run-workflow")
+async def run_workflow():
+    questions = await Question.find(fetch_links=True).sort("-created_at").to_list()
+    data_clean = _serialize_for_n8n({
+        'status': 'success',
+        'results': len(questions),
+        'questions': [_serialize_question(q) for q in questions]
+    })
+
+    async with httpx.AsyncClient(timeout=600.0) as client:
+        response = await client.post(N8N_WEBHOOK_URL, json=data_clean)
+
+    if response.status_code == 404:
+        return JSONResponse(status_code=503, content={
+            "ok": False,
+            "error": "El workflow de n8n está inactivo o el webhook no existe.",
+        })
+
+    response.raise_for_status()  # propaga cualquier otro error HTTP inesperado
+
+    return JSONResponse(status_code=200, content={"ok": True})
 
 async def _cleanup_orphan_answer(answer) -> None:
     """Elimina la respuesta si no está siendo usada por ninguna pregunta."""

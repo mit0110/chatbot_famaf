@@ -8,6 +8,7 @@
     <div>
         <a href="/admin/upload-csv" class="btn btn-info">↑ Importar CSV</a>
         <a href="/admin/create" class="btn btn-primary">+ Nueva Pregunta</a>
+        <button onclick="runWorkflow()" class="btn btn-success">Actualizar banco de preguntas</button>
     </div>
 </div>
 
@@ -141,17 +142,74 @@
 
 {% block scripts %}
 <script>
+    // Modal de error
+    function showErrorModal(message) {
+        const existing = document.getElementById('errorModal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.innerHTML = `
+            <div class="modal fade" id="errorModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-danger">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>Error
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <div class="fs-1 mb-3">⚠️</div>
+                            <p class="mb-0">${message}</p>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal.firstElementChild);
+        const bsModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        bsModal.show();
+    }
+
     // Auto-submit when category selection changes
     document.getElementById('categorySelect')?.addEventListener('change', function () {
         document.getElementById('searchForm').submit();
     });
 
-    // Toggle "Ver más" / "Ver menos"
     function toggleText(element) {
         setTimeout(() => {
             const isExpanded = element.getAttribute('aria-expanded') === 'true';
             element.textContent = isExpanded ? 'Ver menos' : 'Ver más';
         }, 10);
+    }
+ 
+    async function runWorkflow() {
+    const btn = document.querySelector('[onclick="runWorkflow()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Ejecutando...';
+
+    try {
+        const res = await fetch('/admin/run-workflow', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.ok) {
+            btn.innerHTML = '✓ Workflow de actualización iniciado';
+            btn.className = 'btn btn-success';
+        } else {
+            showErrorModal(data.error || 'Ocurrió un error inesperado.');
+        }
+    } catch (e) {
+        showErrorModal('No se pudo conectar con el servidor. Intenta de nuevo.');
+    } finally {
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'Actualizar banco de preguntas';
+            btn.className = 'btn btn-success';
+        }, 3000);
+    }
     }
 
     function updateBulkDeleteState() {
@@ -170,7 +228,6 @@
         }
     }
 
-    // Ensure correct initial state
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.collapse').forEach(collapse => {
             collapse.addEventListener('show.bs.collapse', function () {

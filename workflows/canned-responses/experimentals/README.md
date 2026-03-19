@@ -5,7 +5,7 @@ Este directorio contiene workflows de n8n que son:
 * **Iteraciones:** Estructuras iniciales y mejoras antes de la versión final (P. ej., `telegram-faq-bot-rate-limit` es la versión con *rate limit* de `telegram-faq-bot-thershold`).
 * **PoC (Proof of Concept):** Pruebas aisladas de integración con APIs y bases de datos (P. ej., `create-question-embedding`).
 
-Fue creado con el objetivo de  de mantener la raíz del proyecto limpia y organizada, manteniendo solo las versiones finales.
+Fue creado con el objetivo de mantener la raíz del proyecto limpia y organizada, manteniendo solo las versiones finales.
 
 > Dentro del sub-directorio `scored-gated-rag` se encontrarán las interaciones previas al flujo de trabajo `score-gated-rag-v2-secure`, lo dividimos del resto para mantener la estructura de `canned-responses`.
 
@@ -25,7 +25,9 @@ Estos flujos formaron la base para los que están en `score-gated-rag/`.
 
 ### Flujos para Generar Embeddings
 
-`create-question-embedding` es un flujo de trabajo que extrae un archivo `.csv` desde este repositorio que contiene pregunta, respuesta y categoría, genera los vectores de las preguntas usando un modelo de embedding y los inserta dentro de la base de datos de Pinecone. Funcionó como una prueba de concepto para comprender la integración con Pinecone.
+`create-question-embedding` es un flujo de trabajo que extrae un archivo `.csv` desde este repositorio que contiene preguntas, respuestas y categorías, genera los vectores de las preguntas usando un modelo de embedding y los inserta dentro de la base de datos de Pinecone. Funcionó como una prueba de concepto para comprender la integración con Pinecone.
+
+`create-question-embedding-via-admin.json` es un workflow que se ejecuta de manera manual y se encarga de obtener todas las preguntas con su respectiva resupesta y categoría desde el panel de administrador para insertarlas a la base de datos vectorial. Fue una interación anterior a `create-question-embedding-webhook`.
 
 ### RAG
 El sub-directorio `score-gated-rag/` contiene las versiones anteriores a la de producción (`score-gated-rag-v2-secure`). En estos workflows se reemplazó la lógica estática de un punto de corte o *threshold* por un modelo que decida cuándo responder.

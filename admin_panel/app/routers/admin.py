@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Form, UploadFile, File
+from fastapi import APIRouter, Request, HTTPException, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from app.routers.question import _serialize_question
@@ -10,11 +10,9 @@ from app.utils import (
     get_category_names,
     get_or_create_answer,
 )
-from app.utils_csv import parse_csv_file
 from beanie import PydanticObjectId
 from datetime import datetime, timezone
 from typing import List, Optional
-from io import StringIO
 import httpx
 import os
 import json
@@ -261,61 +259,3 @@ async def _delete_question_and_cleanup(question: Question) -> None:
 
     await _cleanup_orphan_answer(current_answer)
     await _cleanup_orphan_category(question_category)
-
-
-@router.get("/upload-csv", response_class=HTMLResponse)
-async def csv_upload_form(request: Request):
-    return templates.TemplateResponse("csv_upload.html", {"request": request})
-
-
-@router.post("/upload-csv")
-async def upload_csv(file: UploadFile = File(...)):
-    if not file.filename.endswith(".csv"):
-        return {"status": "error", "message": "El archivo debe ser un CSV"}
-
-    try:
-        contents = await file.read()
-        text_file = StringIO(contents.decode("utf-8"))
-        success, data, message = parse_csv_file(text_file)
-
-        if not success:
-            return {"status": "error", "message": message}
-
-        created_count = 0
-        error_details = []
-
-        for item in data:
-            try:
-                category_name = await ensure_category_exists(item["category"])
-                answer = await get_or_create_answer(item["answer"])
-
-                existing_q = await Question.find_one(
-                    Question.content == item["question"]
-                )
-                if existing_q:
-                    error_details.append(f"Pregunta duplicada: '{item['question']}'")
-                    continue
-
-                await Question(
-                    content=item["question"],
-                    category=category_name,
-                    answer=answer,
-                ).insert()
-                created_count += 1
-
-            except Exception as e:
-                error_details.append(f"Error procesando pregunta: {str(e)}")
-
-        msg = f"Se importaron {created_count} preguntas exitosamente"
-        if error_details:
-            msg += f". Errores: {'; '.join(error_details[:5])}"
-
-        return {
-            "status": "success",
-            "message": msg,
-            "created": created_count,
-            "errors": error_details,
-        }
-
-    except Exception as e:
-        return {"status": "error", "message": f"Error al procesar archivo: {str(e)}"}

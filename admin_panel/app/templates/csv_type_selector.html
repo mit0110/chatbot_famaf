@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}Seleccionar tipo de CSV{% endblock %} {% block
+content %}
+<div class="container mt-4">
+  <h1>Importar CSV</h1>
+  
+  <h5 class="mt-4">Selecciona el tipo de archivo CSV a importar</h5>
+  <p class="text-muted">
+    Cada tipo de CSV tiene un formato específico. Por favor selecciona el tipo
+    que deseas importar: </br>
+    Los campos marcados con <span class="text-danger">*</span> son obligatorios.
+  </p>
+
+  <div class="row gap-3 mt-4">
+        <!-- Opción 1 -->
+        <div class="col-12">
+          <div class="card border-primary">
+            <div class="card-body">
+              <h6 class="card-title text-primary"> Fechas Examen</h6>
+              <p class="card-text text-muted">
+                Importar fechas de examen con columnas: titulo <span class="text-danger">*</span>, especialidad, fecha1 <span class="text-danger">*</span>, fecha2 <span class="text-danger">*</span>, fecha3 <span class="text-danger">*</span>, fecha4
+              </p>
+              <a href="/admin/csv/upload-csv-fechas-examen" class="btn btn-primary btn-sm">
+                Seleccionar
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opción 2 -->
+        <div class="col-12">
+          <div class="card border-danger">
+            <div class="card-body">
+              <h6 class="card-title text-danger">Insertar Preguntas y Respuestas</h6>
+              <p class="card-text text-muted">
+                Importar preguntas y respuestas con columnas: preguntas<span class="text-danger">*</span>, respuesta<span class="text-danger">*</span>, categoría<span class="text-danger">*</span>
+              </p>
+              <a href="/admin/csv/upload-csv-qa" class="btn btn-danger btn-sm">
+                Seleccionar
+              </a>
+            </div>
+          </div>
+        </div>
+    </div>
+
+  <hr class="my-4" />
+
+  <a href="/admin" class="btn btn-secondary">← Volver</a>
+</div>
+{% endblock %}

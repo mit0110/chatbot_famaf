@@ -156,7 +156,7 @@ async def csv_upload_selector(request: Request):
 @router.get("/upload-csv-fechas-examen", response_class=HTMLResponse)
 async def csv_upload_form_fechas_examen(request: Request):
     return templates.TemplateResponse(
-        "csv_upload.html", 
+        "csv_upload_exams.html", 
         {"request": request, "tipo_csv": "Fechas Examen", "csv_endpoint": "/admin/csv/upload-csv-fechas-examen"}
     )
 
@@ -301,7 +301,7 @@ async def upload_csv_fechas_examen(
 
 # ============== OPCIÓN 2 ==============
 @router.get("/upload-csv-qa", response_class=HTMLResponse)
-async def csv_upload_form_2(request: Request):
+async def csv_upload_form_qa(request: Request):
     return templates.TemplateResponse(
         "csv_upload_qa.html", 
         {"request": request, "csv_endpoint": "/admin/csv/upload-csv-qa"}
@@ -309,7 +309,7 @@ async def csv_upload_form_2(request: Request):
 
 
 @router.post("/upload-csv-qa")
-async def upload_csv_2(file: UploadFile = File(...)):
+async def upload_csv_qa(file: UploadFile = File(...)):
     if not file.filename.endswith(".csv"):
         return {"status": "error", "message": "El archivo debe ser un CSV"}
 

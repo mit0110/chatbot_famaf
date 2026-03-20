@@ -1,11 +1,12 @@
-{% extends "base.html" %} {% block title %}Importar CSV{% endblock %} {% block
-content %}
-<h1>Importar Preguntas desde CSV</h1>
+{% extends "base.html" %} 
+{% block title %}Importar Preguntas y Respuestas{% endblock %} 
+{% block content %}
+<h1>Importar Preguntas y Respuestas desde CSV</h1>
 
 <div class="container mt-4">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Importar Archivo CSV</h5>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge bg-info">Preguntas y Respuestas</span>
+      </div>
 
       <h6 class="mt-4 mb-3">Formato del archivo CSV</h6>
       <p>
@@ -21,33 +22,29 @@ content %}
         </thead>
         <tbody>
           <tr>
-            <td><strong>Preguntas</strong></td>
-            <td>Pregunta</td>
-            <td>¿Cuál es la capital de Francia?</td>
+            <td><strong>Preguntas<span class="text-danger">*</span></strong></td>
+            <td>Pregunta a importar</td>
+            <td>¿En qué aula se cursa una materia?</td>
           </tr>
           <tr>
-            <td><strong>Respuesta</strong></td>
-            <td>Respuesta</td>
-            <td>París</td>
+            <td><strong>Respuesta<span class="text-danger">*</span></strong></td>
+            <td>Respuesta asociada</td>
+            <td>El aula de cursado de cada materia está publicada en el siguiente enlace: https://www.example.com</td>
           </tr>
           <tr>
-            <td><strong>Categoría</strong></td>
-            <td>La categoría de la pregunta</td>
-            <td>Geografía</td>
+            <td><strong>Categoría<span class="text-danger">*</span></strong></td>
+            <td>Categoría de la pregunta</td>
+            <td>Cursado</td>
           </tr>
         </tbody>
       </table>
-      <p class="text-muted small">
-        Si una respuesta ya existe en la base de datos, se vinculará
-        automáticamente. Si una categoría no existe, se creará automáticamente.
-      </p>
 
       <hr />
 
-      <h6 class="mt-4 mb-3">Selecciona el archivo CSV</h6>
+      <h6 class="mt-4 mb-3">Datos requeridos</h6>
       <form id="csvForm" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="csvFile" class="form-label">Archivo CSV</label>
+          <label for="csvFile" class="form-label">Archivo CSV <span class="text-danger">*</span></label>
           <input
             type="file"
             class="form-control"
@@ -56,18 +53,24 @@ content %}
             accept=".csv"
             required
           />
-          <small class="form-text text-muted"
-            >Solo se aceptan archivos .csv</small
-          >
+          <small class="form-text text-muted">Solo se aceptan archivos .csv</small>
+        </div>
+
+        <div class="mt-4 mb-4 p-3 border border-info rounded" style="background-color: #f8f9fa;">
+          <h6 class="mb-2"> Reglas del sistema</h6>
+          <p class="text-muted small mb-0">
+            • Si una respuesta ya existe en la base de datos, se vinculará automáticamente. <br>
+            • Si una categoría no existe, se creará automáticamente. <br>
+            • Si una pregunta ya existe, se actualizará su respuesta y categoría si es diferente.
+          </p>
         </div>
 
         <button type="submit" class="btn btn-primary">Importar</button>
-        <a href="/admin" class="btn btn-secondary">Cancelar</a>
+        <a href="/admin/csv/upload-csv" class="btn btn-secondary">← Volver</a>
+        <a href="/admin" class="btn btn-danger">Cancelar</a>
       </form>
-    </div>
-  </div>
 
-  <div id="resultMessage" class="mt-4" style="display: none">
+      <div id="resultMessage" class="mt-4" style="display: none">
     <div id="resultAlert" class="alert" role="alert">
       <strong id="resultTitle"></strong>
       <p id="resultText"></p>
@@ -77,6 +80,8 @@ content %}
 </div>
 
 <script>
+  const CSV_ENDPOINT = "{{ csv_endpoint }}";
+
   document
     .getElementById("csvForm")
     .addEventListener("submit", async function (e) {
@@ -85,8 +90,9 @@ content %}
       const fileInput = document.getElementById("csvFile");
       const file = fileInput.files[0];
 
+      // Validar Archivo
       if (!file) {
-        alert("Por favor selecciona un archivo");
+        alert("Por favor selecciona un archivo CSV");
         return;
       }
 
@@ -94,7 +100,7 @@ content %}
       formData.append("file", file);
 
       try {
-        const response = await fetch("/admin/upload-csv", {
+        const response = await fetch(CSV_ENDPOINT, {
           method: "POST",
           body: formData,
         });
@@ -120,12 +126,16 @@ content %}
             errorsList.innerHTML = "";
           }
 
-          // Limpiar formulario después de 2 segundos
-          setTimeout(() => {
-            fileInput.value = "";
-            // Redirigir al home del admin
-            window.location.href = "/admin";
-          }, 2000);
+          resultDiv.style.display = "block";
+
+          // Mostrar popup con el mensaje
+          alert(data.message);
+
+          // Limpiar formulario y redirigir
+          fileInput.value = "";
+          // Redirigir al home del admin
+          window.location.href = "/admin";
+          return;
         } else {
           resultAlert.className = "alert alert-danger";
           resultTitle.textContent = "✗ Error";

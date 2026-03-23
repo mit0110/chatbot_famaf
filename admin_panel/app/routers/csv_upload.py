@@ -7,7 +7,7 @@ from app.utils import (
     get_or_create_answer,
 )
 from app.utils_csv import parse_csv_file
-from app.routers.admin import _cleanup_orphan_answer
+from app.routers.admin import _cleanup_orphan_answer, _cleanup_orphan_category
 from io import StringIO
 from typing import List
 import csv
@@ -102,7 +102,7 @@ async def _insert_questions_batch(questions_data: List[dict]):
 
     for item in questions_data:
         try:
-            category_name = await ensure_category_exists(item["category"])
+            new_category = await ensure_category_exists(item["category"])
             new_answer = await get_or_create_answer(item["answer"])
 
             existing_q = await Question.find_one(
@@ -115,27 +115,38 @@ async def _insert_questions_batch(questions_data: List[dict]):
                 old_answer = await existing_q.answer.fetch()
                 
                 # Comparar contenido de respuestas
-                old_answer_content = old_answer.content if old_answer else ""
-                new_answer_content = new_answer.content if new_answer else ""
-                
-                if old_answer_content == new_answer_content:
-                    # Respuestas iguales: no hacer nada
-                    created_count += 1  # Contar como creada para efectos de reporte, aunque no se cambió
-                else:
-                    # Respuestas diferentes: actualizar pregunta y limpiar old_answer
-                    existing_q.answer = new_answer
-                    existing_q.category = category_name
+                old_answer_content = old_answer.content 
+                old_category = existing_q.category  
+                new_answer_content = new_answer.content 
+
+                if old_answer_content != new_answer_content or old_category != new_category:
+                    # Actualizar pregunta con nueva respuesta y categoría
+                    
+                    answer_change = old_answer_content != new_answer_content
+                    category_change = old_category != new_category
+
+                    if answer_change:
+                        # Si la respuesta cambió, asignar la nueva respuesta
+                        existing_q.answer = new_answer
+
+                    if category_change:
+                        existing_q.category = new_category
+                    
                     await existing_q.save()
                     
-                    # Limpiar respuesta antigua si no la usa otra pregunta
-                    await _cleanup_orphan_answer(old_answer)
+                    # AHORA limpiar los documentos huérfanos
+                    if answer_change:
+                        await _cleanup_orphan_answer(old_answer)
+                    
+                    if category_change:
+                        await _cleanup_orphan_category(old_category)
                     
                     updated_counter += 1
             else:
                 # Pregunta no existe: crearla
                 await Question(
                     content=item["question"],
-                    category=category_name,
+                    category=new_category,
                     answer=new_answer,
                 ).insert()
                 created_count += 1

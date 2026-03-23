@@ -1,17 +1,3 @@
-## 🤖 Workflows RAG – Reformulación y búsqueda por embeddings
-
-Este repositorio contiene **dos workflows RAG en n8n** que procesan preguntas de usuarios (vía Telegram) para devolver **respuestas enlatadas** mediante búsqueda por similitud en un índice de embeddings (Pinecone).
-
-En **ambas versiones** el flujo base es el mismo:
-
-- La pregunta del usuario se **reformula con un LLM** (usando contexto reciente cuando es relevante).
-- La pregunta reformulada se utiliza para **buscar en el embedding**.
-- Se devuelve al usuario la respuesta asociada al resultado más similar.
-
-La diferencia principal entre las versiones es **si el sistema puede o no repreguntar al usuario** cuando falta contexto.
-
-------
-
 ## 📌 Workflow V1 – Reformula y busca (sin repreguntas)
 
 **Archivo:** `rag_query_ollama_ccad-memory-gen-V1.json`

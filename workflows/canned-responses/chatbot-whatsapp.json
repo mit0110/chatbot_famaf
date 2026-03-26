@@ -37,8 +37,8 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        -720,
-        256
+        -768,
+        208
       ],
       "id": "ba3bfce8-d35e-4c3d-8252-7782a3f7547f",
       "name": "Enviar Mensaje",
@@ -61,7 +61,7 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        -1136,
+        -1024,
         560
       ],
       "id": "49510af4-7b7a-4295-90d4-f47dc87b58a2",
@@ -125,7 +125,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1360,
+        -1248,
         576
       ],
       "id": "6844735c-06fc-4285-a4f5-e3ea83bb06bb",
@@ -138,7 +138,7 @@
       "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -2112,
+        -1872,
         608
       ],
       "id": "22124528-f4c9-4f97-af28-6cde211744e7",
@@ -167,8 +167,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -176,
-        256
+        -224,
+        208
       ],
       "id": "9d87163b-cf0c-4182-8d49-58328dd4fff7",
       "name": "Establecer Nombre para Guardar la Traza"
@@ -196,8 +196,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        16,
-        256
+        -32,
+        208
       ],
       "id": "9f1c504a-96fc-4c3e-bd53-0e438e14dcb4",
       "name": "Registrar en Langfuse Contexto Recuperado",
@@ -216,8 +216,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -368,
-        256
+        -416,
+        208
       ],
       "id": "074dd9e9-52ad-4cab-b6a6-e90792eb1938",
       "name": "Generar Datos Necesarios para OTLP",
@@ -252,8 +252,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -560,
-        256
+        -608,
+        208
       ],
       "id": "378f1c10-524c-48f2-acdb-35e52797f1ca",
       "name": "Enviar Variables Necesarias para Guardar Traza"
@@ -283,13 +283,13 @@
     },
     {
       "parameters": {
-        "jsCode": "return [{\n  json: {\n    response: $('Establecer Campos para Rate Limiting').first().json.error_message\n  }\n}];"
+        "jsCode": "return [{\n  json: {\n    response: \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e inténtalo de nuevo\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        -64
+        -1088,
+        -112
       ],
       "id": "f53b16f1-cb08-4a7a-94bf-152b438789f7",
       "name": "Alcanzó el Límite"
@@ -306,8 +306,8 @@
           "conditions": [
             {
               "id": "9be3485f-77e7-4385-bf5a-e2cbe9a7321d",
-              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting').first().json.uid] }}",
-              "rightValue": "={{ $('Establecer Campos para Rate Limiting').item.json.message_limit_per_duration }}",
+              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').first().json.uid] }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').item.json.message_limit_per_duration }}",
               "operator": {
                 "type": "number",
                 "operation": "lte"
@@ -352,21 +352,6 @@
     },
     {
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={\n  \"uid\": \"{{ $('Cuando Reciba un Mensaje').item.json.messages[0].from }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 30,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -2992,
-        256
-      ],
-      "id": "6597c03c-d0cd-448d-b375-3405d868b47e",
-      "name": "Establecer Campos para Rate Limiting"
-    },
-    {
-      "parameters": {
         "jsCode": "let msg_valid_type = false\n\nif ($('Cuando Reciba un Mensaje').first().json.messages[0].type == \"text\") {\n  msg_valid_type = true\n}\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
       },
       "type": "n8n-nodes-base.code",
@@ -385,8 +370,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        256
+        -1088,
+        208
       ],
       "id": "e68cb923-1af4-4b90-97cb-43605962604b",
       "name": "Redireccionar a un humano"
@@ -398,7 +383,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
+        -1088,
         416
       ],
       "id": "12671064-0e79-4d2f-86c1-c04ac82e7e56",
@@ -411,8 +396,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1136,
-        96
+        -1088,
+        48
       ],
       "id": "589aa20a-0ab4-4a27-8d95-3e619a8224a6",
       "name": "fallback"
@@ -424,7 +409,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -1824,
+        -1664,
         448
       ],
       "id": "2ae53c12-8cab-4edf-8335-ca1ab36b8e09",
@@ -447,7 +432,7 @@
       "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
       "typeVersion": 1.3,
       "position": [
-        -2112,
+        -1936,
         448
       ],
       "id": "25cfe950-5077-4e7c-8e63-ea97cc66b5f6",
@@ -536,8 +521,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        -1344,
-        240
+        -1248,
+        192
       ],
       "id": "6029e023-4db6-418b-b7f5-d84d8343052b",
       "name": "Switch"
@@ -555,7 +540,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        -1600,
+        -1440,
         944
       ],
       "id": "14d54497-b80a-4b2a-a699-ff7119bf740e",
@@ -576,7 +561,7 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        -1600,
+        -1440,
         784
       ],
       "id": "0885ce80-0219-4c10-beab-0f90d7f03584",
@@ -590,7 +575,7 @@
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
       "typeVersion": 1.3,
       "position": [
-        -1600,
+        -1456,
         624
       ],
       "id": "ceceaab4-c76e-4eea-b71c-84776a1d9261",
@@ -609,7 +594,7 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        -1664,
+        -1520,
         448
       ],
       "id": "aa5834fd-e682-414d-b7bc-57052714ce21",
@@ -636,8 +621,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -880,
-        256
+        -928,
+        208
       ],
       "id": "57082836-d64e-4073-927c-9fd22523c89a",
       "name": "Establecer Respuesta Final"
@@ -675,7 +660,7 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        -1744,
+        -1600,
         624
       ],
       "id": "1ff551fa-53bd-48d2-b537-01136d8d5575",
@@ -698,7 +683,7 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        -1136,
+        -1024,
         752
       ],
       "id": "126fe196-bcc5-4357-bf43-a376d8bf3e7b",
@@ -777,6 +762,110 @@
       ],
       "id": "a906f425-808e-4ed4-bc62-3087084f214f",
       "name": "Tipo de Mensaje"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "934731399730620",
+        "recipientPhoneNumber": "={{ $('Cuando Reciba un Mensaje').first().json.contacts[0].wa_id }}",
+        "textBody": "=Tu mensaje es un poquito largo y me cuesta procesarlo correctamente. 😞\n\nPor favor, reformulá tu pregunta de forma más directa y breve (*máximo 250 caracteres*) así puedo ayudarte con la información exacta que buscás.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -1888,
+        768
+      ],
+      "id": "c0a5ccb9-070a-4553-a2bd-8a2694bdbcdb",
+      "name": "Mensaje Demasiado Largo",
+      "webhookId": "b050e5ee-4126-4229-a09c-fd3e4ca96e42",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "EMpSUostzYcmpbDm",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1b594dc-dac9-45b5-ae2f-f45569e7e270",
+              "name": "uid",
+              "value": "={{ $('Cuando Reciba un Mensaje').item.json.messages[0].from }}",
+              "type": "string"
+            },
+            {
+              "id": "ffd5748b-fd01-4c99-a6d6-c31912a6c83e",
+              "name": "duration_in_sconds",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "54e71407-8de3-4352-bde0-63e985e4f31e",
+              "name": "message_limit_per_duration",
+              "value": 30,
+              "type": "number"
+            },
+            {
+              "id": "d5a2052f-7e65-47e4-ae16-a00c5adf62f0",
+              "name": "max_query_size",
+              "value": 250,
+              "type": "number"
+            },
+            {
+              "id": "80a19008-3e3b-40e6-8986-76a93b7c1ee9",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2992,
+        256
+      ],
+      "id": "6597c03c-d0cd-448d-b375-3405d868b47e",
+      "name": "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66c60d4b-9b0d-44dd-9dc0-064f6195595b",
+              "leftValue": "={{ $('Cuando Reciba un Mensaje').item.json.messages[0].text.body.length }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').item.json.max_query_size }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2096,
+        464
+      ],
+      "id": "96ad6988-e2b4-4392-95c5-6a6428c31dbd",
+      "name": "¿Su Longitud es menor a la Máxima Definida?"
     }
   ],
   "pinData": {},
@@ -869,7 +958,7 @@
       "main": [
         [
           {
-            "node": "Establecer Campos para Rate Limiting",
+            "node": "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada",
             "type": "main",
             "index": 0
           }
@@ -917,17 +1006,6 @@
         [
           {
             "node": "check message type",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Establecer Campos para Rate Limiting": {
-      "main": [
-        [
-          {
-            "node": "Consultar Límite de Usuario",
             "type": "main",
             "index": 0
           }
@@ -1120,7 +1198,36 @@
         ],
         [
           {
+            "node": "¿Su Longitud es menor a la Máxima Definida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada": {
+      "main": [
+        [
+          {
+            "node": "Consultar Límite de Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Su Longitud es menor a la Máxima Definida?": {
+      "main": [
+        [
+          {
             "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mensaje Demasiado Largo",
             "type": "main",
             "index": 0
           }
@@ -1134,7 +1241,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "0c8e30fe-a00a-4a0f-afe4-ea2eb6c2e955",
+  "versionId": "73d9acd7-6660-4300-a35b-f2483360a946",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

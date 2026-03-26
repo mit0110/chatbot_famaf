@@ -306,8 +306,8 @@
           "conditions": [
             {
               "id": "9be3485f-77e7-4385-bf5a-e2cbe9a7321d",
-              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').first().json.uid] }}",
-              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').item.json.message_limit_per_duration }}",
+              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting y Longitud Máxima de Entrada').first().json.uid] }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Longitud Máxima de Entrada').item.json.message_limit_per_duration }}",
               "operator": {
                 "type": "number",
                 "operation": "lte"
@@ -789,6 +789,39 @@
     },
     {
       "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "66c60d4b-9b0d-44dd-9dc0-064f6195595b",
+              "leftValue": "={{ $('Cuando Reciba un Mensaje').item.json.messages[0].text.body.length }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Longitud Máxima de Entrada').item.json.max_query_size }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2096,
+        464
+      ],
+      "id": "96ad6988-e2b4-4392-95c5-6a6428c31dbd",
+      "name": "¿Su Longitud es menor a la Máxima Definida?"
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -814,12 +847,6 @@
               "name": "max_query_size",
               "value": 250,
               "type": "number"
-            },
-            {
-              "id": "80a19008-3e3b-40e6-8986-76a93b7c1ee9",
-              "name": "",
-              "value": "",
-              "type": "string"
             }
           ]
         },
@@ -832,40 +859,7 @@
         256
       ],
       "id": "6597c03c-d0cd-448d-b375-3405d868b47e",
-      "name": "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "66c60d4b-9b0d-44dd-9dc0-064f6195595b",
-              "leftValue": "={{ $('Cuando Reciba un Mensaje').item.json.messages[0].text.body.length }}",
-              "rightValue": "={{ $('Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada').item.json.max_query_size }}",
-              "operator": {
-                "type": "number",
-                "operation": "lte"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -2096,
-        464
-      ],
-      "id": "96ad6988-e2b4-4392-95c5-6a6428c31dbd",
-      "name": "¿Su Longitud es menor a la Máxima Definida?"
+      "name": "Establecer Campos para Rate Limiting y Longitud Máxima de Entrada"
     }
   ],
   "pinData": {},
@@ -958,7 +952,7 @@
       "main": [
         [
           {
-            "node": "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada",
+            "node": "Establecer Campos para Rate Limiting y Longitud Máxima de Entrada",
             "type": "main",
             "index": 0
           }
@@ -1205,17 +1199,6 @@
         ]
       ]
     },
-    "Establecer Campos para Rate Limiting y Tamaño Máximo de Entrada": {
-      "main": [
-        [
-          {
-            "node": "Consultar Límite de Usuario",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "¿Su Longitud es menor a la Máxima Definida?": {
       "main": [
         [
@@ -1233,6 +1216,17 @@
           }
         ]
       ]
+    },
+    "Establecer Campos para Rate Limiting y Longitud Máxima de Entrada": {
+      "main": [
+        [
+          {
+            "node": "Consultar Límite de Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -1241,7 +1235,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "73d9acd7-6660-4300-a35b-f2483360a946",
+  "versionId": "71bc58d6-5512-47fa-b1d7-87f8474dc68b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

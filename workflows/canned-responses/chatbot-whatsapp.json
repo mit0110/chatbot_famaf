@@ -768,7 +768,7 @@
         "operation": "send",
         "phoneNumberId": "934731399730620",
         "recipientPhoneNumber": "={{ $('Cuando Reciba un Mensaje').first().json.contacts[0].wa_id }}",
-        "textBody": "=Tu mensaje es un poquito largo y me cuesta procesarlo correctamente. 😞\n\nPor favor, reformulá tu pregunta de forma más directa y breve (*máximo 250 caracteres*) así puedo ayudarte con la información exacta que buscás.",
+        "textBody": "=Tu mensaje es un poquito largo y me cuesta procesarlo correctamente. 😞\n\nPor favor, reformulá tu pregunta de forma más directa y breve (*máximo {{ $('Establecer Campos para Rate Limiting y Longitud Máxima de Entrada').item.json.max_query_size }}* caracteres) así puedo ayudarte con la información exacta que buscás.",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.whatsApp",
@@ -862,7 +862,39 @@
       "name": "Establecer Campos para Rate Limiting y Longitud Máxima de Entrada"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Cuando Reciba un Mensaje": [
+      {
+        "json": {
+          "messaging_product": "whatsapp",
+          "metadata": {
+            "display_phone_number": "5493513769490",
+            "phone_number_id": "934731399730620"
+          },
+          "contacts": [
+            {
+              "profile": {
+                "name": "Fran A. 💻🧉"
+              },
+              "wa_id": "5493525653326"
+            }
+          ],
+          "messages": [
+            {
+              "from": "5493525653326",
+              "id": "wamid.HBgNNTQ5MzUyNTY1MzMyNhUCABIYFjNFQjA4MUUwNkVCQ0JCM0REQkQyMTEA",
+              "timestamp": "1774542952",
+              "text": {
+                "body": "Hola, buenas tardes. Les escribo porque estoy teniendo un problema con la inscripción a las materias de este cuatrimestre. Resulta que yo entré a trabajar hace poco y mis horarios se superponen con las teóricas de Análisis Matemático II y Física. Quería saber si todavía estoy a tiempo de anotarme en el Régimen Especial de Cursado (RE) o si ya se pasó la fecha límite para presentar el certificado de trabajo en Despacho de Alumnos. Además, me gustaría saber si este trámite se puede hacer completamente online por Guaraní o si tengo que ir presencialmente a la facultad con los papeles firmados por mi empleador. Desde ya, muchas gracias."
+              },
+              "type": "text"
+            }
+          ],
+          "field": "messages"
+        }
+      }
+    ]
+  },
   "connections": {
     "Cuando Reciba un Mensaje": {
       "main": [
@@ -1235,7 +1267,7 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "71bc58d6-5512-47fa-b1d7-87f8474dc68b",
+  "versionId": "5de28a5e-519d-42c2-9aa4-a8cc2d9afbfc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

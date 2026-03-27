@@ -247,30 +247,18 @@ async def upload_csv_fechas_examen(
                 error_details.append(f"Fila incompleta: {titulo}")
                 return {"status": "error", "message": f"Fila incompleta: {titulo}"}
             
-            # Construir el texto de respuesta
-            fechas_texto = "\n".join([f"- Fecha {i+1}: {f}" for i, f in enumerate(fechas)])
-            
-            # Si se cargan especialidades, incluirla en la respuesta
-            especialidad_texto = ""
-            if cargar_esp and 'especialidad' in row:
-                especialidad_texto = f"\n**Especialidad:** {row['especialidad']}"
-            
-            answer_text = f"""Las fechas de examen para la materia **{titulo}** son:
-            {fechas_texto}{especialidad_texto}"""
-
             # Construir el texto de fechas como lista MD
             fechas_texto = "\n".join([f"- Fecha {i+1}: {f}" for i, f in enumerate(fechas)])
 
             # Especialidad (con salto previo)
             especialidad_texto = ""
             if cargar_esp and 'especialidad' in row:
-                especialidad_texto = f"\n\n**Especialidad:** {row['especialidad']}"
+                especialidad_texto = f"\n\n {row['especialidad']}"
 
             # Texto final bien formateado
             answer_text = (
-                f"Las fechas de examen para la materia **{titulo}** son:\n\n"
+                f"Las fechas de examen para la materia *{titulo}* *{especialidad_texto}* en {month} - {year} son:\n\n"
                 f"{fechas_texto}"
-                f"{especialidad_texto}"
             )
             
             # Preparar datos en formato para insertar

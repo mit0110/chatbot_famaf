@@ -253,11 +253,11 @@ async def upload_csv_fechas_examen(
             # Especialidad (con salto previo)
             especialidad_texto = ""
             if cargar_esp and 'especialidad' in row:
-                especialidad_texto = f"\n\n {row['especialidad']}"
+                especialidad_texto = f"\n\n *{row['especialidad']}*"
 
             # Texto final bien formateado
             answer_text = (
-                f"Las fechas de examen para la materia *{titulo}* *{especialidad_texto}* en {month} - {year} son:\n\n"
+                f"Las fechas de examen para la materia *{titulo}* {especialidad_texto} en {month} - {year} son:\n\n"
                 f"{fechas_texto}"
             )
             

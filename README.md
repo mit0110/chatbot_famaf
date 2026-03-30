@@ -3,9 +3,10 @@
 <p align="center">
    <img width="1653" height="516" alt="image" src="https://github.com/user-attachments/assets/cf8a72a8-5299-4bce-942c-485acc002eff" />
 </p>
+
 <p align="center">
-  <a href="https://t.me/FAMAFBot">
-    <img src="https://img.shields.io/badge/Chat_con_el_Bot-Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Chat en Telegram">
+  <a href="https://wa.me/5493513769490?text=Hola!%20Tengo%20una%20consulta%20sobre%20FAMAF" target="_blank">
+    <img src="https://img.shields.io/badge/Chat_con_el_Bot-WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Chat en WhatsApp">
   </a>
 </p>
 

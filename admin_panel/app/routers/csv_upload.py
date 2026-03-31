@@ -22,9 +22,9 @@ def parse_csv_fechas_examen(csv_content: str, cantidad_fechas: int, cargar_espec
     Parser para Opción 1: Fechas Examen
     
     Si cargar_especialidades=True:
-      Espera: titulo, especialidad, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 si cantidad_fechas=4
+      Espera: titulo, especialidad, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 (o "fecha 4") si cantidad_fechas=4
     Si cargar_especialidades=False:
-      Espera: titulo, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 si cantidad_fechas=4
+      Espera: titulo, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 (o "fecha 4") si cantidad_fechas=4
     
     Retorna: (success: bool, data: list[dict], message: str)
     """

@@ -169,7 +169,7 @@ async def csv_upload_selector(request: Request):
 async def csv_upload_form_fechas_examen(request: Request):
     return templates.TemplateResponse(
         "csv_upload_exams.html", 
-        {"request": request, "tipo_csv": "Fechas Examen", "csv_endpoint": "/admin/csv/upload-csv-fechas-examen"}
+        {"request": request, "csv_endpoint": "/admin/csv/upload-csv-fechas-examen"}
     )
 
 

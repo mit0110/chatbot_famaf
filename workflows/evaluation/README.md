@@ -96,7 +96,7 @@ Para crearlo, debemos ir a la opción Dashboard en el menú lateral de Langfuse.
 #### Indicadores de Tokens Consumidos
 <p align="center">
   <img width="33%" height="865" alt="image" src="https://github.com/user-attachments/assets/75e8fe85-b70c-4369-8889-f24b18085967" />
-  <img width="33%" height="865" alt="image" src="https://github.com/user-attachments/assets/c351af92-3720-4474-b494-40909fcf4d63" />
+  <img width="33%" height="865" alt="image" src="https://github.com/user-attachments/assets/8a9d04fa-be39-4865-9e45-c096f4bc98d7" />
   <img width="33%" height="865" alt="image" src="https://github.com/user-attachments/assets/315031a5-2fb3-4d69-a40b-c630e473fbec" />
 </p>
 

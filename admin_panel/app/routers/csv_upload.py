@@ -22,9 +22,9 @@ def parse_csv_fechas_examen(csv_content: str, cantidad_fechas: int, cargar_espec
     Parser para Opción 1: Fechas Examen
     
     Si cargar_especialidades=True:
-      Espera: titulo, especialidad, fecha1, fecha2, fecha3 (y fecha4 si cantidad_fechas=4)
+      Espera: titulo, especialidad, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 si cantidad_fechas=4
     Si cargar_especialidades=False:
-      Espera: titulo, fecha1, fecha2, fecha3 (y fecha4 si cantidad_fechas=4)
+      Espera: titulo, fecha1 (o "fecha 1"), fecha2 (o "fecha 2"), fecha3 (o "fecha 3"), y fecha4 si cantidad_fechas=4
     
     Retorna: (success: bool, data: list[dict], message: str)
     """
@@ -39,7 +39,8 @@ def parse_csv_fechas_examen(csv_content: str, cantidad_fechas: int, cargar_espec
             return False, [], "No se pudieron parsear los headers"
         
         # Normalizar nombres de columnas (minúsculas, sin espacios)
-        normalized_field_mapping = {field.strip().lower(): field for field in reader.fieldnames}
+        # Esto permite aceptar "fecha 1", "fecha1", "Fecha 1", etc.
+        normalized_field_mapping = {field.strip().lower().replace(' ', ''): field for field in reader.fieldnames}
         fieldnames_normalized = list(normalized_field_mapping.keys())
         
         # Columnas requeridas en orden
@@ -56,10 +57,10 @@ def parse_csv_fechas_examen(csv_content: str, cantidad_fechas: int, cargar_espec
         if missing_fields:
             return False, [], f"Columnas requeridas: {', '.join(required_fields)}"
         
-        # Extraer datos con normalización de claves
+        # Extraer datos con normalización de claves (removiendo espacios)
         data = []
         for row in reader:
-            normalized_row = {k.strip().lower(): v for k, v in row.items()}
+            normalized_row = {k.strip().lower().replace(' ', ''): v for k, v in row.items()}
             row_data = {
                 'titulo': normalized_row.get('titulo', '').strip(),
                 'fecha1': normalized_row.get('fecha1', '').strip(),

@@ -1,0 +1,1074 @@
+{
+  "name": "chatbot-telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2192,
+        368
+      ],
+      "id": "2a878228-b608-4a92-b412-0737d537b6e0",
+      "name": "Cambiar estado a \"Escribiendo...\"",
+      "webhookId": "f64f66cf-9917-410d-909a-f5b00cd594f9",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "FAMAF Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Eres un asistente de preguntas y respuestas para la Facultad de Matemática, Física y Astronomía (FaMAF).\n\nTu objetivo es ayudar a estudiantes a obtener información relevante sobre:\n- cursada\n- ingreso\n- trámites académicos y administrativos\n- normativas internas\n\nTu función es seleccionar respuestas existentes.\nNO debes inventar información.\nNO debes modificar las respuestas provistas.\nSolo puedes elegir entre las respuestas entregadas por el sistema.\n\n────────────────────────\nCONTEXTO DISPONIBLE\n────────────────────────\nRecibes:\n1. La pregunta actual del usuario. :  {{ $('Cuando Reciba un Mensaje').first().json.message.text }}\n2. Un historial de hasta 5 interacciones previas del usuario.\n3. Un JSON con 4 posibles respuestas obtenidas desde Pinecone.\n   Cada respuesta contiene:\n   - Una pregunta frecuente\n   - Su respuesta correspondiente\n   - Un score de relevancia (0 a 1)\n   - Un numero que identifica el registro\n\n────────────────────────\nSINÓNIMOS IMPORTANTES\n────────────────────────\nDebes considerar equivalentes los siguientes términos:\n- \"trabajo especial\" ↔ tesis, trabajo final, trabajo de grado\n- \"Régimen Especial de Cursado (RE)\" ↔ régimen trabajador, alumno trabajador, régimen especial\n- \"Curso de Nivelación\" ↔ cursillo, curso de ingreso, ingreso\n\n────────────────────────\nREGLAS DE DECISIÓN (ORDEN ESTRICTO)\n────────────────────────\n\nPASO 0 — CASOS SENSIBLES (PRIORIDAD MÁXIMA)\nSi la consulta del usuario está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\nDebes responder ÚNICAMENTE con:\n\n{\n  \"response_type\": \"human_needed\"\n}\n\nNo evalúes scores.\nNo analices embeddings.\n\n────────────────────────\n\nPASO 1 — FILTRADO POR SCORE (OBLIGATORIO)\nAnaliza los scores de las 4 respuestas recibidas.\n\n- Si TODAS las respuestas tienen score < 0.73:\n  - NO evalúes relevancia semántica.\n  - NO selecciones ninguna respuesta.\n  - Devuelve ÚNICAMENTE:\n\n{\n  \"response_type\": \"fallback\"\n}\n\nEl criterio de score es ESTRICTO y NUMÉRICO.\nCualquier score menor a 0.73 se considera bajo, sin excepciones.\n\n────────────────────────\n\nPASO 2 — EVALUACIÓN DE RELEVANCIA\nSOLO si existe al menos una respuesta con score ≥ 0.73:\n\n- Evalúa cuáles de esas respuestas responden de forma clara, correcta y pertinente a la pregunta del usuario.\n- Considera el contexto previo solo si es relevante para desambiguar la pregunta.\n\n────────────────────────\n\nPASO 3 — SELECCIÓN DE RESPUESTA\n- Entre las respuestas con score ≥ 0.73 que sean relevantes:\n  - Selecciona la MEJOR.\n  - Devuelve el numero que identifica la respuesta. \n\nEl formato de salida debe ser:\n\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n\n────────────────────────\nRESTRICCIONES IMPORTANTES\n────────────────────────\n- No incluyas texto fuera del JSON.\n-SIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado.\n- Nunca devuelvas \"canned_answer\" si el score es menor a 0.73",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1456,
+        464
+      ],
+      "id": "6f370641-a910-4852-8c0e-83326c0418ca",
+      "name": "Agente RAG",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "notesInFlow": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1376,
+        640
+      ],
+      "id": "1612c1c9-7b07-49b3-8f9c-7b452e7f7749",
+      "name": "Memoria de 5 mensajes volátil"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"response_num\": {\n      \"type\": \"int\"\n    },\n    \"response_type\": {\n      \"type\": \"string\",\n      \"enum\": [\"fallback\", \"human_needed\", \"canned_answer\"]\n    }\n  },\n  \"required\": [\n    \"response_type\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1360,
+        800
+      ],
+      "id": "8ba67137-c6ad-43aa-ad41-63827f710ca9",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "=mistral-small3.2:24b",
+          "mode": "id"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1360,
+        960
+      ],
+      "id": "ac2dc751-e2e2-473f-bdc7-a7d6a7052686",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "OvS5u31oUHyeT4hc",
+          "name": "OLLaMa CCAD"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output.response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1168,
+        176
+      ],
+      "id": "219f5fd0-5f36-458c-8c3e-cd1c20fe61c0",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}",
+        "text": "={{ $json.response }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -736,
+        192
+      ],
+      "id": "cffb010d-83c0-4657-a0aa-a11fc5289595",
+      "name": "Enviar Mensaje",
+      "webhookId": "c8eb8401-447a-43ac-872e-c232d4435e0d",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "FAMAF Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "google-gemini-embedding-001-3072",
+          "mode": "list",
+          "cachedResultName": "google-gemini-embedding-001-3072"
+        },
+        "prompt": "={{ $('Cuando Reciba un Mensaje').item.json.message.text }}",
+        "options": {
+          "pineconeNamespace": "faq-dataset-v2(telegram)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        -1872,
+        464
+      ],
+      "id": "d9501d87-eaea-4175-9e81-c7fab4c062c2",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "CXZPGPosf8oir6Z5",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst results = items.map(item => ({\n  answer: item.json.document.metadata.answer,\n  score: item.json.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        464
+      ],
+      "id": "8afee279-fd10-4c1d-9bec-fd705b3d8a48",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        0
+      ],
+      "id": "35399da8-fce7-481d-a9fd-9f674b7dce17",
+      "name": "fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output.response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nlet answer = clearResponseData[responseNum].answer;\n\n// Remueve las comillas dobles al principio y al final del texto\nanswer = answer.replace(/^\"|\"$/g, '').trim();\n\nanswer = answer.replace(/\\\\n/g, '\\n')\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        384
+      ],
+      "id": "dc3a25b8-48ae-486f-8fd4-4f83e9f2fa4d",
+      "name": "Canned answer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos o Comisión de Género. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar o genero@famaf.unc.edu.ar, ellos te ayudarán con tu situación..`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        192
+      ],
+      "id": "268e1921-b0ca-44da-92b0-601a851e72fa",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1520,
+        640
+      ],
+      "id": "93ee88b4-86c9-4d15-88ab-8da516326a3a",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let msg_valid_type = false\n\nif ($('Cuando Reciba un Mensaje').first().json.message.text && !$('Cuando Reciba un Mensaje').first().json.message.from.is_bot) {\n  msg_valid_type = true\n}\n\n/**\nlet msg_valid_type = true\n\nif ($input.first().json.message.photo){\n  msg_valid_type= false  \n}\nelse if ($input.first().json.message.voice) {\n  msg_type= false\n}\nelse if($input.first().json.message.video) {\n  msg_valid_type= false\n}\nelse if($input.first().json.message.document){\n  msg_valid_type= false\n} \n **/\n\n\nreturn [{json : {\"msg_type\": msg_valid_type}}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2368,
+        272
+      ],
+      "id": "12a2c927-ef99-4339-ad54-9c87009f95ea",
+      "name": "check message type"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"uid\": \"{{ $('Cuando Reciba un Mensaje').item.json.message.from.id }}\",\n  \"duration_in_sconds\": 60,\n  \"message_limit_per_duration\": 30,\n  \"error_message\": \"⚠️ Realizaste demasiadas peticiones, aguarda un momento e intenalo de nuevo\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2912,
+        256
+      ],
+      "id": "0638481e-1ce8-4788-a986-ca705c6ac660",
+      "name": "Establecer Campos para Rate Limiting"
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "={{ $json.uid }}",
+        "expire": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -2720,
+        256
+      ],
+      "id": "159d9f11-498e-4384-847d-9ef72b76838d",
+      "name": "Consultar Límite de Usuario",
+      "notesInFlow": false,
+      "credentials": {
+        "redis": {
+          "id": "f7QaaxgafNPaXZ0x",
+          "name": "Redis account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9be3485f-77e7-4385-bf5a-e2cbe9a7321d",
+              "leftValue": "={{ $json[$('Establecer Campos para Rate Limiting').first().json.uid] }}",
+              "rightValue": "={{ $('Establecer Campos para Rate Limiting').item.json.message_limit_per_duration }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2544,
+        144
+      ],
+      "id": "1d555044-793b-4dd7-a097-a8b230b680ce",
+      "name": "¿Está dentro del Límite de Peticiones?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: $('Establecer Campos para Rate Limiting').first().json.error_message\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -192
+      ],
+      "id": "373dbbc3-aa1d-41c3-9153-7f4bfcd9caaa",
+      "name": "Alcanzó el Límite"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "query_start_time",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3120,
+        256
+      ],
+      "id": "bb19ce16-0d25-4d63-b7e2-befe0dc6a2c0",
+      "name": "Establecer Tiempo Inicial de Consulta"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d41a5814-3d4b-4725-9f07-0d1548d2de18",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() *1000000}}",
+              "type": "number"
+            },
+            {
+              "id": "24ce101b-80a6-4bfc-b67a-65fda23d8a23",
+              "name": "end_time_ms",
+              "value": "={{ Date.now() *1000000 }}",
+              "type": "number"
+            },
+            {
+              "id": "e917c69c-7ba2-48e0-9aac-fda300538154",
+              "name": "execution_id",
+              "value": "={{ $execution.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -528,
+        192
+      ],
+      "id": "75c3d5f7-909f-40a0-86dd-eb80e240f3af",
+      "name": "Enviar Variables Necesarias para Guardar Traza"
+    },
+    {
+      "parameters": {
+        "jsCode": "function generateUUID() {\n  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {\n    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);\n    return v.toString(16);\n  });\n}\n\n// Pasar tiempos a nano\nconst startTime = $('Establecer Tiempo Inicial de Consulta').first().json.query_start_time * 1000000;\nconst now = Date.now();\nconst endTime = now * 1000000;\n\n// Generamos los IDs basándonos en UUID v4\nconst uuidTrace = generateUUID(); // Formato: xxxxxxxx-xxxx-4xxx...\nconst uuidSpan = generateUUID();\n\n// OpenTelemetry exige Hexadecimal seguido sin guiones\n// TraceID: 32 chars (quitamos los guiones al UUID completo)\nconst traceId = uuidTrace.replace(/-/g, ''); \n\n// SpanID: 16 chars (tomamos solo los primeros 16 chars del segundo UUID sin guiones)\n// Nota: Un SpanID debe ser de 64 bits (16 hex chars).\nconst spanId = uuidSpan.replace(/-/g, '').substring(0, 16);\n\nreturn {\n  json: {\n    otel_trace_id: traceId,\n    otel_span_id: spanId,\n    start_time: startTime,\n    end_time: endTime\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        192
+      ],
+      "id": "7f640531-d7bd-4d21-95f0-6826163e060f",
+      "name": "Generar Datos Necesarios para OTLP",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://langfuse-web:3000/api/public/otel/v1/traces",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          { \"key\": \"service.name\", \"value\": { \"stringValue\": \"n8n-chatbot\" } }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\", \n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\", \n              \"name\": \"{{ $json.trace_name }}\",\n              \"kind\": 0,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                { \"key\": \"input.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Cuando Reciba un Mensaje').first().json.message.text) }} }},\n                { \"key\": \"output.value\", \"value\": { \"stringValue\": {{ JSON.stringify($('Enviar Mensaje').item.json.result.text)}}} }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        64,
+        192
+      ],
+      "id": "98263e1d-50c2-481c-b46d-c32755698102",
+      "name": "Registrar en Langfuse Contexto Recuperado",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Infra credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "54d95495-0e9a-4038-bb05-942c125bcc28",
+              "name": "trace_name",
+              "value": "famaf-student-query",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "272a902a-e11b-4a44-ae67-508ca444d382",
+      "name": "Establecer Nombre para Guardar la Traza"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3296,
+        256
+      ],
+      "id": "4d3822d8-accc-40e2-861f-f39d835c6e1c",
+      "name": "Cuando Reciba un Mensaje",
+      "webhookId": "839b84f5-37bc-4d58-88ee-f2032af4abdc",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "FAMAF Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1920,
+        656
+      ],
+      "id": "975ad09a-f5fb-4858-97f9-796d3fe74833",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iDKuHCKqSAYAVPK3",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}",
+        "text": "=El sistema ha excedido la cuota operativa de créditos gratuitos otorgados por Google Cloud para este proyecto. Dada la complejidad actual para gestionar nuevos recursos y financiamiento, nos encontramos trabajando en ello.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -944,
+        528
+      ],
+      "id": "9a86585c-cadf-4616-8ffc-44cc20d536d1",
+      "name": "Enviar Información sobre Límite de Cuota",
+      "webhookId": "c8eb8401-447a-43ac-872e-c232d4435e0d",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "FAMAF Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ddc2eca6-8c1d-4374-8b3c-bcf561b00592",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "The service is receiving too many requests from you",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1168,
+        544
+      ],
+      "id": "10e874e9-1c02-4675-af29-23abdd517003",
+      "name": "¿El error fue ocacionado por falta de Recursos IA?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('check message type').item.json.msg_type }}",
+                    "rightValue": "valid",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "singleValue": true
+                    },
+                    "id": "48d6d0a2-15f5-43b4-b102-c191722a94bb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "invalid_type"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2caa24ea-cefe-4608-936d-b46423c1212c",
+                    "leftValue": "={{ $('check message type').item.json.msg_type }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "valid_type"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -2048,
+        368
+      ],
+      "id": "25b1c0ae-9c4a-4162-a701-5883017667ee",
+      "name": "Tipo de Mensaje"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Cuando Reciba un Mensaje').first().json.message.chat.id }}",
+        "text": "=Disculpa, solo puedo responder mensajes de texto. Por favor, envía tu consulta escribiendo tu pregunta.",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1696,
+        240
+      ],
+      "id": "ed122b3a-4414-42a1-b1d5-6e0de237d4da",
+      "name": "Tipo de Mensaje No Soportado",
+      "webhookId": "c8eb8401-447a-43ac-872e-c232d4435e0d",
+      "credentials": {
+        "telegramApi": {
+          "id": "p61m9P3V3Uq6HRZC",
+          "name": "FAMAF Bot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Cambiar estado a \"Escribiendo...\"": {
+      "main": [
+        [
+          {
+            "node": "Tipo de Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agente RAG": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿El error fue ocacionado por falta de Recursos IA?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria de 5 mensajes volátil": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Enviar Variables Necesarias para Guardar Traza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fallback": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned answer": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente RAG",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check message type": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado a \"Escribiendo...\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Campos para Rate Limiting": {
+      "main": [
+        [
+          {
+            "node": "Consultar Límite de Usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Límite de Usuario": {
+      "main": [
+        [
+          {
+            "node": "¿Está dentro del Límite de Peticiones?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "check message type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Está dentro del Límite de Peticiones?": {
+      "main": [
+        [
+          {
+            "node": "check message type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Alcanzó el Límite",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alcanzó el Límite": {
+      "main": [
+        [
+          {
+            "node": "Enviar Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de Consulta": {
+      "main": [
+        [
+          {
+            "node": "Establecer Campos para Rate Limiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Variables Necesarias para Guardar Traza": {
+      "main": [
+        [
+          {
+            "node": "Generar Datos Necesarios para OTLP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generar Datos Necesarios para OTLP": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre para Guardar la Traza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Nombre para Guardar la Traza": {
+      "main": [
+        [
+          {
+            "node": "Registrar en Langfuse Contexto Recuperado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cuando Reciba un Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Establecer Tiempo Inicial de Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿El error fue ocacionado por falta de Recursos IA?": {
+      "main": [
+        [
+          {
+            "node": "Enviar Información sobre Límite de Cuota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Tipo de Mensaje No Soportado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "69633b8c-a469-4092-8164-24342cb481cf",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "6cvfstYAKseWDtbD",
+  "tags": []
+}

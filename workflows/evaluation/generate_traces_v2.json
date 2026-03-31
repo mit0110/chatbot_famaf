@@ -10,10 +10,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -80,
-        368
+        816,
+        1248
       ],
-      "id": "189275f4-a1dc-4862-893e-73be3cbec891",
+      "id": "d976b54b-2b98-4206-bae8-256f82051a72",
       "name": "Ciclo sobre Todas las Entradas"
     },
     {
@@ -33,10 +33,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        144,
-        384
+        1040,
+        1264
       ],
-      "id": "f4478a7b-47a1-47d1-ab03-22ce8a269ccc",
+      "id": "43b330ca-3a9c-47aa-b23a-bf2972a3c644",
       "name": "Establecer Tiempo Inicial de la Consulta"
     },
     {
@@ -46,10 +46,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1424,
-        368
+        2320,
+        1248
       ],
-      "id": "a245a8b1-81a6-46b2-bfc8-48781433edaa",
+      "id": "fa96cbac-383e-4356-9d45-3c4b4ab4fe46",
       "name": "Generar Datos Necesarios para OLTP"
     },
     {
@@ -69,16 +69,16 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": {\n              \"stringValue\": \"n8n-chatbot\"\n            }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": {\n            \"name\": \"n8n-workflow\"\n          },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"embedding-costs-v1-{{ $('Establecer Nombre del Modelo de Embedding').first().json.supplier }}-{{ $('Establecer Nombre del Modelo de Embedding').first().json.embedding_model_name }}\",\n              \"kind\": 0,\n              \"startTimeUnixNano\": {{ $json.start_time_nano }},\n              \"endTimeUnixNano\": {{ $json.end_time_nano }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ $if($('HTTP Request API de Pinecone (Gemini)').isExecuted, JSON.stringify($('HTTP Request API de Pinecone (Gemini)').item.json.matches[0].metadata.answer), JSON.stringify($('HTTP Request API de Pinecone (Ollama)').item.json.matches[0].metadata.answer)) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": {\n                    \"stringValue\": \"{{ $('Establecer Nombre del Modelo de Embedding').first().json.supplier }}\"\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": {\n                    \"stringValue\": \"{{ $('Establecer Nombre del Modelo de Embedding').first().json.embedding_model_name }}\"\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('HTTP Request API de Pinecone (Gemini)').isExecuted, $('HTTP Request Google API para Contar Tokens').item.json.promptTokensDetails[0].tokenCount, $('HTTP Request de Embeddings para CCAD').first().json.prompt_eval_count) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": 0\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('HTTP Request de Embeddings para CCAD').first().json.prompt_eval_count }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": {\n              \"stringValue\": \"n8n-chatbot\"\n            }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": {\n            \"name\": \"n8n-workflow\"\n          },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $json.otel_trace_id }}\",\n              \"spanId\": \"{{ $json.otel_span_id }}\",\n              \"name\": \"embedding-costs-v1-{{ $('Establecer Nombre del Modelo de Embedding').first().json.supplier }}-{{ $('Establecer Nombre del Modelo de Embedding').first().json.embedding_model_name }}\",\n              \"kind\": 0,\n              \"startTimeUnixNano\": {{ $json.start_time_nano }},\n              \"endTimeUnixNano\": {{ $json.end_time_nano }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": {\n                    \"stringValue\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').first().json.input) }}\n                  }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": {\n                    \"stringValue\": {{ $if($('HTTP Request API de Pinecone (Gemini)').isExecuted, JSON.stringify($('HTTP Request API de Pinecone (Gemini)').item.json.matches[0].metadata.answer), JSON.stringify($('HTTP Request API de Pinecone (Ollama)').item.json.matches[0].metadata.answer)) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": {\n                    \"stringValue\": \"{{ $('Establecer Nombre del Modelo de Embedding').first().json.supplier }}\"\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": {\n                    \"stringValue\": \"{{ $('Establecer Nombre del Modelo de Embedding').first().json.embedding_model_name }}\"\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('HTTP Request API de Pinecone (Gemini)').isExecuted, $('HTTP Request Google API para Contar Tokens').item.json.promptTokensDetails[0].tokenCount, $('HTTP Request de Embeddings para CCAD').item.json.usage.prompt_tokens) }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": 0\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $if($('HTTP Request de Embeddings para CCAD').isExecuted, $('HTTP Request de Embeddings para CCAD').item.json.usage.total_tokens, $('HTTP Request Google API para Contar Tokens').item.json.totalTokens) }}\n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1664,
-        368
+        2560,
+        1248
       ],
-      "id": "46ed1078-2f39-478c-b431-8edbd044e496",
+      "id": "3628b1c8-2bab-4774-b404-f488ca40c466",
       "name": "Registrar Traza en LangFuse usando OTLP",
       "credentials": {
         "httpBasicAuth": {
@@ -92,10 +92,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -976,
-        368
+        -112,
+        1248
       ],
-      "id": "081d9e37-e6ce-4c16-948b-b669fc70510b",
+      "id": "cc68a139-2cae-4b8a-b45e-6ca8ed6d40b4",
       "name": "Ejecución Manual"
     },
     {
@@ -108,10 +108,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -528,
-        368
+        336,
+        1248
       ],
-      "id": "6992b62f-fecd-419a-a3b8-164a5401a796",
+      "id": "c546aee0-dd96-4031-adbe-bfb265c659da",
       "name": "Obtener Conjunto de Datos",
       "credentials": {
         "httpBasicAuth": {
@@ -128,10 +128,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -304,
-        368
+        560,
+        1248
       ],
-      "id": "270bcff2-4dbb-46c5-b37a-65855be68052",
+      "id": "08539f9d-e97a-4e46-ac3f-01933528c9e4",
       "name": "Agregar Items a un Arreglo"
     },
     {
@@ -147,7 +147,7 @@
             {
               "id": "085c9e9a-3c58-4a3b-acee-6a81f6752c6a",
               "name": "embedding_model_name",
-              "value": "bge-m3:latest",
+              "value": "ollama/bge-m3:latest",
               "type": "string"
             }
           ]
@@ -157,10 +157,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -752,
-        368
+        112,
+        1248
       ],
-      "id": "fc719d87-a277-4045-8786-4e7ea3cf73be",
+      "id": "c86851ae-59f2-4d88-9695-ba4baa3e39dc",
       "name": "Establecer Nombre del Modelo de Embedding"
     },
     {
@@ -223,10 +223,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        368,
-        384
+        1264,
+        1264
       ],
-      "id": "5ef541e9-7305-438e-90b8-c3c87f7cb983",
+      "id": "9b3acd3e-df33-4fcf-a175-c381f9657215",
       "name": "Switch"
     },
     {
@@ -243,10 +243,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        656,
-        256
+        1552,
+        1136
       ],
-      "id": "9b554d0d-451b-4194-8b52-1284343e2764",
+      "id": "397bb8a2-b490-43b7-ae22-8d49ad81890c",
       "name": "HTTP Request Google API para Contar Tokens",
       "credentials": {
         "httpHeaderAuth": {
@@ -262,9 +262,18 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://chat.ccad.unc.edu.ar/ollama/api/embed",
+        "url": "https://chat.ccad.unc.edu.ar/api/v1/embeddings",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={\n  \"model\": \"{{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}\", \n  \"input\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }}\n}",
@@ -275,10 +284,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        656,
-        480
+        1552,
+        1360
       ],
-      "id": "c9c378e5-768d-4a9b-91a1-6588a7e7f6fe",
+      "id": "03ed3c54-92e4-4d99-acaa-70c90a05b81e",
       "name": "HTTP Request de Embeddings para CCAD",
       "credentials": {
         "httpHeaderAuth": {
@@ -301,10 +310,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        896,
-        256
+        1792,
+        1136
       ],
-      "id": "3af271a1-0467-4c7a-bc43-c84644c347f3",
+      "id": "7919bb64-63da-4558-9eee-2f6f16199b23",
       "name": "HTTP Request Google API para Embedding",
       "credentials": {
         "httpHeaderAuth": {
@@ -354,10 +363,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1856,
-        544
+        2752,
+        1424
       ],
-      "id": "3596ab55-5d41-4fd4-bdb7-715f158f8ddc",
+      "id": "213a95cf-0526-46b9-ab07-ee12c96d73af",
       "name": "Enlazar con el Dataset en LangFuse vía API",
       "credentials": {
         "httpBasicAuth": {
@@ -376,10 +385,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -848,
-        240
+        16,
+        1120
       ],
-      "id": "0c410084-b68f-4ec5-beec-a6d2acacaac9",
+      "id": "575f344a-320d-4314-970d-942dec5ac5bb",
       "name": "Sticky Note1"
     },
     {
@@ -390,16 +399,16 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"vector\": {{ JSON.stringify($json.embeddings[0])}},\n  \"namespace\": \"faq-dataset-v1\",\n  \"topK\": 1,\n  \"includeMetadata\": true,\n  \"includeValues\": false\n}",
+        "jsonBody": "={\n  \"vector\": {{ JSON.stringify($json.data[0].embedding)}},\n  \"namespace\": \"faq-dataset-v1\",\n  \"topK\": 1,\n  \"includeMetadata\": true,\n  \"includeValues\": false\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1120,
-        480
+        2016,
+        1360
       ],
-      "id": "6cc6efc3-c8fa-497d-bb61-4081c5fe828f",
+      "id": "5f13930f-e959-4353-b447-9e7ac194309a",
       "name": "HTTP Request API de Pinecone (Ollama)",
       "credentials": {
         "httpHeaderAuth": {
@@ -422,10 +431,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1120,
-        256
+        2016,
+        1136
       ],
-      "id": "2e512455-7b6f-47b6-a547-7d30b9350912",
+      "id": "b34ad5c0-ad73-41d1-bfa5-cca0b2da574f",
       "name": "HTTP Request API de Pinecone (Gemini)",
       "credentials": {
         "httpHeaderAuth": {
@@ -443,10 +452,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        1040,
-        64
+        1936,
+        944
       ],
-      "id": "fdffe052-05c5-436b-b57f-3ed6dce6276b",
+      "id": "920532d7-0a5e-4f58-9bc2-dc728f8f22b8",
       "name": "Sticky Note"
     }
   ],
@@ -631,7 +640,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "9b5f6ddf-9388-4438-be92-f45701838807",
+  "versionId": "b0716573-9709-4856-a7f2-1cf670d816ab",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

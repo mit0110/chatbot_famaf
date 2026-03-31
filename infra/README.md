@@ -24,7 +24,7 @@ Crear un archivo `.env` en este directorio con las siguientes variables:
 
 ```bash
 # ============================================================
-# N8N 
+# N8N
 # ============================================================
 
 # ------------------------------------------------------------
@@ -34,14 +34,14 @@ Crear un archivo `.env` en este directorio con las siguientes variables:
 # SUBDOMAIN=tu-subdominio-ngrok
 # N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
 # N8N_PROTOCOL=https
-# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
 
 # ------------------------------------------------------------
 # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
 # ------------------------------------------------------------
 N8N_HOST=localhost
 N8N_PROTOCOL=http
-WEBHOOK_URL=http://n8n:5678/webhook/
+WEBHOOK_URL=http://n8n:5678/
 
 # ============================================================
 # General
@@ -85,14 +85,14 @@ NODE_FUNCTION_ALLOW_BUILTIN=crypto
 
 #### N8N y acceso externo
 
-| Variable       | Descripción                                                  |
-| -------------- | ------------------------------------------------------------ |
-| `DOMAIN_NAME`  | Dominio base para n8n (ej: `ngrok-free.dev`)                 |
-| `SUBDOMAIN`    | Subdominio asignado por ngrok para tu instancia              |
-| `N8N_HOST`     | Host público donde se accede a n8n (ej: `subdominio.dominio.com` o `localhost`) |
-| `N8N_PROTOCOL` | Protocolo usado por n8n (`http` para local, `https` cuando se expone públicamente) |
-| `WEBHOOK_URL`  | URL pública base que n8n utiliza para generar webhooks (ej: `https://subdominio.dominio.com/webhook/` ( o  `https://subdominio.dominio.com/webhook-test/` en caso de estar haciendo pruebas) |
-| `SSL_EMAIL`    | Email para generar certificados SSL con Let's Encrypt (usado por Traefik) |
+| Variable       | Descripción                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `DOMAIN_NAME`  | Dominio base para n8n (ej: `ngrok-free.dev`)                                                  |
+| `SUBDOMAIN`    | Subdominio asignado por ngrok para tu instancia                                               |
+| `N8N_HOST`     | Host público donde se accede a n8n (ej: `subdominio.dominio.com` o `localhost`)               |
+| `N8N_PROTOCOL` | Protocolo usado por n8n (`http` para local, `https` cuando se expone públicamente)            |
+| `WEBHOOK_URL`  | URL pública base que n8n utiliza para generar webhooks (ej: `https://subdominio.dominio.com/` |
+| `SSL_EMAIL`    | Email para generar certificados SSL con Let's Encrypt (usado por Traefik)                     |
 
 #### General
 
@@ -163,11 +163,11 @@ docker compose up -d
 
 Una vez levantados los contenedores, podés acceder a:
 
-| Servicio        | URL                                                          | Descripción                     |
-| --------------- | ------------------------------------------------------------ | ------------------------------- |
-| **n8n**         | http://localhost:5678<br />  (o url de ngrok si estas utilizandolo) | Crear y gestionar workflows     |
-| **Langfuse**    | http://localhost:3000                                        | Observabilidad de LLMs          |
-| **Admin Panel** | http://localhost:8000/admin                                  | Panel de administración FastAPI |
+| Servicio        | URL                                                                | Descripción                     |
+| --------------- | ------------------------------------------------------------------ | ------------------------------- |
+| **n8n**         | http://localhost:5678<br /> (o url de ngrok si estas utilizandolo) | Crear y gestionar workflows     |
+| **Langfuse**    | http://localhost:3000                                              | Observabilidad de LLMs          |
+| **Admin Panel** | http://localhost:8000/admin                                        | Panel de administración FastAPI |
 
 ### Links internos para n8n
 
@@ -175,7 +175,7 @@ Cuando configures credenciales o conexiones desde n8n hacia otros servicios (com
 
 - Para Langfuse: `http://langfuse-web:3000`
 - Para FastAPI: `http://fastapi:8000`
-- Para N8N: `http://n8n:5678` si estas corriendo local (o la URL de ngrok en caso de utilizar ngrok) 
+- Para N8N: `http://n8n:5678` si estas corriendo local (o la URL de ngrok en caso de utilizar ngrok)
 
 Estas URLs permiten que n8n se comunique directamente con los servicios dentro de la red de Docker, evitando problemas de acceso o firewall. No uses las URLs externas (localhost) para conexiones internas entre contenedores.
 
@@ -223,18 +223,17 @@ Descomentar / comentar las variables según el modo de uso:
 # SUBDOMAIN=tu-subdominio-ngrok
 # N8N_HOST=${SUBDOMAIN}.${DOMAIN_NAME}
 # N8N_PROTOCOL=https
-# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/webhook/
+# WEBHOOK_URL=https://${SUBDOMAIN}.${DOMAIN_NAME}/
 
 # ------------------------------------------------------------
 # MODO LOCAL (usar cuando accedés desde http://localhost:5678)
 # ------------------------------------------------------------
 N8N_HOST=localhost
 N8N_PROTOCOL=http
-WEBHOOK_URL=http://n8n:5678/webhook/
-
+WEBHOOK_URL=http://n8n:5678/
 ```
 
-⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n, agregando `/webhook/` para webhooks en producción o `/webhook-test/` para pruebas.
+⚠️ Es importante que `WEBHOOK_URL` coincida exactamente con la URL desde donde accedés a n8n
 
 ### 2. Configurar .env
 
@@ -285,7 +284,7 @@ Los datos persistentes se guardan en los siguientes volúmenes Docker:
 
 ### n8n: Webhooks no funcionan
 
-Verificá que `WEBHOOK_URL` sea la URL de acceso a n8n + `/webhook/` (producción) o `/webhook-test/` (testing).
+Verificá que `WEBHOOK_URL` sea la URL de acceso a n8n
 
 ### Puertos en uso
 

@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.config import settings
 from app.database import init_db
-from app.routers import question, answer, admin, category
+from app.routers import question, answer, admin, category, csv_upload
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.include_router(question.router, tags=['Questions'], prefix='/api/questions')
 app.include_router(answer.router, tags=['Answers'], prefix='/api/answers')
 app.include_router(category.router, tags=['Categories'], prefix='/api/categories')
 app.include_router(admin.router, tags=['Admin Panel'], prefix='/admin')
+app.include_router(csv_upload.router, tags=['CSV Upload'], prefix='/admin/csv')
 
 
 @app.get("/api/healthchecker")

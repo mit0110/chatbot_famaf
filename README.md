@@ -23,6 +23,24 @@ El sistema despliega un Agente basado en Recuperación de Información que resue
 * **Panel de Administración:** interfaz web para gestionar el conocimiento del bot.
 
 ## ⚙️ Arquitectura del Sistema
+
+```mermaid
+flowchart TD
+    User((🧑‍🎓 Estudiante))
+    n8n("⚙️ n8n <br />(chatbot-whatsapp.json)")
+    Redis[(⚡ Redis)]
+    Pinecone[(🧠 Pinecone)]
+    LLM[🤖 Modelo de Lenguaje]
+    Langfuse([📊 Langfuse])
+
+    User -->|"1. Consulta"| n8n
+    n8n -->|"2. Verifica límite de uso"| Redis
+    n8n -->|"3. Recupera contexto"| Pinecone
+    n8n -->|"4. Envía Prompt + Contexto"| LLM
+    n8n -->|"5. Respuesta final"| User
+    n8n -.->|"6. Registra métricas"| Langfuse
+```
+
 La arquitectura del sistema se divide en componentes. Como introducción de estos componentes y para entender el funcionamiento del sistema, describiremos a continuación brevemente los procesos siguiendo el ciclo de vida de la información:
 
 * **n8n:** es el encargado de que todas las componentes se comuniquen entre sí. Recibe las consultas de los estudiantes a través de _WhatsApp Business API_, realiza las búsquedas de información en Pinecone, para la información recuperada al modelo de lenguaje y le responde al usuario.
@@ -86,11 +104,11 @@ La organización de las carpetas dentro del proyecto es la siguiente:
     └── evaluation/
 ```
 
-* **`admin_panel/`**: Contiene el **código de la interfaz web** para gestionar la base de conocimiento del bot.
-* **`data/`**: Almacena las **bases de conocimiento y los conjuntos de datos** que utilizamos durante el desarrollo y la evaluación del chatbot.
-* **`infra/`**: Todo lo relacionado con la infraestructura y el despliegue del ecosistema (archivo Docker Compose y `.env` de ejemplo para su configuración).
-* **`notebooks/`**: Incluye los ***Jupyter Notebooks* utilizados para calcular métricas, evaluar resultados y analizar el comportamiento del sistema**.
-* **`workflows/`**: Acá están exportados **todos los flujos de n8n que implementan la lógica del sistema**, divididos según su propósito:
-  * **`canned_responses/`**: Arquitectura de un chatbot con respuestas predefinidas (**versión de producción**).
-  * **`rag/`**: Flujos que implementan una arquitectura RAG (Retrieval-Augmented Generation) en una versión experimental. 
-  * **`evaluation/`**: Flujos creados para automatizar la evaluación y calcular métricas de las distintas versiones del chatbot que se desarrollaron a lo largo del proyecto.
+* **`admin_panel/`**: contiene el **código de la interfaz web** para gestionar la base de conocimiento del bot.
+* **`data/`**: almacena las **bases de conocimiento y los conjuntos de datos** que utilizamos durante el desarrollo y la evaluación del chatbot.
+* **`infra/`**: todo lo relacionado con la infraestructura y el despliegue del ecosistema (archivo Docker Compose y `.env` de ejemplo para su configuración).
+* **`notebooks/`**: incluye los ***Jupyter Notebooks* utilizados para calcular métricas, evaluar resultados y analizar el comportamiento del sistema**.
+* **`workflows/`**: acá están exportados **todos los flujos de n8n que implementan la lógica del sistema**, divididos según su propósito:
+  * **`canned_responses/`**: arquitectura de un chatbot con respuestas predefinidas (**versión de producción**).
+  * **`rag/`**: flujos que implementan una arquitectura RAG (Retrieval-Augmented Generation) en una versión experimental. 
+  * **`evaluation/`**: flujos creados para automatizar la evaluación y calcular métricas de las distintas versiones del chatbot que se desarrollaron a lo largo del proyecto.

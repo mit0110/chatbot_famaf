@@ -1,14 +1,34 @@
-# chatbot_famaf
+# Chatbot FAMAF
 
 <p align="center">
    <img width="1653" height="516" alt="image" src="https://github.com/user-attachments/assets/cf8a72a8-5299-4bce-942c-485acc002eff" />
 </p>
+
+Este repositorio contiene la implementación de un **asistente para WhatsApp** diseñado para atender consultas frecuentes de la comunidad de la **Facultad de Matemática, Astronomía, Física y Computación (FAMAF)** de la **Universidad Nacional de Córdoba**.
 
 <p align="center">
   <a href="https://wa.me/5493513769490?text=Hola!%20Tengo%20una%20consulta%20sobre%20FAMAF" target="_blank">
     <img src="https://img.shields.io/badge/Chat_con_el_Bot-WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Chat en WhatsApp">
   </a>
 </p>
+
+## ℹ️ Descripción del Proyecto
+El sistema despliega un Agente basado en Recuperación de Información que resuelve consultas sobre trámites, materias y vida académica utilizando respuestas predefinidas, eliminando el riesgo de alucinaciones.
+
+### Características Principales:
+* **Arquitectura de Recuperación:** utiliza búsqueda vectorial para contrastar las consultas de los usuarios con una base de conocimiento curada (información extraída de sitios oficiales y redes sociales de la institución).
+* **Almacenamiento y Búsqueda de Vectores:** usa índices de **Pinecone** para almacenar los *embeddings* de la base de conocimiento y su motor para la recuperación semántica de información.
+* **Automatización de Procesos:** flujos de trabajo automatizados de **n8n** para actualizar la base de conocimiento del agente y responder las consultas entrantes.
+* **Observabilidad:** registro y trazabilidad de cada interacción en **Langfuse** para monitorear el comportamiento del agente en tiempo real.
+* **Panel de Administración:** interfaz web para gestionar el conocimiento del bot.
+
+## ⚙️ Arquitectura del Sistema
+La arquitectura del sistema se divide en componentes. Como introducción de estos componentes y para entender el funcionamiento del sistema, describiremos a continuación brevemente los procesos siguiendo el ciclo de vida de la información:
+
+* **n8n:** Es el encargado de que todas las componentes se comuniquen entre sí. Recibe las consultas de los estudiantes a través de _WhatsApp Business API_, realiza las búsquedas de información en Pinecone, para la información recuperada al modelo de lenguaje y le responde al usuario.
+* **Pinecone:** Es donde se almacena el conocimiento del chatbot. Es la base de datos vectorial que guarda las preguntas frecuentes procesadas en forma de vectores con su respuesta como metadato. Esto permite realizar búsquedas semánticas de manera eficiente para encontrar las consultas más similares a la que realizó el estudiante y que el modelo necesita antes de decidir la respuesta.
+* **Langfuse:** En producción se encarga de registrar cada interacción entre los estudiantes y el agente con la consulta, la respuesta y la latencia. Además, sirve para evaluar las arquitecturas y los modelos con los workflows de `evaluation/` permitiendo analizar el consumo de tokens, calcular métricas y detectar errores.
+* **Panel de Administrador:** Es una interfaz web pensada para gestionar la base de conocimiento del sistema. Desde acá se puede actualizar o cargar nueva información manualmente o masivamente usando archivos `.csv`, ademmás de revisar las preguntas que ya forman parte del conocimiento del agente.
 
 ## 📋 Tabla de Contenidos
 

@@ -31,7 +31,7 @@ La arquitectura del sistema se divide en componentes. Como introducción de esto
 * **Langfuse:** en producción se encarga de registrar cada interacción entre los estudiantes y el agente con la consulta, la respuesta y la latencia. Además, sirve para evaluar las arquitecturas y los modelos con los workflows de `evaluation/` permitiendo analizar el consumo de tokens, calcular métricas y detectar errores.
 * **Panel de Administrador:** es una interfaz web pensada para gestionar la base de conocimiento del sistema. Desde acá se puede actualizar o cargar nueva información manualmente o masivamente usando archivos `.csv`, además de revisar las preguntas que ya forman parte del conocimiento del agente.
 
-### 🛠️ Requisitos previos
+## 🛠️ Requisitos previos
 Para desplegar todo el ecosistema (n8n, Redis, Langfuse, Panel de Administrador), el sistema se apoya en una serie de servicios interconectados que se despliegan mediante Docker. 
 
 **Herramientas necesarias:**

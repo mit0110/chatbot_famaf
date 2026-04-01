@@ -53,7 +53,7 @@ La arquitectura del sistema se divide en componentes. Para introducir estos comp
 
 Levantar el ecosistema completo requiere configurar las variables de entorno, iniciar los contenedores de Docker y conectar los servicios mediante n8n. Por este motivo, podés **consultar la Wiki del proyecto** para encontrar las descripciones de las variables de entorno y seguir las instrucciones detalladas para desplegarlo en el entorno local.
 
-👉 [Ver las instrucciones de instalación paso a paso en la Wiki](https://github.com/mit0110/chatbot_famaf/wiki)
+👉 [Ver las instrucciones de instalación paso a paso en la Wiki](https://github.com/mit0110/chatbot_famaf/wiki/Instrucciones-de-Instalaci%C3%B3n)
 
 ## 🛠️ Requisitos previos
 Para desplegar el ecosistema (n8n, Redis, Langfuse, Panel de Administrador), es necesario contar con una serie de servicios interconectados mediante Docker.

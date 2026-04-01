@@ -221,14 +221,14 @@
     "Start": [
       {
         "json": {
-          "input": "\"¿Cómo se si debo inscribirme en una materia como libre o como regular?\"",
-          "output": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Materias\", luego elegí la materia a la cual quieras inscribirte y hacé clic en \"Inscribirse\".\n\nEl sistema automáticamente intentará inscribirte con la condición de regular/promocional por defecto. Si te muestra algún mensaje de error, es porque no cumplís los requisitos.",
-          "query_start_time_ms": 1773544270734,
-          "execution_id": 4222,
-          "dataset_item_id": "04338967-4b42-4636-86ac-f54944d90ec0",
+          "input": "\"¿Cómo inicio el trámite para cursar dos carreras en paralelo en FAMAF?\"",
+          "output": "Para solicitar cambiar de carrera o cursar en paralelo varias de la oferta de grado de FAMAF, deberás llenar el siguiente formulario:\n\nhttps://docs.google.com/forms/d/e/1FAIpQLSeNA8jXxGARDeebj0TdjXMmmXGNph0gZQPkzfliWZbcbN9KdQ/viewform\n\nLas solicitudes se recibirán hasta la finalización de la primera semana de diciembre y se reabrirán el primer día hábil de febrero; serán resueltas en el término de 15 días hábiles a partir de la presentación y se informará por correo electrónico.\n\nEl trámite debe iniciarse por cada carrera que se desee cursar (por separado).\n\nAl aceptarse la inscripción a cursar de manera paralela la carrera nueva, se transcribe automáticamente la actuación académica en las materias correspondientes del Anexo I de la Resolución RHCD-2024-397-E-UNC-DEC#FAMAF (por mayor información, remitirse a su Artículo 1°).",
+          "query_start_time_ms": 1775050019833,
+          "execution_id": 4431,
+          "dataset_item_id": "2355aa32-bd8b-4f54-91b9-00a900ebb848",
           "model_supplier": "google",
           "embedding_model_name": "gemini-embedding-001",
-          "embedding_total_tokens": 17
+          "embedding_total_tokens": 16
         }
       }
     ]

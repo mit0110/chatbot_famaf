@@ -46,7 +46,7 @@
         "text": "={{ JSON.stringify($json.answers) }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario: {{ $json.message_text_firstItem }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON.",
+          "systemMessage": "=# Sistema de Asistente Virtual FaMAF\n\nEres un asistente especializado en resolver consultas de estudiantes de la Facultad de Matemática, Astronomía, Física y Computación (FaMAF). Tu objetivo es ayudar a estudiantes a obtener información relevante sobre cursada, ingreso, trámites administrativos y mejorar su experiencia académica.\n\nPregunta del usuario: {{ $json.query }}\n\n## Contexto de Funcionamiento\n\nRecibirás 4 resultados de búsqueda semántica de una base de conocimiento (vector database Pinecone), cada uno con:\n- Una pregunta frecuente\n- Su respuesta correspondiente\n- Un score de relevancia (0 a 1)\n- Un numero que identifica el registro\n\nTu tarea es evaluar estos resultados y decidir cómo responder al usuario.\n\n## Terminología Importante\n\nReconoce estos términos como sinónimos:\n- **Trabajo Especial** = tesis, trabajo final, trabajo de grado\n- **Régimen Especial de Cursado (RE)** = régimen trabajador, alumno trabajador, régimen especial\n- **Curso de Nivelación** = cursillo, curso de ingreso, ingreso\n\n## Reglas de Decisión\n\n### 1. Respuesta Directa (response_type: \"canned_answer\")\n**Cuándo:** El score más alto es >= 0.73 Y la respuesta es relevante para la pregunta del usuario.\n\n**Acción:** Devuelve el numero que identifica la respuesta. Selecciona la respuesta con el score más alto que sea apropiada, teniendo en cuenta la pregunta del usuario y el historial de preguntas\n\n```json\n{\n  \"response_type\": \"canned_answer\",\n  \"response_num\": \"[NUMERO DE LA RESPUESTA ELEGIDA]\"\n}\n```\n\n### 2. Fallback (response_type: \"fallback\")\n**Cuándo:** TODOS los scores son < 0.73 O ninguna de las respuestas es relevante para la pregunta del usuario.\n\n**Acción:** Indica que no hay información suficiente.\n\n```json\n{\n  \"response_type\": \"fallback\"\n}\n```\n\n### 3. Derivación a Humano (response_type: \"human_needed\")\n**Cuándo:** La consulta está relacionada con:\n- Violencia de género\n- Acoso (sexual, laboral, académico, etc.)\n- Discriminación\n- Situaciones de conflicto interpersonal en la facultad\n- Denuncias de conductas inapropiadas\n- Problemas de convivencia o interacción social problemática dentro de FaMAF\n\n**Acción:** PRIORIDAD MÁXIMA. Deriva inmediatamente a atención humana, independientemente del score.\n\n```json\n{\n  \"response_type\": \"human_needed\"\n}\n```\n\n## Consideraciones Adicionales\n\n- Tienes acceso al historial de las últimas 5 interacciones del usuario para entender el contexto de la conversación.\n- Usa este contexto para interpretar mejor preguntas ambiguas o que hacen referencia a mensajes anteriores.\n- Si el usuario menciona \"lo que pregunté antes\" o \"sobre eso que dijiste\", usa la memoria para conectar la consulta actual con el tema previo.\n\n## Formato de Salida\n\nSIEMPRE responde con un objeto JSON válido con la estructura correspondiente según el tipo de respuesta identificado. No agregues texto adicional fuera del JSON.",
           "returnIntermediateSteps": true
         }
       },
@@ -77,45 +77,6 @@
       ],
       "id": "98012cf8-b11d-4bfd-ade9-95c6252c79ed",
       "name": "Sticky Note"
-    },
-    {
-      "parameters": {
-        "model": "mistral-small3.2:24b",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
-      "typeVersion": 1,
-      "position": [
-        -944,
-        576
-      ],
-      "id": "2cbe6796-5257-411f-ac2b-6e7628c6a5d0",
-      "name": "Ollama Chat Model",
-      "credentials": {
-        "ollamaApi": {
-          "id": "rQP61Wk2CEbvWB9b",
-          "name": "Ollama account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmOllama",
-      "typeVersion": 1,
-      "position": [
-        -672,
-        800
-      ],
-      "id": "79ed878b-b90d-4747-92a0-16f4f89c54f2",
-      "name": "Ollama Model",
-      "credentials": {
-        "ollamaApi": {
-          "id": "rQP61Wk2CEbvWB9b",
-          "name": "Ollama account"
-        }
-      }
     },
     {
       "parameters": {
@@ -151,6 +112,58 @@
       ],
       "id": "0237c7cc-a2ae-4dd9-bd6e-80fc5271d859",
       "name": "Devolver solo Información Necesaria"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "ollama/mistral-small3.2:24b",
+          "mode": "list",
+          "cachedResultName": "ollama/mistral-small3.2:24b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -944,
+        576
+      ],
+      "id": "e6714ee9-4d05-44ca-bc48-e942327bb27b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OvS5u31oUHyeT4hc",
+          "name": "OLLaMa CCAD"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "ollama/mistral-small3.2:24b",
+          "mode": "list",
+          "cachedResultName": "ollama/mistral-small3.2:24b"
+        },
+        "responsesApiEnabled": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -672,
+        800
+      ],
+      "id": "7948487e-568d-4adc-bdc3-51038ca44950",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "OvS5u31oUHyeT4hc",
+          "name": "OLLaMa CCAD"
+        }
+      }
     }
   ],
   "pinData": {
@@ -159,23 +172,23 @@
         "json": {
           "answers": [
             {
-              "answer": "Quienes cursen el Curso de Nivelación podrán optar por: turno mañana, de 9 a 13 horas; o turno tarde, de 14 a 18 horas.",
-              "score": 0.873412967
+              "answer": "Para inscribirte a las Becas Nutrirse del comedor universitario, podés seguir el siguiente instructivo de la UNC:\n\nhttps://www.unc.edu.ar/sites/default/files/Tutorial%20Becas%202025.pdf\n\nPara más información sobre la beca podés visitar el siguiente enlace: https://www.unc.edu.ar/vida-estudiantil/becas-nutrirse-2025",
+              "score": 0.662080705
             },
             {
-              "answer": "El curso de nivelación se dictará entre fines de enero y fines de febrero de 2026 y se ofrece bajo una única modalidad: presencial.",
-              "score": 0.871069312
+              "answer": "La convocatoria para las Becas PIOE 2026 para estudiantes avanzados/as (que hayan cursado de 1° a 5° año en el año 2025) se realiza a través del siguiente formulario:\n\nhttps://docs.google.com/forms/d/e/1FAIpQLSdnzX05Rsew11KATJ2ddsYnB4Sg18ndOgCy6yaKBfuNA6NrbQ/viewform?pli=1\n\nEl cual podés llenar desde el 04/11/2025 al 12/12/2025.",
+              "score": 0.656681061
             },
             {
-              "answer": "La preinscripción al Curso de Nivelación de FAMAF se encuentra abierta desde el 3 de noviembre hasta el 12 de diciembre de 2025. Este se dictará durante enero y febrero del año 2026, para los que deseen ingresar a una carrera en FAMAF en 2026.\n\nPara inscribirte necesitás tener un usuario en Sistema Guaraní; en caso de que no tengas, podés solicitarlo mediante el siguiente formulario:\nhttps://preinscripcion.guarani.unc.edu.ar/preinscripcion/\n\nSi ya tenés un usuario en sistema Guaraní, tenés que ingresar y seguir los pasos del siguiente video-tutorial:\n\nhttps://www.youtube.com/watch?v=deQuWbJnEDU\n\nEn caso de que seas alumno extranjero deberás seguir los pasos del siguiente instructivo:\n\nhttps://docs.google.com/document/d/1lea6U_TZ7dL1BqoBUjWK0cS2jW7ar4hCmtuIODqtSqQ/edit?tab=t.0",
-              "score": 0.664854228
+              "answer": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Materias\", luego elegí la materia a la cual quieras inscribirte y hacé clic en \"Inscribirse\".\n\nEl sistema automáticamente intentará inscribirte con la condición de regular/promocional por defecto. Si te muestra algún mensaje de error, es porque no cumplís los requisitos.",
+              "score": 0.615785599
             },
             {
-              "answer": "Las fechas definitivas de exámenes para las materias de grado se pueden encontrar en el siguiente enlace: https://drive.google.com/file/d/1OUEoMGZWouTDqw7uUFPtgdL3XQoHWc6Q/view?pli=1\nLas mismas se encuentran fijas, por lo que no cambia en qué día de la mesa de examen se va a rendir cierta materia. De esta manera se puede saber todo el año las fechas en que se va a rendir una materia y no hay que esperar las fechas definitivas para poder preparar el examen.\nEn el documento, se encuentran las materias listadas por fecha de examen. Para saber la fecha exacta que tenés que rendir debés consultar el calendario académico: https://www.famaf.unc.edu.ar/la-facultad/institucional/secretar%C3%ADas/secretaria-academica/calendario-acad%C3%A9mico/ y fijarte las fechas del turno de examen que deseas rendir.\nCada época de examen tiene 5 días para rendir que corresponden con las 5 fechas detalladas en el primer documento; de esta manera, si la materia que planeas rendir figura en la columna \"Fecha 1\" se rendiría en el primer día del turno.\nPor ejemplo, si el turno de época de exámenes en el cual deseas rendir es del 1/12 hasta el 5/12 y la materia que tenés que rendir figura en la columna 'Fecha 1', entonces dicha materia se rendiría el 1/12. Asimismo, si la materia figura en la columna 'Fecha 2' se rendiría el 2/12, si figura en la columna 'Fecha 3' el 3/12, y así sucesivamente.\n\nRecordá que tenés tiempo para inscribirte hasta 3 días hábiles antes del examen.",
-              "score": 0.582630515
+              "answer": "Ingresá a Guaraní. Una vez dentro, seleccioná la opción \"Inscripción a Exámenes\", elegí la materia a la cual quieras inscribirte para rendir, después seleccioná en el menú desplegable si querés inscribirte al examen como libre o regular, y luego hacé clic en \"Inscribirse\".",
+              "score": 0.593277
             }
           ],
-          "query": "¿En qué fechas se va a hacer el curso de nivelación?"
+          "query": "¿Cómo me postulo a la Beca Manuel Belgarno?"
         }
       }
     ]
@@ -214,7 +227,7 @@
         ]
       ]
     },
-    "Ollama Chat Model": {
+    "OpenAI Chat Model": {
       "ai_languageModel": [
         [
           {
@@ -225,7 +238,7 @@
         ]
       ]
     },
-    "Ollama Model": {
+    "OpenAI Chat Model1": {
       "ai_languageModel": [
         [
           {
@@ -242,7 +255,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "a963b8ef-b40e-4da8-9338-29e177423a2d",
+  "versionId": "d73962b1-d3e7-4bb8-9f1e-14f349b9f93c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

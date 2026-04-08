@@ -10,10 +10,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1712,
-        1728
+        -3344,
+        3296
       ],
-      "id": "d1917870-d470-449a-9816-47262a08ce7a",
+      "id": "82671480-5c4a-477b-965a-24edce90dadd",
       "name": "Ciclo sobre Todas las Entradas"
     },
     {
@@ -33,10 +33,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1488,
-        1744
+        -3120,
+        3312
       ],
-      "id": "2b6b8cfe-42c9-4f42-8ca4-7db892f38838",
+      "id": "9cd01361-e329-47c8-b95b-b97daa875450",
       "name": "Establecer Tiempo Inicial de la Consulta"
     },
     {
@@ -44,10 +44,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        -2608,
-        1728
+        -4240,
+        3296
       ],
-      "id": "c223f2d5-8af9-4e06-8af4-03b25ea24200",
+      "id": "5d375f7e-0678-47ee-afd9-57863d283dac",
       "name": "Ejecución Manual"
     },
     {
@@ -60,10 +60,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -2160,
-        1728
+        -3792,
+        3296
       ],
-      "id": "1102c66b-80d2-4ca0-910f-f9815e67c34f",
+      "id": "227f16fa-f457-4410-a600-25132556f577",
       "name": "Obtener Conjunto de Datos",
       "credentials": {
         "httpBasicAuth": {
@@ -80,10 +80,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1936,
-        1728
+        -3568,
+        3296
       ],
-      "id": "ffd5236d-82ec-43ea-a9e8-b4e6160280cb",
+      "id": "1354de5f-c404-4378-b089-b2c3cf17b1b7",
       "name": "Agregar Items a un Arreglo"
     },
     {
@@ -93,13 +93,13 @@
             {
               "id": "76ea9122-ad9a-4b4f-ba1b-6bfbee82673d",
               "name": "supplier",
-              "value": "google",
+              "value": "ollama",
               "type": "string"
             },
             {
               "id": "085c9e9a-3c58-4a3b-acee-6a81f6752c6a",
               "name": "embedding_model_name",
-              "value": "gemini-embedding-001",
+              "value": "ollama/bge-m3:latest",
               "type": "string"
             },
             {
@@ -115,10 +115,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2384,
-        1728
+        -4016,
+        3296
       ],
-      "id": "cd227709-9353-42e0-bfbe-6066d880caed",
+      "id": "9c421217-a9c3-48f2-bb5b-3a50ef56ba52",
       "name": "Establecer Nombre del Modelo de Embedding"
     },
     {
@@ -181,10 +181,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -1264,
-        1744
+        -2896,
+        3312
       ],
-      "id": "ad107dac-db4d-4419-9271-616d71bdab15",
+      "id": "13072308-cbb3-4a57-99f3-2d118a24446b",
       "name": "Switch"
     },
     {
@@ -201,10 +201,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -976,
-        1616
+        -2608,
+        3184
       ],
-      "id": "87dd493a-f81c-462e-b9e1-2eb9e99579e2",
+      "id": "32f87fa9-fd77-41ec-92e6-21a98a7543f1",
       "name": "HTTP Request Google API para Contar Tokens",
       "retryOnFail": true,
       "credentials": {
@@ -243,10 +243,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -976,
-        1840
+        -2608,
+        3408
       ],
-      "id": "740aff02-5744-49ae-826e-fe97ffb2ee58",
+      "id": "a5d9a047-7d18-43c1-944b-210dfe209368",
       "name": "HTTP Request de Embeddings para CCAD",
       "retryOnFail": true,
       "credentials": {
@@ -270,10 +270,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -736,
-        1616
+        -2368,
+        3184
       ],
-      "id": "733a9f3e-c4ac-4e53-9f35-80b7c0010a38",
+      "id": "474dcf30-7479-4862-8142-53e2c5a4e7d3",
       "name": "HTTP Request Google API para Embedding",
       "retryOnFail": true,
       "credentials": {
@@ -297,10 +297,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -2480,
-        1600
+        -4112,
+        3168
       ],
-      "id": "f0d52c16-8db6-451a-ac87-eff9aa3bf3fd",
+      "id": "f3636977-3088-41c9-bdd3-4465bde76a96",
       "name": "Sticky Note1"
     },
     {
@@ -317,10 +317,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -512,
-        1840
+        -2144,
+        3408
       ],
-      "id": "41ba4173-d4fa-4705-b646-ae3caacaea72",
+      "id": "01f58c51-e882-4c00-93a4-3df91992ec42",
       "name": "HTTP Request API de Pinecone (Ollama)",
       "retryOnFail": true,
       "credentials": {
@@ -344,10 +344,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        -512,
-        1616
+        -2144,
+        3184
       ],
-      "id": "9efb1a01-7d78-4539-aba4-9fe5081325dc",
+      "id": "96af65bb-f392-404b-ad03-350d410c725e",
       "name": "HTTP Request API de Pinecone (Gemini)",
       "retryOnFail": true,
       "credentials": {
@@ -366,10 +366,10 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -592,
-        1424
+        -2224,
+        2992
       ],
-      "id": "d6578d26-009e-4900-af35-5a10be345e2e",
+      "id": "055518df-14c2-4db5-9a4a-5ea206a85b6d",
       "name": "Sticky Note"
     },
     {
@@ -379,10 +379,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -160,
-        1696
+        -1792,
+        3264
       ],
-      "id": "65395f54-d752-4e39-956f-e9ddbe7363cc",
+      "id": "b1b099d1-4bc0-4081-8c8e-495703df7636",
       "name": "Clear response"
     },
     {
@@ -433,10 +433,10 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.3,
       "position": [
-        80,
-        1696
+        -1552,
+        3264
       ],
-      "id": "fc4b06a7-d744-4ba6-82f3-011ebab849e5",
+      "id": "0d32c545-e161-46af-919f-fce7307119e0",
       "name": "Call 'RAG-no-memory'"
     },
     {
@@ -446,10 +446,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        896,
-        1504
+        -736,
+        3072
       ],
-      "id": "8ed0e350-8a83-403c-b619-ebae4eca82eb",
+      "id": "f535285d-733d-46b1-830f-428c9cc50c21",
       "name": "fallback"
     },
     {
@@ -459,10 +459,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        896,
-        1888
+        -736,
+        3456
       ],
-      "id": "9f00aaef-ba7b-40e7-9aa6-b5deaf260f32",
+      "id": "a4cba2ca-a9cf-4ba3-8ec9-6dfb646bdc43",
       "name": "Canned answer"
     },
     {
@@ -472,10 +472,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        896,
-        1696
+        -736,
+        3264
       ],
-      "id": "46ad43f9-0000-4c3f-a88d-2f8a6a8983b1",
+      "id": "9dad0fc9-04bb-4d57-a9ca-466be228ea52",
       "name": "Redireccionar a un humano"
     },
     {
@@ -555,10 +555,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
       "position": [
-        304,
-        1680
+        -1328,
+        3248
       ],
-      "id": "a40806ea-8d33-4de0-9d9e-7c9309e9a2e8",
+      "id": "16b01e72-161a-4b79-9927-2bd0458736b1",
       "name": "Switch1"
     },
     {
@@ -580,7 +580,7 @@
             "dataset_item_id": "={{ $('Ciclo sobre Todas las Entradas').item.json.id }}",
             "model_supplier": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.supplier }}",
             "embedding_model_name": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}",
-            "embedding_total_tokens": "={{ $if($('HTTP Request Google API para Contar Tokens').isExecuted, $('HTTP Request Google API para Contar Tokens').item.json.promptTokensDetails[0].tokenCount, $('HTTP Request de Embeddings para CCAD').item.json.prompt_eval_count) }}"
+            "embedding_total_tokens": "={{ $if($('HTTP Request Google API para Contar Tokens').isExecuted, $('HTTP Request Google API para Contar Tokens').item.json.promptTokensDetails[0].tokenCount, $('HTTP Request de Embeddings para CCAD').item.json.usage.total_tokens) }}"
           },
           "matchingColumns": [
             "message_from_id_firstItem",
@@ -680,11 +680,11 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        1440,
-        1984
+        -192,
+        3552
       ],
       "name": "Call langfuse_save_trace",
-      "id": "728c2cdd-50ae-4659-96c1-0f45bdfd669c"
+      "id": "7a013973-cbf1-4a10-9d47-400912dece72"
     },
     {
       "parameters": {
@@ -693,10 +693,10 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1648,
-        1984
+        32,
+        3552
       ],
-      "id": "579e072a-a37d-4841-84a6-77cb5d831980",
+      "id": "f78ba040-9013-4942-bf97-2458c64b0fe4",
       "name": "Wait",
       "webhookId": "f7378e81-2ef5-4c87-9ca7-d53c4a5adf9d"
     }
@@ -707,6 +707,15 @@
         "json": {},
         "pairedItem": {
           "item": 0
+        }
+      }
+    ],
+    "Call 'RAG-no-memory'": [
+      {
+        "json": {
+          "output_response_type": "canned_answer",
+          "model_execution_id": 4476,
+          "output_response_num": 0
         }
       }
     ]
@@ -960,7 +969,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "9698cc4d-eb94-42b9-a4f7-28d4c6834a52",
+  "versionId": "00e10dd0-32ee-4d9e-96ac-fe366abd42ee",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"

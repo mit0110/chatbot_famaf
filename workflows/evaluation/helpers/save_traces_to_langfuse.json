@@ -18,10 +18,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1088,
-        176
+        384,
+        464
       ],
-      "id": "c5e52004-3721-4a8f-be04-830c6950a9c8",
+      "id": "cd9389ca-1e45-487a-974e-8f4b9da04f3e",
       "name": "Establecer Nombre para Guardar la Traza"
     },
     {
@@ -41,16 +41,16 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\",\n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\",\n              \"name\": \"RAG: {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }} + {{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\",\n              \n              \"kind\": 1,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.input) }} }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.output) }} }\n                },\n                {\n                  \"key\": \"langfuse.tags\", \n                  \"value\": {\n                    \"arrayValue\": {\n                      \"values\": [\n                        { \"stringValue\": \"gen:{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" },\n                        { \"stringValue\": \"emb:{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                      ]\n                    }\n                  }\n                },\n                \n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelProvider, 'unknown')}}\" }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.promptTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.completionTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.totalTokens }}\n                  }\n                },\n                {\n                  \"key\": \"embedding.model_name\",\n                  \"value\": { \"stringValue\": \"{{ $('Call get_execution_info').item.json.modelName }}\" }\n                },\n                {\n                  \"key\": \"embedding.usage.tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Start').item.json.embedding_total_tokens || 0 }} \n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
+        "jsonBody": "={\n  \"resourceSpans\": [\n    {\n      \"resource\": {\n        \"attributes\": [\n          {\n            \"key\": \"service.name\",\n            \"value\": { \"stringValue\": \"n8n-chatbot\" }\n          }\n        ]\n      },\n      \"scopeSpans\": [\n        {\n          \"scope\": { \"name\": \"n8n-workflow\" },\n          \"spans\": [\n            {\n              \"traceId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_trace_id }}\",\n              \"spanId\": \"{{ $('Generar Datos Necesarios para OTLP').item.json.otel_span_id }}\",\n              \"name\": \"RAG: {{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }} + {{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\",\n              \n              \"kind\": 1,\n              \"startTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.start_time }},\n              \"endTimeUnixNano\": {{ $('Generar Datos Necesarios para OTLP').item.json.end_time }},\n              \"attributes\": [\n                {\n                  \"key\": \"input.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.input) }} }\n                },\n                {\n                  \"key\": \"output.value\",\n                  \"value\": { \"stringValue\": {{ JSON.stringify($('Start').item.json.output) }} }\n                },\n                {\n                  \"key\": \"langfuse.tags\", \n                  \"value\": {\n                    \"arrayValue\": {\n                      \"values\": [\n                        { \"stringValue\": \"gen:{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" },\n                        { \"stringValue\": \"emb:{{ $('Start').item.json.embedding_model || $('Start').item.json.embedding_model_name || 'unknown' }}\" }\n                      ]\n                    }\n                  }\n                },\n                \n                {\n                  \"key\": \"gen_ai.system\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelProvider, 'unknown')}}\" }\n                },\n                {\n                  \"key\": \"gen_ai.request.model\",\n                  \"value\": { \"stringValue\": \"{{ $if($('Call get_execution_info').isExecuted, $('Call get_execution_info').item.json.modelName, 'unknown') }}\" }\n                },\n                {\n                  \"key\": \"gen_ai.usage.input_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.promptTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.completion_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.completionTokens }}\n                  }\n                },\n                {\n                  \"key\": \"gen_ai.usage.total_tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Call get_execution_info').item.json.totalTokens }}\n                  }\n                },\n                {\n                  \"key\": \"embedding.model_name\",\n                  \"value\": { \"stringValue\": \"{{ $('Start').item.json.embedding_model_name }}\" }\n                },\n                {\n                  \"key\": \"embedding.usage.tokens\",\n                  \"value\": {\n                    \"intValue\": {{ $('Start').item.json.embedding_total_tokens || 0 }} \n                  }\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1328,
-        176
+        624,
+        464
       ],
-      "id": "db22076f-1965-435b-a1b9-06146cbaf84b",
+      "id": "51679a1e-2635-4106-bc75-190a9440d706",
       "name": "Registrar en Langfuse Contexto Recuperado",
       "credentials": {
         "httpBasicAuth": {
@@ -66,10 +66,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        384,
-        176
+        -320,
+        464
       ],
-      "id": "93e3c7ba-5125-42d8-82d3-2448289f145a",
+      "id": "76f5f8ca-0945-42b5-b95a-4129b9e052c4",
       "name": "Generar Datos Necesarios para OTLP",
       "executeOnce": false
     },
@@ -107,13 +107,13 @@
           ]
         }
       },
-      "id": "157146b6-2cac-4550-9fb8-861f28deaf54",
+      "id": "ac4f234c-ac5c-4c27-9f92-b7cfbf2d0bdc",
       "typeVersion": 1.1,
       "name": "Start",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "position": [
-        160,
-        176
+        -544,
+        464
       ]
     },
     {
@@ -138,11 +138,11 @@
       "type": "n8n-nodes-base.executeWorkflow",
       "typeVersion": 1.2,
       "position": [
-        848,
-        176
+        144,
+        464
       ],
       "name": "Call get_execution_info",
-      "id": "84d5dcde-72a1-4e01-bbad-d0c461aa7872"
+      "id": "2b3d9d19-7925-4ebc-82ea-7eedd9ddbde6"
     },
     {
       "parameters": {
@@ -181,10 +181,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        1552,
-        176
+        848,
+        464
       ],
-      "id": "8121a6c7-bdd7-45fb-8183-9fcab6b94799",
+      "id": "a3568719-2289-49b5-97ff-d343b902358d",
       "name": "Enlazar con el Dataset en LangFuse vía API",
       "credentials": {
         "httpBasicAuth": {
@@ -210,10 +210,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        608,
-        176
+        -96,
+        464
       ],
-      "id": "306d67f5-363d-4e26-a127-c8248a30a7c8",
+      "id": "ccd2e275-cc76-4c22-bc31-673a4686293d",
       "name": "Extrear Solo Id de Ejecución"
     }
   ],
@@ -221,14 +221,13 @@
     "Start": [
       {
         "json": {
-          "input": "\"¿Cómo inicio el trámite para cursar dos carreras en paralelo en FAMAF?\"",
-          "output": "Para solicitar cambiar de carrera o cursar en paralelo varias de la oferta de grado de FAMAF, deberás llenar el siguiente formulario:\n\nhttps://docs.google.com/forms/d/e/1FAIpQLSeNA8jXxGARDeebj0TdjXMmmXGNph0gZQPkzfliWZbcbN9KdQ/viewform\n\nLas solicitudes se recibirán hasta la finalización de la primera semana de diciembre y se reabrirán el primer día hábil de febrero; serán resueltas en el término de 15 días hábiles a partir de la presentación y se informará por correo electrónico.\n\nEl trámite debe iniciarse por cada carrera que se desee cursar (por separado).\n\nAl aceptarse la inscripción a cursar de manera paralela la carrera nueva, se transcribe automáticamente la actuación académica en las materias correspondientes del Anexo I de la Resolución RHCD-2024-397-E-UNC-DEC#FAMAF (por mayor información, remitirse a su Artículo 1°).",
-          "query_start_time_ms": 1775050019833,
-          "execution_id": 4431,
-          "dataset_item_id": "2355aa32-bd8b-4f54-91b9-00a900ebb848",
-          "model_supplier": "google",
-          "embedding_model_name": "gemini-embedding-001",
-          "embedding_total_tokens": 16
+          "input": "\"¿Cómo me postulo a la Beca Manuel Belgarno?\"",
+          "output": "Para inscribirte a las Becas Nutrirse del comedor universitario, podés seguir el siguiente instructivo de la UNC:\n\nhttps://www.unc.edu.ar/sites/default/files/Tutorial%20Becas%202025.pdf\n\nPara más información sobre la beca podés visitar el siguiente enlace: https://www.unc.edu.ar/vida-estudiantil/becas-nutrirse-2025",
+          "query_start_time_ms": 1775655735959,
+          "execution_id": 4476,
+          "dataset_item_id": "6f201504-87ef-41be-b6d7-b632f55250a8",
+          "model_supplier": "ollama",
+          "embedding_model_name": "ollama/bge-m3:latest"
         }
       }
     ]
@@ -306,7 +305,7 @@
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "96a92eb5-2b85-4e0a-9915-a22e87e6a707",
+  "versionId": "115fac64-9d8a-4ef0-ab5e-a152f5973890",
   "meta": {
     "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
   },

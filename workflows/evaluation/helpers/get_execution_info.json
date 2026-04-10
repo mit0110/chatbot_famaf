@@ -1,0 +1,101 @@
+{
+  "name": "get_execution_info",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "28798e8a-4181-4a7d-adcd-6bbd0fc5322d",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        832,
+        272
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "execution",
+        "operation": "get",
+        "executionId": "={{ $json.execution_id }}",
+        "options": {
+          "activeWorkflows": true
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        272
+      ],
+      "id": "578e7847-b7d7-46ff-9a9b-23d73683fe58",
+      "name": "Obtener Información de la Ejecución del Agente",
+      "credentials": {
+        "n8nApi": {
+          "id": "LBdNV16JzKQuqHOB",
+          "name": "Chatbot FAMAF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const runData = $input.first().json.data.resultData.runData;\nconst nodosWorkflow = $input.first().json.workflowData.nodes;\n\nlet totalCompletionTokens = 0;\nlet totalPromptTokens = 0;\nlet totalTokens = 0;\n\nlet proveedor = \"Desconocido\";\nlet nombreNodoEjecutado = \"\";\nlet ejecuciones = [];\n\n// Verificar proveedor del modelo\nif (runData['Ollama Chat Model']) {\n    ejecuciones = runData['Ollama Chat Model'];\n    proveedor = \"ollama\";\n    nombreNodoEjecutado = \"Ollama Chat Model\";\n} else if (runData['Google Gemini Chat Model']) {\n    ejecuciones = runData['Google Gemini Chat Model'];\n    proveedor = \"google\";\n    nombreNodoEjecutado = \"Google Gemini Chat Model\";\n} else if (runData['OpenAI Chat Model']) {\n    ejecuciones = runData['OpenAI Chat Model'];\n    proveedor = \"openai\";\n    nombreNodoEjecutado = \"OpenAI Chat Model\";\n} else {\n    return { error: \"No se encontró Ollama, Gemini ni OpenAI en esta ejecución\" };\n}\n\n// Extraer nombre del modelo usado\nlet modeloEspecifico = \"Desconocido\";\n\nif (ejecuciones.length > 0) {\n    const opcionesRuntime = ejecuciones[0].inputOverride?.ai_languageModel?.[0]?.[0]?.json?.options;\n    if (opcionesRuntime && opcionesRuntime.model) {\n        modeloEspecifico = opcionesRuntime.model;\n    }\n}\n\n// Para modelos que no guardan el nombre en las ejecuciones\nif (modeloEspecifico === \"Desconocido\") {\n    const nodoConfigurado = nodosWorkflow.find(nodo => nodo.name === nombreNodoEjecutado);\n    if (nodoConfigurado && nodoConfigurado.parameters) {\n        modeloEspecifico = nodoConfigurado.parameters.model || nodoConfigurado.parameters.modelName || \"Desconocido\";\n    }\n}\n\n// Contamos los tokens de todas las ejecuciones\nfor (const ejecucion of ejecuciones) {\n    try {\n        const jsonDatos = ejecucion.data?.ai_languageModel?.[0]?.[0]?.json;\n        if (!jsonDatos) continue; \n\n        let tokensInfo;\n        \n        if (proveedor === \"ollama\") {\n            tokensInfo = jsonDatos.tokenUsageEstimate;\n        } else if (proveedor === \"google\" || proveedor === \"openai\") {\n            // n8n suele normalizar los tokens en 'tokenUsage'\n            tokensInfo = jsonDatos.tokenUsage;\n            \n            // Fallback por si devuelve el formato crudo nativo de la API de OpenAI\n            if (!tokensInfo && jsonDatos.usage) {\n                tokensInfo = {\n                    completionTokens: jsonDatos.usage.completion_tokens,\n                    promptTokens: jsonDatos.usage.prompt_tokens,\n                    totalTokens: jsonDatos.usage.total_tokens\n                };\n            }\n        }\n\n        if (tokensInfo) {\n            totalCompletionTokens += (tokensInfo.completionTokens || 0);\n            totalPromptTokens += (tokensInfo.promptTokens || 0);\n            totalTokens += (tokensInfo.totalTokens || 0);\n        }\n    } catch (error) {\n        continue;\n    }\n}\n\nreturn {\n    modelProvider: proveedor,\n    modelName: modeloEspecifico,\n    completionTokens: totalCompletionTokens,\n    promptTokens: totalPromptTokens,\n    totalTokens: totalTokens\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        272
+      ],
+      "id": "2c2fcd4a-c3a5-44ed-ae1b-6a76a53712df",
+      "name": "Extraer Consumo de Tokens y Nombre del Modelo"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "execution_id": 4431
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Obtener Información de la Ejecución del Agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Información de la Ejecución del Agente": {
+      "main": [
+        [
+          {
+            "node": "Extraer Consumo de Tokens y Nombre del Modelo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "041b1e94-06d3-4719-b8ed-0d274046a15d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "9aQr94qKsMwm6jjQ",
+  "tags": []
+}

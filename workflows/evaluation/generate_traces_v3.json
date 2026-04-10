@@ -1,0 +1,979 @@
+{
+  "name": "generate_traces_v3",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -3344,
+        3296
+      ],
+      "id": "82671480-5c4a-477b-965a-24edce90dadd",
+      "name": "Ciclo sobre Todas las Entradas"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8e2dc3dc-14e4-42d7-b068-c7bf351a6c1f",
+              "name": "start_time_ms",
+              "value": "={{ Date.now() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3120,
+        3312
+      ],
+      "id": "9cd01361-e329-47c8-b95b-b97daa875450",
+      "name": "Establecer Tiempo Inicial de la Consulta"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -4240,
+        3296
+      ],
+      "id": "5d375f7e-0678-47ee-afd9-57863d283dac",
+      "name": "Ejecución Manual"
+    },
+    {
+      "parameters": {
+        "url": "=http://langfuse-web:3000/api/public/dataset-items?datasetName={{ $json.langfuse_dataset_name }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -3792,
+        3296
+      ],
+      "id": "227f16fa-f457-4410-a600-25132556f577",
+      "name": "Obtener Conjunto de Datos",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "PnTQJX5RG9lzy0DT",
+          "name": "Localhost credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -3568,
+        3296
+      ],
+      "id": "1354de5f-c404-4378-b089-b2c3cf17b1b7",
+      "name": "Agregar Items a un Arreglo"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "76ea9122-ad9a-4b4f-ba1b-6bfbee82673d",
+              "name": "supplier",
+              "value": "ollama",
+              "type": "string"
+            },
+            {
+              "id": "085c9e9a-3c58-4a3b-acee-6a81f6752c6a",
+              "name": "embedding_model_name",
+              "value": "ollama/bge-m3:latest",
+              "type": "string"
+            },
+            {
+              "id": "90b7675a-b5e2-4994-964c-d07c0867fb71",
+              "name": "langfuse_dataset_name",
+              "value": "faq_dataset_v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4016,
+        3296
+      ],
+      "id": "9c421217-a9c3-48f2-bb5b-3a50ef56ba52",
+      "name": "Establecer Nombre del Modelo de Embedding"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.supplier.toLowerCase() }}",
+                    "rightValue": "google",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7328d7ab-bda4-4236-af3e-ede26bb94149"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "google"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d9913025-d48b-48c6-bf8a-d2585cf305bb",
+                    "leftValue": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.supplier.toLowerCase() }}",
+                    "rightValue": "ollama",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ccad"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -2896,
+        3312
+      ],
+      "id": "13072308-cbb3-4a57-99f3-2d118a24446b",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}:countTokens",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input )}}\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2608,
+        3184
+      ],
+      "id": "32f87fa9-fd77-41ec-92e6-21a98a7543f1",
+      "name": "HTTP Request Google API para Contar Tokens",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PXX7iEV6Q8A5dVJh",
+          "name": "Google API"
+        },
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://chat.ccad.unc.edu.ar/api/v1/embeddings",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"{{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}\", \n  \"input\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }}\n}",
+        "options": {
+          "timeout": 1000000000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2608,
+        3408
+      ],
+      "id": "a5d9a047-7d18-43c1-944b-210dfe209368",
+      "name": "HTTP Request de Embeddings para CCAD",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cTkg0fzk6daEbn92",
+          "name": "Ollama CCAD"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/{{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}:embedContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": {\n    \"parts\": [\n      {\n        \"text\": {{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }}\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2368,
+        3184
+      ],
+      "id": "474dcf30-7479-4862-8142-53e2c5a4e7d3",
+      "name": "HTTP Request Google API para Embedding",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "PXX7iEV6Q8A5dVJh",
+          "name": "Google API"
+        },
+        "httpBasicAuth": {
+          "id": "ZUMKADCxhyCHSnyF",
+          "name": "Credencial OLTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Importante\n\n**Cambiar el ejecutar un nuevo modelo**",
+        "height": 352,
+        "width": 304,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -4112,
+        3168
+      ],
+      "id": "f3636977-3088-41c9-bdd3-4465bde76a96",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://ollama-bge-m3-1024-7j6pn4v.svc.aped-4627-b74a.pinecone.io/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"vector\": {{ JSON.stringify($json.data[0].embedding)}},\n  \"namespace\": \"faq-dataset-v1\",\n  \"topK\": 4,\n  \"includeMetadata\": true,\n  \"includeValues\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2144,
+        3408
+      ],
+      "id": "01f58c51-e882-4c00-93a4-3df91992ec42",
+      "name": "HTTP Request API de Pinecone (Ollama)",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "nfpYqLAMxsZx4zPU",
+          "name": "Pinecone-API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google-gemini-embedding-001-3072-7j6pn4v.svc.aped-4627-b74a.pinecone.io/query",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"vector\": {{ JSON.stringify($json.embedding.values) }},\n  \"namespace\": \"faq-dataset-v1\",\n  \"topK\": 4,\n  \"includeMetadata\": true,\n  \"includeValues\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2144,
+        3184
+      ],
+      "id": "96af65bb-f392-404b-ad03-350d410c725e",
+      "name": "HTTP Request API de Pinecone (Gemini)",
+      "retryOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "nfpYqLAMxsZx4zPU",
+          "name": "Pinecone-API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Advertencia\n\nSe deben cambiar manualmente los índices de Pinecone, por lo que ya tienen que estar creados.",
+        "height": 640,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        2992
+      ],
+      "id": "055518df-14c2-4db5-9a4a-5ea206a85b6d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.first().json.matches;\n\nconsole.log(items)\n\nconst results = items.map(item => ({\n  answer: item.metadata.answer,\n  score: item.score\n}));\n\nreturn {\n  json: {\n    data: results\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1792,
+        3264
+      ],
+      "id": "b1b099d1-4bc0-4081-8c8e-495703df7636",
+      "name": "Clear response"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "YcNca6cCqlDZc7FN",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/YcNca6cCqlDZc7FN",
+          "cachedResultName": "RAG_no_memory"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ $('Ciclo sobre Todas las Entradas').item.json.input }}",
+            "answers": "={{ $json.data }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "answers",
+              "displayName": "answers",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -1552,
+        3264
+      ],
+      "id": "0d32c545-e161-46af-919f-fce7307119e0",
+      "name": "Call 'RAG-no-memory'"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Disculpa, por el momento no cuento con información específica sobre esa consulta.\n\nPara obtener una respuesta precisa, te sugerimos comunicarte directamente por correo electrónico con el área correspondiente, según el tema de tu consulta:\n\n- despachoestudiantes@famaf.unc.edu.ar: preinscripciones e inscripciones.\n- usuarios.unc@famaf.unc.edu.ar: consultas sobre cuentas @unc o @mi.unc.\n- sae@famaf.unc.edu.ar: becas, tutorías y tramitación del Régimen Especial de Cursado.\n- nfigueroa@unc.edu.ar (Oficialía): gestión de diplomas y certificados, inscripción para cursar o rendir Trabajos Especiales y consultas sobre actas de examen.\n\nEllos van a poder orientarte mejor según tu situación.`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        3072
+      ],
+      "id": "f535285d-733d-46b1-830f-428c9cc50c21",
+      "name": "fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Para n8n Code node v2 (tu versión actual)\nconst responseNum = $input.first().json.output_response_num;\nconst clearResponseData = $('Clear response').first().json.data;\nconst answer = clearResponseData[responseNum].answer;\n\nreturn [{\n  json: {\n    response: answer\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        3456
+      ],
+      "id": "a4cba2ca-a9cf-4ba3-8ec9-6dfb646bdc43",
+      "name": "Canned answer"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    response: `Para este tipo de consultas, es mejor que hables directamente con una persona de Despacho de Alumnos. Podés contactarlos por email a despachoestudiantes@famaf.unc.edu.ar y ellos te ayudarán con tu situación..`\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -736,
+        3264
+      ],
+      "id": "9dad0fc9-04bb-4d57-a9ca-466be228ea52",
+      "name": "Redireccionar a un humano"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output_response_type }}",
+                    "rightValue": "fallback",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "581bed4f-0b42-4b46-b815-f643876bf23d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bde0ff6e-3230-469c-a1d9-80c493c5f81f",
+                    "leftValue": "={{ $json.output_response_type }}",
+                    "rightValue": "human_needed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fc2a07dc-0dc3-4582-bd25-f97baedff71a",
+                    "leftValue": "={{ $json.output_response_type }}",
+                    "rightValue": "canned_answer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -1328,
+        3248
+      ],
+      "id": "16b01e72-161a-4b79-9927-2bd0458736b1",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "3kt2JuRYOlcefJwk",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/3kt2JuRYOlcefJwk",
+          "cachedResultName": "save_traces_to_langfuse"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "execution_id": "={{ $('Call \\'RAG-no-memory\\'').item.json.model_execution_id }}",
+            "input": "={{ JSON.stringify($('Ciclo sobre Todas las Entradas').item.json.input) }}",
+            "output": "={{ $json.response }}",
+            "query_start_time_ms": "={{ $('Establecer Tiempo Inicial de la Consulta').item.json.start_time_ms }}",
+            "dataset_item_id": "={{ $('Ciclo sobre Todas las Entradas').item.json.id }}",
+            "model_supplier": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.supplier }}",
+            "embedding_model_name": "={{ $('Establecer Nombre del Modelo de Embedding').item.json.embedding_model_name }}",
+            "embedding_total_tokens": "={{ $if($('HTTP Request Google API para Contar Tokens').isExecuted, $('HTTP Request Google API para Contar Tokens').item.json.promptTokensDetails[0].tokenCount, $('HTTP Request de Embeddings para CCAD').item.json.usage.total_tokens) }}"
+          },
+          "matchingColumns": [
+            "message_from_id_firstItem",
+            "message_text_firstItem",
+            "result_text",
+            "query_start_time_firstItem"
+          ],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "query_start_time_ms",
+              "displayName": "query_start_time_ms",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "dataset_item_id",
+              "displayName": "dataset_item_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "model_supplier",
+              "displayName": "model_supplier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "embedding_model_name",
+              "displayName": "embedding_model_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "embedding_total_tokens",
+              "displayName": "embedding_total_tokens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        3552
+      ],
+      "name": "Call langfuse_save_trace",
+      "id": "7a013973-cbf1-4a10-9d47-400912dece72"
+    },
+    {
+      "parameters": {
+        "amount": 15
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        3552
+      ],
+      "id": "f78ba040-9013-4942-bf97-2458c64b0fe4",
+      "name": "Wait",
+      "webhookId": "f7378e81-2ef5-4c87-9ca7-d53c4a5adf9d"
+    }
+  ],
+  "pinData": {
+    "Ejecución Manual": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Call 'RAG-no-memory'": [
+      {
+        "json": {
+          "output_response_type": "canned_answer",
+          "model_execution_id": 4476,
+          "output_response_num": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Ciclo sobre Todas las Entradas": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Establecer Tiempo Inicial de la Consulta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Tiempo Inicial de la Consulta": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ejecución Manual": {
+      "main": [
+        [
+          {
+            "node": "Establecer Nombre del Modelo de Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Conjunto de Datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar Items a un Arreglo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar Items a un Arreglo": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Establecer Nombre del Modelo de Embedding": {
+      "main": [
+        [
+          {
+            "node": "Obtener Conjunto de Datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Google API para Contar Tokens",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request de Embeddings para CCAD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request de Embeddings para CCAD": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request API de Pinecone (Ollama)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Google API para Contar Tokens": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Google API para Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Google API para Embedding": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request API de Pinecone (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request API de Pinecone (Ollama)": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request API de Pinecone (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Clear response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear response": {
+      "main": [
+        [
+          {
+            "node": "Call 'RAG-no-memory'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "fallback": {
+      "main": [
+        [
+          {
+            "node": "Call langfuse_save_trace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Canned answer": {
+      "main": [
+        [
+          {
+            "node": "Call langfuse_save_trace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redireccionar a un humano": {
+      "main": [
+        [
+          {
+            "node": "Call langfuse_save_trace",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Redireccionar a un humano",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Canned answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'RAG-no-memory'": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call langfuse_save_trace": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Ciclo sobre Todas las Entradas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "00e10dd0-32ee-4d9e-96ac-fe366abd42ee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6db067c18bbea18af7de927b8d9beea6bfc107e978f808bae57f888340de31de"
+  },
+  "id": "yltAlkqMULJcsOo1",
+  "tags": []
+}
